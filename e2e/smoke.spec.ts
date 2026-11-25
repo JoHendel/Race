@@ -64,7 +64,7 @@ test("Rennen: Countdown, eine Runde, Ergebnistabelle", async ({ page }) => {
 });
 
 test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ browser }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(420_000);
   const ctx = await browser.newContext();
   const host = await ctx.newPage();
   const client = await ctx.newPage();
@@ -82,9 +82,12 @@ test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ b
   await expect(host.getByTestId("players").locator("li")).toHaveCount(2);
   await expect(host.getByTestId("start-race")).toBeEnabled();
   await host.getByTestId("start-race").click();
+  // Skip the intro camera flight (slow on CI runners with software rendering).
+  await host.waitForFunction(() => Boolean((window as ApexWindow).apex?.race), undefined, { timeout: 120_000 });
+  await host.keyboard.press("Enter");
 
-  await host.waitForFunction(() => (window as ApexWindow).apex?.race?.phase === "racing", undefined, { timeout: 60_000 });
-  await client.waitForFunction(() => (window as ApexWindow).apex?.race?.phase === "racing", undefined, { timeout: 60_000 });
+  await host.waitForFunction(() => (window as ApexWindow).apex?.race?.phase === "racing", undefined, { timeout: 150_000 });
+  await client.waitForFunction(() => (window as ApexWindow).apex?.race?.phase === "racing", undefined, { timeout: 150_000 });
   // Beide Seiten sehen 10 Autos, und das jeweils andere menschliche Auto bewegt sich.
   const view = (page: Page) =>
     page.evaluate(() => {
@@ -102,8 +105,8 @@ test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ b
     const v = await view(page);
     return Math.hypot(v.x - start.x, v.z - start.z);
   };
-  await expect.poll(() => moved(host, h0), { timeout: 45_000, intervals: [1000] }).toBeGreaterThan(3);
-  await expect.poll(() => moved(client, c0), { timeout: 45_000, intervals: [1000] }).toBeGreaterThan(3);
+  await expect.poll(() => moved(host, h0), { timeout: 90_000, intervals: [1000] }).toBeGreaterThan(3);
+  await expect.poll(() => moved(client, c0), { timeout: 90_000, intervals: [1000] }).toBeGreaterThan(3);
   expect([...hostErrors, ...clientErrors]).toEqual([]);
   await ctx.close();
 });
