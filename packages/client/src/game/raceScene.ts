@@ -6,8 +6,16 @@ import {
   FINISH_GRACE_TIME,
   LapTracker,
   PERFECT_START_WINDOW,
-  STARTER_CAR,
+  CARS,
+  carById,
   computeAwards,
+  defaultLooks,
+  raceReward,
+  statsFor,
+  stockTuning,
+  type CarLooks,
+  type RaceReward,
+  type Tuning,
   formatTime,
   pointsForPlace,
   type CupStandings,
@@ -41,6 +49,14 @@ export interface GridEntry {
   name: string;
   color: number;
   human: boolean;
+  car?: { id: string; tuning: unknown; looks: unknown };
+}
+
+export interface RewardSummary {
+  reward: RaceReward;
+  levelUp: boolean;
+  level: number;
+  unlocked: string[];
 }
 
 interface Racer {
@@ -71,6 +87,8 @@ export interface RaceOptions {
   playerName: string;
   /** Nur für Tests: Spieler fährt per Bot-Logik. */
   autopilot?: boolean;
+  /** Auto des lokalen Spielers (offline). */
+  playerCar?: { id: string; tuning: unknown; looks: unknown };
   /** Netzwerk: Rolle, eigene ID und Startaufstellung vom Host. */
   role?: NetRole;
   localId?: string;
@@ -84,6 +102,8 @@ export interface RaceCallbacks {
   onRestart: () => void;
   onMenu: () => void;
   onNext?: () => void;
+  /** Wird einmal aufgerufen, wenn das Ergebnis feststeht; liefert die Belohnung für die Anzeige. */
+  onReward?: (reward: RaceReward, info: { place: number; cupWin: boolean }) => RewardSummary;
 }
 
 /** Ein komplettes Rennen: Intro, Countdown, Runden, Zieleinlauf, Ergebnis – offline, als Host oder als Client. */
@@ -162,9 +182,13 @@ export class RaceScene {
       const isLocal = entry.id === localId;
       const simulatedBot = !entry.human && this.role !== "client";
       const remote = !isLocal && !simulatedBot;
+      const choice = entry.car ?? (isLocal ? options.playerCar : undefined) ?? RaceScene.botCar(entry, rnd);
+      const def = carById(choice.id);
+      const tuning = (choice.tuning as Tuning | undefined) ?? stockTuning();
+      const looks = (choice.looks as CarLooks | undefined) ?? defaultLooks(def);
       const car = new Car(
         this.world,
-        STARTER_CAR,
+        statsFor(def, tuning),
         isLocal
           ? {
               onDriftBoost: (level) => {
@@ -174,7 +198,7 @@ export class RaceScene {
               },
             }
           : {},
-        entry.color,
+        { def, looks },
       );
       const { pos, yaw } = this.track.gridSlot(slot);
       car.setResetPose(pos, yaw);
@@ -209,6 +233,14 @@ export class RaceScene {
     this.chase = new ChaseCamera(this.camera);
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
+  }
+
+  /** Bots fahren Autos aus den ersten drei Klassen in ihrer Farbe. */
+  static botCar(entry: GridEntry, rnd: () => number): { id: string; tuning: Tuning; looks: CarLooks } {
+    const pool = CARS.filter((c) => c.cls !== "hyper");
+    const def = pool[Math.floor(rnd() * pool.length)]!;
+    const looks = { ...defaultLooks(def), color: entry.color, rimColor: entry.color, underglow: entry.color, decal: "stripes" as const };
+    return { id: def.id, tuning: stockTuning(), looks };
   }
 
   /** Offline-Aufstellung: Spieler startet im hinteren Mittelfeld, der Rest sind Bots. */
@@ -528,7 +560,20 @@ export class RaceScene {
         ranked.map((r, i) => ({ id: r.id, name: r.name, color: r.color, place: i + 1, fastestLap: this.status(r).bestLap === fastest })),
       );
     }
+    this.grantReward();
     this.startPodium(this.ranking().slice(0, 3));
+  }
+
+  private rewardSummary: RewardSummary | null = null;
+
+  private grantReward(): void {
+    if (this.rewardSummary || !this.callbacks.onReward || this.options.autopilot) return;
+    const place = this.playerPlace;
+    const s = this.status(this.player);
+    const reward = raceReward(place, this.racers.length, s.finishTime !== null, s.drift ?? this.player.driftTime, s.overtakes ?? this.player.overtakes);
+    const cup = this.options.cup;
+    const cupWin = Boolean(cup && cup.standings.finished && cup.standings.table()[0]?.id === this.player.id);
+    this.rewardSummary = this.callbacks.onReward(reward, { place, cupWin });
   }
 
   private startPodium(top: Racer[], title?: string): void {
@@ -582,6 +627,7 @@ export class RaceScene {
           <tbody></tbody>
         </table>
         <div class="awards" data-testid="awards"></div>
+        <div class="reward"></div>
         ${cup ? `<div class="standings"></div>` : ""}
         <div class="results-actions">
           ${primary}
@@ -627,6 +673,11 @@ export class RaceScene {
             .map((a) => `<div class="award"><span class="t">${a.title}</span><b>${escapeHtml(a.name)}</b><span class="d">${a.detail}</span></div>`)
             .join("")
         : "";
+    }
+    const rewardEl = this.results.querySelector(".reward");
+    if (rewardEl && this.rewardSummary) {
+      const r = this.rewardSummary;
+      rewardEl.innerHTML = `<span>+${r.reward.xp} XP</span><span>+${r.reward.credits} Credits</span>${r.levelUp ? `<span class="hl">LEVEL ${r.level}!</span>` : ""}${r.unlocked.map((n) => `<span class="hl">Neu: ${escapeHtml(n)}</span>`).join("")}`;
     }
     const standings = this.results.querySelector(".standings");
     const cup = this.options.cup;
@@ -688,7 +739,7 @@ export class RaceScene {
   applyRemoteCar(id: string, state: CarState): void {
     const r = this.racers.find((x) => x.id === id);
     if (!r || !r.buffer || r.onPodium) return;
-    if (Math.abs(state.v) > STARTER_CAR.topSpeed * 1.6) return;
+    if (Math.abs(state.v) > r.car.stats.topSpeed * 1.6) return;
     r.buffer.push({ time: this.clock, p: state.p, q: state.q });
     r.car.speed = state.v;
     r.car.drifting = state.d === 1;

@@ -10,16 +10,9 @@ import {
   type VehicleStats,
 } from "@apex/shared";
 import type { ControlState } from "./input";
+import { buildCarModel } from "./carModel";
+import { carById, defaultLooks, type CarDef, type CarLooks } from "@apex/shared";
 
-const WHEELS = [
-  // [x, z, vorne?]
-  [-0.82, 1.3, true],
-  [0.82, 1.3, true],
-  [-0.82, -1.25, false],
-  [0.82, -1.25, false],
-] as const;
-
-const WHEEL_RADIUS = 0.36;
 const SUSPENSION_REST = 0.32;
 
 /** Ereignisse, auf die HUD und Effekte reagieren. */
@@ -32,7 +25,8 @@ export class Car {
   readonly mesh = new THREE.Group();
   readonly body: RAPIER.RigidBody;
   private readonly vehicle: RAPIER.DynamicRayCastVehicleController;
-  private readonly wheelMeshes: THREE.Object3D[] = [];
+  private readonly wheelMeshes: THREE.Object3D[];
+  private readonly wheels: [number, number, boolean][];
   readonly nitro: NitroTank;
 
   speed = 0;
@@ -46,10 +40,19 @@ export class Car {
 
   constructor(
     private readonly world: RAPIER.World,
-    readonly stats: VehicleStats,
+    readonly stats: VehicleStats & { extraMass?: number },
     private readonly events: CarEvents = {},
-    color: number = theme.cyan,
+    appearance: number | { def: CarDef; looks: CarLooks } = theme.cyan,
   ) {
+    const look =
+      typeof appearance === "number"
+        ? { def: carById("volt-hatch"), looks: { ...defaultLooks(carById("volt-hatch")), color: appearance, rimColor: appearance, underglow: appearance, spoiler: true } }
+        : appearance;
+    const model = buildCarModel(look.def, look.looks);
+    this.mesh.add(model.group);
+    this.wheels = model.wheels;
+    this.wheelMeshes = model.wheelMeshes;
+    const wheelRadius = model.wheelRadius;
     this.nitro = new NitroTank(stats.nitroCapacity);
     this.nitro.charge(stats.nitroCapacity * 0.5);
 
@@ -65,7 +68,7 @@ export class Car {
     );
     // Schwerpunkt tief legen, damit das Auto nicht so leicht kippt.
     this.body.setAdditionalMassProperties(
-      400,
+      stats.extraMass ?? 400,
       { x: 0, y: -0.45, z: 0 },
       { x: 400, y: 500, z: 200 },
       { x: 0, y: 0, z: 0, w: 1 },
@@ -75,8 +78,8 @@ export class Car {
     this.vehicle = world.createVehicleController(this.body);
     this.vehicle.indexUpAxis = 1;
     this.vehicle.setIndexForwardAxis = 2;
-    WHEELS.forEach(([x, z], i) => {
-      this.vehicle.addWheel({ x, y: -0.05, z }, { x: 0, y: -1, z: 0 }, { x: -1, y: 0, z: 0 }, SUSPENSION_REST, WHEEL_RADIUS);
+    this.wheels.forEach(([x, z], i) => {
+      this.vehicle.addWheel({ x, y: -0.05, z }, { x: 0, y: -1, z: 0 }, { x: -1, y: 0, z: 0 }, SUSPENSION_REST, wheelRadius);
       this.vehicle.setWheelSuspensionStiffness(i, 34);
       this.vehicle.setWheelMaxSuspensionTravel(i, 0.3);
       this.vehicle.setWheelSuspensionCompression(i, 4.4);
@@ -86,44 +89,6 @@ export class Car {
       this.vehicle.setWheelSideFrictionStiffness(i, 1);
     });
 
-    this.buildMesh(color);
-  }
-
-  private buildMesh(color: number): void {
-    const paint = new THREE.MeshPhysicalMaterial({ color: 0x2b3a8c, metalness: 0.55, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08 });
-    const glow = new THREE.MeshBasicMaterial({ color });
-    const glass = new THREE.MeshStandardMaterial({ color: 0x050816, metalness: 0.9, roughness: 0.15, envMapIntensity: 0.5 });
-
-    const base = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.45, 4.0), paint);
-    base.position.y = 0.15;
-    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.45, 1.9), glass);
-    cabin.position.set(0, 0.58, -0.2);
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.06, 4.02), glow);
-    stripe.position.y = 0.2;
-    const spoiler = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.06, 0.35), glow);
-    spoiler.position.set(0, 0.72, -1.85);
-    const under = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 3.8), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 }));
-    under.rotation.x = -Math.PI / 2;
-    under.position.y = -0.2;
-    const tail = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.1, 0.05), new THREE.MeshBasicMaterial({ color: theme.magenta }));
-    tail.position.set(0, 0.25, -2.02);
-    const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 0.05), new THREE.MeshBasicMaterial({ color: theme.white }));
-    head.position.set(0, 0.25, 2.02);
-    this.mesh.add(base, cabin, stripe, spoiler, under, tail, head);
-
-    const tire = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
-    const rim = new THREE.MeshBasicMaterial({ color });
-    for (let i = 0; i < WHEELS.length; i++) {
-      const wheel = new THREE.Group();
-      const t = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.3, 20), tire);
-      t.rotation.z = Math.PI / 2;
-      const r = new THREE.Mesh(new THREE.TorusGeometry(WHEEL_RADIUS * 0.62, 0.04, 6, 20), rim);
-      r.rotation.y = Math.PI / 2;
-      r.position.x = WHEELS[i]![0] < 0 ? -0.16 : 0.16;
-      wheel.add(t, r);
-      this.mesh.add(wheel);
-      this.wheelMeshes.push(wheel);
-    }
   }
 
   /** Entfernte Autos (andere Spieler) werden nicht simuliert, sondern auf empfangene Zustände gesetzt. */
@@ -199,7 +164,7 @@ export class Car {
   }
 
   get grounded(): boolean {
-    for (let i = 0; i < WHEELS.length; i++) if (this.vehicle.wheelIsInContact(i)) return true;
+    for (let i = 0; i < this.wheels.length; i++) if (this.vehicle.wheelIsInContact(i)) return true;
     return false;
   }
 
@@ -245,8 +210,8 @@ export class Car {
 
     const steerMax = steerAngle(s.maxSteer, this.speed, s.topSpeed) * (this.drifting ? 1.25 : 1);
     const steer = -controls.steer * steerMax;
-    for (let i = 0; i < WHEELS.length; i++) {
-      const front = WHEELS[i]![2];
+    for (let i = 0; i < this.wheels.length; i++) {
+      const front = this.wheels[i]![2];
       this.vehicle.setWheelSteering(i, front ? steer : 0);
       this.vehicle.setWheelEngineForce(i, front ? 0 : engine);
       this.vehicle.setWheelBrake(i, brake);
@@ -302,8 +267,8 @@ export class Car {
     const r = this.body.rotation();
     this.mesh.position.set(t.x, t.y, t.z);
     this.mesh.quaternion.set(r.x, r.y, r.z, r.w);
-    for (let i = 0; i < WHEELS.length; i++) {
-      const [x, z] = WHEELS[i]!;
+    for (let i = 0; i < this.wheels.length; i++) {
+      const [x, z] = this.wheels[i]!;
       const len = this.vehicle.wheelSuspensionLength(i) ?? SUSPENSION_REST;
       const w = this.wheelMeshes[i]!;
       w.position.set(x, -0.05 - len, z);

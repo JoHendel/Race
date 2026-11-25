@@ -1,5 +1,5 @@
 import type { LobbyPlayer, LobbySettings } from "@apex/net";
-import { MAX_LAPS, MIN_LAPS, TRACKS } from "@apex/shared";
+import { MAX_LAPS, MIN_LAPS, TRACKS, carById } from "@apex/shared";
 import { escapeHtml } from "../game/raceScene";
 
 export interface LobbyHandlers {
@@ -78,7 +78,7 @@ export class LobbyView {
       .map(
         (p) => `<li class="${p.clientId === this.h.clientId ? "me" : ""} ${p.connected ? "" : "offline"}">
           <span class="dot" style="background:#${p.color.toString(16).padStart(6, "0")}"></span>
-          <span class="pname">${escapeHtml(p.name)}${p.isHost ? " <em>Host</em>" : ""}</span>
+          <span class="pname">${escapeHtml(p.name)}${p.isHost ? " <em>Host</em>" : ""}${p.car ? `<span class="car">${escapeHtml(carById(p.car.id).name)}</span>` : ""}</span>
           <span class="state">${!p.connected ? "getrennt" : p.ready ? "bereit" : "wartet"}</span>
         </li>`,
       )

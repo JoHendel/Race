@@ -11,6 +11,10 @@ import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
+import { Garage } from "./garage/garage";
+import { currentCar, loadSave, storeSave } from "./save";
+import { applyReward, levelFromXp, type RaceReward } from "@apex/shared";
+import type { RewardSummary } from "./game/raceScene";
 
 interface ActiveScene {
   scene: THREE.Scene;
@@ -152,6 +156,7 @@ async function startOfflineRace(): Promise<void> {
     renderer,
     {
       cup: cup ?? undefined,
+      playerCar: currentCar(),
       track: cup ? cup.tracks[cup.round - 1]! : NEON_HARBOR,
       laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
@@ -162,6 +167,7 @@ async function startOfflineRace(): Promise<void> {
     {
       onRestart: () => void startOfflineRace(),
       onMenu: showMenu,
+      onReward: (reward, info) => grantReward(reward, info),
       onNext: () => {
         if (!cup) return;
         cup.round++;
@@ -173,6 +179,22 @@ async function startOfflineRace(): Promise<void> {
   setScene(race);
   expose({ race });
   busy = false;
+}
+
+function grantReward(reward: RaceReward, info: { cupWin: boolean }): RewardSummary {
+  let save = loadSave();
+  if (info.cupWin) save = { ...save, cupWins: save.cupWins + 1 };
+  const result = applyReward(save, reward);
+  storeSave(result.save);
+  return { reward, levelUp: result.levelUp, level: levelFromXp(result.save.xp), unlocked: result.unlocked };
+}
+
+function startGarage(): void {
+  clearScreen();
+  const garage = new Garage(ui!, renderer, showMenu);
+  current = garage;
+  setScene(garage);
+  expose({ garage });
 }
 
 function showMenu(): void {
@@ -192,6 +214,7 @@ function bindMenu(): void {
     void startOfflineRace();
   };
   document.querySelector<HTMLButtonElement>("#cup")!.onclick = () => startGrandPrix();
+  document.querySelector<HTMLButtonElement>("#garage")!.onclick = () => startGarage();
   document.querySelector<HTMLButtonElement>("#online")!.onclick = () => showOnlineMenu();
 }
 
@@ -345,6 +368,7 @@ async function beginOnlineRace(
         }
       },
       onMenu: showMenu,
+      onReward: (reward, info) => grantReward(reward, info),
     },
   );
   s.race = race;

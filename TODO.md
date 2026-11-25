@@ -18,10 +18,5 @@
 - [ ] Emotes online synchronisieren
 
 ## M5 – Garage
-- [ ] Daten für 12 Fahrzeuge in 4 Klassen (`packages/shared/src/cars.ts`), Werte 1–10 → Fahrwerte
-- [ ] Unterschiedliche Karosserien pro Klasse (prozedural, später CC0-Modelle in M7)
-- [ ] XP und Credits nach jedem Rennen, Level, Freischalten
-- [ ] Garage-Bildschirm: Auswahl, Werte-Balken, Vorschau mit Drehteller
-- [ ] Leistungs-Tuning (Motor, Getriebe, Reifen, Fahrwerk, Nitro, Gewicht; je 5 Stufen) und Leistungsindex
-- [ ] Optik-Tuning (Lack, Felgen, Spoiler, Unterboden, Decals, Startnummer, Reifenrauch, Hupe)
-- [ ] Speicherstand in localStorage, Auto-Auswahl in der Online-Lobby
+- [x] 12 Autos, Karosserien, XP/Credits/Level, Freischalten, Tuning, Optik, Speicherstand, Auto in der Lobby
+- [ ] PI-Limit als Schalter in der Lobby

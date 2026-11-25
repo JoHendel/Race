@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M5 starten – Fahrzeugdaten für alle 12 Autos in `packages/shared` anlegen, dann Garage-Bildschirm mit Auswahl, Freischalten und Speicherstand.
+**Nächster Schritt:** M6 starten – die restlichen 7 Strecken als Spline-Daten anlegen.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -9,8 +9,8 @@
 | M2 – Rennen allein | ✅ fertig (`v0.2.0`) |
 | M3 – Multiplayer | ✅ fertig (Host-Wechsel offen) |
 | M4 – Siegertreppe & Wertung | ✅ fertig |
-| M5 – Garage | ⏳ als Nächstes |
-| M6 – Alle Strecken | offen |
+| M5 – Garage | ✅ fertig |
+| M6 – Alle Strecken | ⏳ als Nächstes |
 | M7 – Grafik & Assets | offen |
 | M8 – Extra-Features | offen |
 | M9 – Sound & Feinschliff | offen |
@@ -40,3 +40,8 @@ Online-Rennen für bis zu 10 Spieler per Raumcode oder Link, ohne Konto und ohne
 3D-Siegertreppe auf einer Neon-Bühne über dem Hafenwasser: Plätze 1–3 mit ihren Autos auf den Stufen, drehender Goldpokal, 900 Konfetti-Teilchen, Feuerwerk, Scheinwerfer und Kamerafahrt; Emote-Leiste für Spieler auf dem Podest. Danach Ergebnistabelle mit Auszeichnungen (Schnellste Runde, Drift-König, Meiste Überholungen, Comeback des Rennens). Grand-Prix-Modus mit 4 Rennen, Gesamtwertung nach jedem Rennen und Cup-Siegerehrung nach Gesamtwertung. Online zeigen Host und Clients die Siegertreppe gemeinsam, sobald das Ergebnis feststeht.
 
 Offen: Grand Prix gibt es bisher nur offline; bis M6 besteht der Cup aus 4× Neon Harbor. Emotes auf dem Podest sind noch nicht online synchronisiert.
+
+### M5 – Garage
+12 Fahrzeuge in 4 Klassen mit eigenen Werten (1–10) und fünf prozeduralen Karosserieformen (Hatch, Coupé, Keil, Muscle, Hyper). Fortschritt mit XP, Level und Credits nach jedem Rennen; Autos werden per Level oder Grand-Prix-Sieg freigeschaltet. Garage mit Drehteller, Werte-Balken (Serie und getunt), Leistungsindex gegen das Klassenlimit, Leistungs-Tuning (Motor, Getriebe, Reifen, Fahrwerk, Nitro, Gewicht in je 5 Stufen, Übersetzung, Reifentyp) und Optik (Lack, Oberfläche, Felgen, Unterboden, Folie, Spoiler, Startnummer, Reifenrauch, Hupe). Spielstand in localStorage. Online bringt jeder Spieler sein Auto mit in die Lobby.
+
+Offen: Leistungsindex-Limit als Lobby-Schalter; Hupen-Sounds und Reifenrauch-Farbe werden erst mit M8/M9 hör- und sichtbar.

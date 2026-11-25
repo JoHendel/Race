@@ -1,5 +1,12 @@
 /** Nachrichten zwischen Host und Clients. Alles JSON, kompakt gehalten. */
 
+/** Fahrzeugwahl eines Spielers (Tuning und Optik als JSON). */
+export interface VehicleChoice {
+  id: string;
+  tuning: unknown;
+  looks: unknown;
+}
+
 export interface LobbyPlayer {
   clientId: string;
   name: string;
@@ -7,6 +14,7 @@ export interface LobbyPlayer {
   ready: boolean;
   isHost: boolean;
   connected: boolean;
+  car?: VehicleChoice;
 }
 
 export interface LobbySettings {
@@ -39,15 +47,16 @@ export interface RacerStatus {
 export type HostMessage =
   | { t: "welcome"; clientId: string; players: LobbyPlayer[]; settings: LobbySettings }
   | { t: "lobby"; players: LobbyPlayer[]; settings: LobbySettings }
-  | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean }[] }
+  | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean; car?: VehicleChoice }[] }
   | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[] }
   | { t: "toLobby" }
   | { t: "kick"; reason: string };
 
 export type ClientMessage =
-  | { t: "hello"; clientId: string; name: string }
+  | { t: "hello"; clientId: string; name: string; car?: VehicleChoice }
   | { t: "ready"; ready: boolean }
   | { t: "name"; name: string }
+  | { t: "vehicle"; car: VehicleChoice }
   | { t: "car"; state: CarState };
 
 export const SNAPSHOT_RATE = 30;

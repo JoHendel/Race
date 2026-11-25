@@ -4,3 +4,5 @@ export * from "./vehicle";
 export * from "./race";
 export * from "./tracks";
 export * from "./cup";
+export * from "./cars";
+export * from "./progress";

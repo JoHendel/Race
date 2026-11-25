@@ -12,6 +12,7 @@ import {
 } from "@apex/net";
 import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, clampLaps } from "@apex/shared";
 import { BOT_NAMES, RACER_COLORS, type GridEntry, type RaceScene } from "../game/raceScene";
+import { currentCar } from "../save";
 
 type StartMessage = Extract<HostMessage, { t: "start" }>;
 
@@ -42,7 +43,7 @@ export class HostSession {
     private readonly events: SessionEvents,
   ) {
     this.clientId = clientId;
-    this.players.push({ clientId, name, color: RACER_COLORS[0]!, ready: true, isHost: true, connected: true });
+    this.players.push({ clientId, name, color: RACER_COLORS[0]!, ready: true, isHost: true, connected: true, car: currentCar() });
   }
 
   async open(): Promise<void> {
@@ -66,7 +67,7 @@ export class HostSession {
           return;
         }
         const color = RACER_COLORS.find((c) => !this.players.some((x) => x.color === c)) ?? RACER_COLORS[1]!;
-        p = { clientId: msg.clientId, name: cleanName(msg.name), color, ready: false, isHost: false, connected: true };
+        p = { clientId: msg.clientId, name: cleanName(msg.name), color, ready: false, isHost: false, connected: true, car: msg.car };
         this.players.push(p);
       }
       p.connected = true;
@@ -86,6 +87,7 @@ export class HostSession {
     if (!p) return;
     if (msg.t === "ready") p.ready = msg.ready;
     else if (msg.t === "name") p.name = cleanName(msg.name);
+    else if (msg.t === "vehicle") p.car = msg.car;
     else if (msg.t === "car") {
       this.race?.applyRemoteCar(p.clientId, msg.state);
       return;
@@ -133,7 +135,8 @@ export class HostSession {
   /** Startaufstellung: Menschen in Beitrittsreihenfolge, Rest mit Bots auffüllen. */
   start(): StartMessage {
     const humans = this.players.filter((p) => p.connected);
-    const grid: GridEntry[] = humans.map((p) => ({ id: p.clientId, name: p.name, color: p.color, human: true }));
+    this.players[0]!.car = currentCar();
+    const grid: GridEntry[] = humans.map((p) => ({ id: p.clientId, name: p.name, color: p.color, human: true, car: p.car }));
     if (this.settings.fillWithBots) {
       let b = 0;
       while (grid.length < MAX_PLAYERS) {
@@ -187,7 +190,7 @@ export class ClientSession {
     t.onClose(() => {
       if (!this.closedByUs) this.events.onClosed("Die Verbindung zum Host ist abgebrochen.");
     });
-    t.send({ t: "hello", clientId: this.clientId, name: this.name });
+    t.send({ t: "hello", clientId: this.clientId, name: this.name, car: currentCar() });
     this.timer = window.setInterval(() => {
       if (this.race) t.send({ t: "car", state: this.race.localCarState() });
     }, 1000 / SNAPSHOT_RATE);

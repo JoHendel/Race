@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.0 – Garage
+- 12 Fahrzeuge in 4 Klassen mit eigenen Karosserien
+- XP, Level, Credits, Freischalten per Level oder Grand-Prix-Sieg
+- Leistungs- und Optik-Tuning, Leistungsindex, Speicherstand
+
 ## v0.4.0 – Siegertreppe & Grand Prix
 - 3D-Siegertreppe mit Pokal, Konfetti, Feuerwerk und Kamerafahrt
 - Auszeichnungen: Schnellste Runde, Drift-König, Meiste Überholungen, Comeback
