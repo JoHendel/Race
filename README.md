@@ -11,12 +11,12 @@
 | Rennen gegen 9 Bots | Ergebnistabelle |
 | --- | --- |
 | ![Rennen](docs/media/race.png) | ![Ergebnis](docs/media/results.png) |
-| **Startaufstellung** | **Drift mit Boost-Stufen** |
-| ![Start](docs/media/intro.png) | ![Drift](docs/media/drift.png) |
+| **Startaufstellung** | **Online-Lobby** |
+| ![Start](docs/media/intro.png) | ![Lobby](docs/media/lobby.png) |
 
 </div>
 
-> 🚧 **In Entwicklung.** Spielbar: Einzelrennen auf Neon Harbor gegen 9 Bots und ein Testgelände. Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
+> 🚧 **In Entwicklung.** Spielbar: Online-Rennen mit bis zu 10 Spielern, Einzelrennen gegen 9 Bots und ein Testgelände. Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
 
 ## Features (geplant)
 
@@ -26,6 +26,14 @@
 - **12 Fahrzeuge in 4 Klassen** zum Freischalten, mit Leistungs- und Optik-Tuning
 - **Drift-Boost, Windschatten, Nitro, Air-Tricks**
 - Chaos-Modus mit Power-ups, Wetter, Nacht, Ghosts, Replays, Fotomodus, Bots
+
+## Online spielen
+
+1. **Online spielen → Raum erstellen**
+2. Raumcode oder Link an Freunde schicken (bis zu 10 Spieler)
+3. Alle drücken **Bereit**, der Host startet. Freie Plätze füllen Bots.
+
+Die Verbindung läuft direkt zwischen den Browsern (WebRTC). Für den Verbindungsaufbau wird der kostenlose öffentliche PeerJS-Server genutzt. In sehr strengen Firmen- oder Uni-Netzen kann der direkte Aufbau scheitern.
 
 ## Steuerung
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 – Online-Multiplayer
+- Online-Rennen für bis zu 10 Spieler per Raumcode oder Link, Peer-to-Peer ohne Server
+- Lobby mit Namen, Bereit-Status, Rundenzahl, Bot-Auffüllung
+- Wiedereinstieg nach Verbindungsabbruch, Bot übernimmt so lange
+
 ## v0.2.0 – Erstes Rennen
 - Strecke Neon Harbor mit Sprungkante und Hafen-Kulisse
 - 9 Bots, 3 Runden, Countdown mit Perfektstart, Minimap, Platzierung

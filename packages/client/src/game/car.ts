@@ -126,6 +126,51 @@ export class Car {
     }
   }
 
+  /** Entfernte Autos (andere Spieler) werden nicht simuliert, sondern auf empfangene Zustände gesetzt. */
+  remote = false;
+
+  setRemote(remote: boolean): void {
+    if (this.remote === remote) return;
+    this.remote = remote;
+    this.body.setBodyType(remote ? RAPIER.RigidBodyType.KinematicPositionBased : RAPIER.RigidBodyType.Dynamic, true);
+    if (!remote) {
+      this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    }
+  }
+
+  /** Ziel für ein entferntes Auto im nächsten Physik-Schritt. */
+  setRemoteTarget(p: [number, number, number], q: [number, number, number, number], speed: number, drifting: boolean, nitro: boolean): void {
+    this.body.setNextKinematicTranslation({ x: p[0], y: p[1], z: p[2] });
+    this.body.setNextKinematicRotation({ x: q[0], y: q[1], z: q[2], w: q[3] });
+    this.speed = speed;
+    this.drifting = drifting;
+    this.nitroActive = nitro;
+  }
+
+  /** Setzt das Auto sofort an eine Stelle (z. B. beim Wiedereinstieg). */
+  teleport(p: [number, number, number], q: [number, number, number, number]): void {
+    this.body.setTranslation({ x: p[0], y: p[1], z: p[2] }, true);
+    this.body.setRotation({ x: q[0], y: q[1], z: q[2], w: q[3] }, true);
+    this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  }
+
+  /** Kompakter Zustand für das Netzwerk. */
+  snapshot(id: string): { id: string; p: [number, number, number]; q: [number, number, number, number]; v: number; d: 0 | 1; n: 0 | 1 } {
+    const t = this.body.translation();
+    const r = this.body.rotation();
+    const round = (x: number) => Math.round(x * 1000) / 1000;
+    return {
+      id,
+      p: [round(t.x), round(t.y), round(t.z)],
+      q: [round(r.x), round(r.y), round(r.z), round(r.w)],
+      v: Math.round(this.speed * 10) / 10,
+      d: this.drifting ? 1 : 0,
+      n: this.nitroActive ? 1 : 0,
+    };
+  }
+
   setResetPose(pos: THREE.Vector3, yaw: number): void {
     this.resetPose = { pos: pos.clone(), yaw };
   }
@@ -160,6 +205,7 @@ export class Car {
 
   /** Physik-Schritt: Eingabe anwenden, bevor die Welt simuliert wird. */
   update(controls: ControlState, dt: number): void {
+    if (this.remote) return;
     const s = this.stats;
     this.speed = this.vehicle.currentVehicleSpeed();
     const absSpeed = Math.abs(this.speed);

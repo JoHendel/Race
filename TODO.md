@@ -8,9 +8,12 @@
 - [x] alles erledigt (siehe PROGRESS.md)
 
 ## M3 – Multiplayer
-- [ ] PeerJS einbinden, `SignalingProvider` umsetzen
-- [ ] Lobby: Raum erstellen, Raumcode und Link teilen, beitreten, Name, Auto, Bereit
-- [ ] Host-Simulation, Zustand mit 30 Hz an Clients
-- [ ] Client-Vorhersage für das eigene Auto, Interpolation der Gegner
-- [ ] Host-Wechsel und Reconnect innerhalb von 30 s
-- [ ] E2E-Test mit 2 Browser-Fenstern
+- [x] PeerJS, Lobby, Raumcode/Link, Host-Simulation, Snapshots, Interpolation, Reconnect, E2E-Test mit 2 Fenstern
+- [ ] Host-Wechsel (Zustand an den Spieler mit dem besten Ping übergeben)
+- [ ] Ping-Anzeige in der Lobby
+
+## M4 – Siegertreppe & Wertung
+- [ ] 3D-Podest mit den Autos der Plätze 1–3, Konfetti, Feuerwerk, Pokal, Kamerafahrt
+- [ ] Emote-Auswahl auf dem Podest
+- [ ] Auszeichnungen: Schnellste Runde, Drift-König, Meiste Überholungen, Comeback
+- [ ] Grand-Prix-Modus: 4 Rennen, Gesamtwertung, Cup-Siegerehrung

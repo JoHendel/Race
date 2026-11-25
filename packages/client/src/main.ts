@@ -4,12 +4,13 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { DEFAULT_LAPS, NEON_HARBOR, TRACKS, clampLaps } from "@apex/shared";
+import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } from "@apex/net";
 import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
-import { DEFAULT_LAPS, NEON_HARBOR, clampLaps } from "@apex/shared";
-
-const params = new URLSearchParams(window.location.search);
+import { ClientSession, HostSession } from "./online/session";
+import { LobbyView, showNotice } from "./online/lobby";
 
 interface ActiveScene {
   scene: THREE.Scene;
@@ -17,6 +18,9 @@ interface ActiveScene {
   resize(w: number, h: number): void;
   update(dt: number): void;
 }
+
+const params = new URLSearchParams(window.location.search);
+const signaling: SignalingProvider = params.get("net") === "local" ? new LocalSignaling() : new PeerSignaling();
 
 const canvas = document.querySelector<HTMLCanvasElement>("#scene");
 const ui = document.querySelector<HTMLElement>("#ui");
@@ -50,33 +54,85 @@ function resize(): void {
 window.addEventListener("resize", resize);
 resize();
 
+// ---------- Spielerdaten ----------
+
+function storedName(): string {
+  try {
+    const n = localStorage.getItem("apex-name");
+    if (n) return n;
+  } catch {
+    /* Speicher nicht verfügbar */
+  }
+  const name = `Fahrer-${Math.floor(1000 + Math.random() * 9000)}`;
+  saveName(name);
+  return name;
+}
+
+function saveName(name: string): void {
+  try {
+    localStorage.setItem("apex-name", name);
+  } catch {
+    /* egal */
+  }
+}
+
+/** Pro Tab eindeutig, bleibt beim Neuladen erhalten – so klappt der Wiedereinstieg. */
+function clientId(): string {
+  try {
+    let id = sessionStorage.getItem("apex-client-id");
+    if (!id) {
+      id = `p-${Math.random().toString(36).slice(2, 10)}`;
+      sessionStorage.setItem("apex-client-id", id);
+    }
+    return id;
+  } catch {
+    return `p-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+// ---------- Ablauf ----------
+
 const titleHtml = document.querySelector<HTMLElement>("#title")!.outerHTML;
 let current: { dispose(): void } | null = null;
+let session: HostSession | ClientSession | null = null;
+let lobby: LobbyView | null = null;
 let busy = false;
 
-function clearCurrent(): void {
+function expose(value: Record<string, unknown>): void {
+  (window as unknown as { apex: unknown }).apex = value;
+}
+
+function clearScreen(): void {
   current?.dispose();
   current = null;
+  lobby?.dispose();
+  lobby = null;
   document.querySelector("#title")?.remove();
+  document.querySelectorAll("#ui > .panel").forEach((el) => el.remove());
+}
+
+function leaveSession(): void {
+  session?.close();
+  session = null;
 }
 
 async function startDrive(): Promise<void> {
   if (busy) return;
   busy = true;
   await RAPIER.init();
-  clearCurrent();
+  clearScreen();
   const drive = new DriveScene(ui!, renderer);
-  current = { dispose: () => drive.dispose() };
+  current = drive;
   setScene(drive);
-  (window as unknown as { apex: unknown }).apex = { drive };
+  expose({ drive });
   busy = false;
 }
 
-async function startRace(): Promise<void> {
+async function startOfflineRace(): Promise<void> {
   if (busy) return;
   busy = true;
   await RAPIER.init();
-  clearCurrent();
+  clearScreen();
   const race = new RaceScene(
     ui!,
     renderer,
@@ -88,31 +144,197 @@ async function startRace(): Promise<void> {
       playerName: "Du",
       autopilot: params.has("autopilot"),
     },
-    { onRestart: () => void startRace(), onMenu: showMenu },
+    { onRestart: () => void startOfflineRace(), onMenu: showMenu },
   );
   current = race;
   setScene(race);
-  (window as unknown as { apex: unknown }).apex = { race };
+  expose({ race });
   busy = false;
 }
 
 function showMenu(): void {
-  clearCurrent();
+  leaveSession();
+  clearScreen();
   ui!.insertAdjacentHTML("afterbegin", titleHtml);
   bindMenu();
   setScene(new TitleScene());
+  expose({});
 }
 
 function bindMenu(): void {
   document.querySelector<HTMLButtonElement>("#start")!.onclick = () => void startDrive();
-  document.querySelector<HTMLButtonElement>("#race")!.onclick = () => void startRace();
+  document.querySelector<HTMLButtonElement>("#race")!.onclick = () => void startOfflineRace();
+  document.querySelector<HTMLButtonElement>("#online")!.onclick = () => showOnlineMenu();
 }
-bindMenu();
 
+function showOnlineMenu(prefill = ""): void {
+  clearScreen();
+  const el = document.createElement("div");
+  el.className = "panel";
+  el.innerHTML = `
+    <div class="panel-card">
+      <h2>ONLINE SPIELEN</h2>
+      <p class="hint">Erstelle einen Raum und teile den Code oder Link – bis zu 10 Spieler, kein Konto nötig.</p>
+      <div class="actions left"><button class="btn" data-action="host" data-testid="host">Raum erstellen</button></div>
+      <div class="join">
+        <input data-field="code" placeholder="RAUMCODE" maxlength="5" data-testid="code-input" />
+        <button class="btn btn-ghost" data-action="join" data-testid="join">Beitreten</button>
+      </div>
+      <p class="error" data-field="error"></p>
+      <div class="actions"><button class="btn btn-ghost small" data-action="back">Zurück</button></div>
+    </div>`;
+  ui!.appendChild(el);
+  const error = el.querySelector<HTMLElement>("[data-field=error]")!;
+  const codeInput = el.querySelector<HTMLInputElement>("[data-field=code]")!;
+  codeInput.value = prefill;
+  el.querySelector<HTMLButtonElement>("[data-action=back]")!.onclick = showMenu;
+  el.querySelector<HTMLButtonElement>("[data-action=host]")!.onclick = () => void hostGame(error);
+  el.querySelector<HTMLButtonElement>("[data-action=join]")!.onclick = () => {
+    const code = parseRoomCode(codeInput.value);
+    if (!code) {
+      error.textContent = "Der Raumcode hat 5 Zeichen, z. B. K7QXM.";
+      return;
+    }
+    void joinGame(code, error);
+  };
+  if (prefill) {
+    const code = parseRoomCode(prefill);
+    if (code) void joinGame(code, error);
+  }
+}
+
+async function hostGame(error: HTMLElement): Promise<void> {
+  if (busy) return;
+  busy = true;
+  error.textContent = "Raum wird erstellt …";
+  const host = new HostSession(signaling, clientId(), storedName(), {
+    onLobby: (players, settings) => lobby?.update(players, settings, host.canStart),
+    onStart: () => undefined,
+    onToLobby: () => undefined,
+    onClosed: (reason) => showNotice(ui!, reason, showMenu),
+  });
+  try {
+    await host.open();
+  } catch (e) {
+    error.textContent = `Raum konnte nicht erstellt werden: ${(e as Error).message}`;
+    busy = false;
+    return;
+  }
+  session = host;
+  busy = false;
+  showLobby();
+}
+
+async function joinGame(code: string, error: HTMLElement): Promise<void> {
+  if (busy) return;
+  busy = true;
+  error.textContent = "Verbinde …";
+  const client: ClientSession = new ClientSession(signaling, code, clientId(), storedName(), {
+    onLobby: (players, settings) => {
+      if (!lobby && !current) showLobby();
+      lobby?.update(players, settings, false);
+    },
+    onStart: (start) => void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed),
+    onToLobby: () => showLobby(),
+    onClosed: (reason) => {
+      leaveSession();
+      clearScreen();
+      showNotice(ui!, reason, showMenu);
+    },
+  });
+  session = client;
+  try {
+    await client.open();
+  } catch (e) {
+    session = null;
+    error.textContent = `Beitreten fehlgeschlagen: ${(e as Error).message}`;
+    busy = false;
+    return;
+  }
+  busy = false;
+}
+
+function showLobby(): void {
+  const s = session;
+  if (!s) return;
+  clearScreen();
+  setScene(new TitleScene());
+  const isHost = s instanceof HostSession;
+  lobby = new LobbyView(ui!, {
+    isHost,
+    code: s.code,
+    clientId: s.clientId,
+    name: storedName(),
+    onName: (name) => {
+      saveName(name);
+      s.setName(name);
+    },
+    onReady: (ready) => (s instanceof ClientSession ? s.setReady(ready) : undefined),
+    onSettings: (patch) => (s instanceof HostSession ? s.updateSettings(patch) : undefined),
+    onStart: () => {
+      if (!(s instanceof HostSession) || !s.canStart) return;
+      const start = s.start();
+      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed);
+    },
+    onLeave: showMenu,
+  });
+  if (s instanceof HostSession) lobby.update(s.players, s.settings, s.canStart);
+  else if (s.settings) lobby.update(s.players, s.settings, false);
+  expose({ session: s });
+}
+
+async function beginOnlineRace(
+  trackId: string,
+  laps: number,
+  grid: { id: string; name: string; color: number; human: boolean }[],
+  seed: number,
+): Promise<void> {
+  const s = session;
+  if (!s) return;
+  await RAPIER.init();
+  clearScreen();
+  const isHost = s instanceof HostSession;
+  const race = new RaceScene(
+    ui!,
+    renderer,
+    {
+      track: TRACKS.find((t) => t.id === trackId) ?? NEON_HARBOR,
+      laps,
+      bots: 0,
+      skill: "normal",
+      playerName: storedName(),
+      role: isHost ? "host" : "client",
+      localId: s.clientId,
+      grid,
+      seed,
+      autopilot: params.has("autopilot"),
+    },
+    {
+      onRestart: () => {
+        if (s instanceof HostSession) {
+          s.backToLobby();
+          showLobby();
+        }
+      },
+      onMenu: showMenu,
+    },
+  );
+  s.race = race;
+  current = { dispose: () => race.dispose() };
+  setScene(race);
+  expose({ race, session: s });
+}
+
+// ---------- Start ----------
+
+bindMenu();
 window.addEventListener("keydown", (e) => {
-  if (e.code === "Enter" && document.querySelector("#title")) void startRace();
-  if (e.code === "Escape" && current) showMenu();
+  if (e.code === "Enter" && document.querySelector("#title")) void startOfflineRace();
+  if (e.code === "Escape" && current && !session) showMenu();
 });
+
+const roomParam = params.get("room");
+if (roomParam) showOnlineMenu(roomParam);
 
 const clock = new THREE.Clock();
 function frame(): void {

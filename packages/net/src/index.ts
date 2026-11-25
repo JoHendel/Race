@@ -1,7 +1,9 @@
-/**
- * Netzwerk-Schicht von APEX RUSH (Peer-to-Peer, Host im Browser).
- * M0: nur die Schnittstelle. Die PeerJS-Umsetzung folgt in M3.
- */
+/** Netzwerk-Schicht von APEX RUSH (Peer-to-Peer, Host im Browser). */
+
+export * from "./protocol";
+export * from "./transport";
+export * from "./interpolation";
+export { PeerSignaling } from "./peerSignaling";
 
 /** Erzeugt einen 5-stelligen Raumcode ohne verwechselbare Zeichen (0/O, 1/I). */
 export function createRoomCode(random: () => number = Math.random): string {
@@ -13,10 +15,8 @@ export function createRoomCode(random: () => number = Math.random): string {
   return code;
 }
 
-/** Austauschbarer Vermittlungsdienst für den Verbindungsaufbau (Signaling). */
-export interface SignalingProvider {
-  readonly name: string;
-  host(roomCode: string): Promise<void>;
-  join(roomCode: string): Promise<void>;
-  close(): void;
+/** Normalisiert eine Eingabe zu einem gültigen Raumcode oder `null`. */
+export function parseRoomCode(input: string): string | null {
+  const code = input.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return /^[A-HJ-NP-Z2-9]{5}$/.test(code) ? code : null;
 }

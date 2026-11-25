@@ -5,7 +5,15 @@ export default defineConfig({
   timeout: 60_000,
   use: {
     baseURL: "http://localhost:4173/Race/",
-    launchOptions: { args: ["--use-gl=swiftshader", "--enable-unsafe-swiftshader"] },
+    launchOptions: {
+      args: [
+        "--use-gl=swiftshader",
+        "--enable-unsafe-swiftshader",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-backgrounding-occluded-windows",
+      ],
+    },
   },
   webServer: {
     command: "pnpm build && pnpm preview --port 4173 --strictPort",
