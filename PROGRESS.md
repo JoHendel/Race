@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M4 starten – 3D-Siegertreppe mit Konfetti, Feuerwerk und Pokal nach dem Rennen bauen, dann Auszeichnungen und Grand-Prix-Modus.
+**Nächster Schritt:** M5 starten – Fahrzeugdaten für alle 12 Autos in `packages/shared` anlegen, dann Garage-Bildschirm mit Auswahl, Freischalten und Speicherstand.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -8,8 +8,8 @@
 | M1 – Fahrgefühl | ✅ fertig (`v0.1.0`) |
 | M2 – Rennen allein | ✅ fertig (`v0.2.0`) |
 | M3 – Multiplayer | ✅ fertig (Host-Wechsel offen) |
-| M4 – Siegertreppe & Wertung | ⏳ als Nächstes |
-| M5 – Garage | offen |
+| M4 – Siegertreppe & Wertung | ✅ fertig |
+| M5 – Garage | ⏳ als Nächstes |
 | M6 – Alle Strecken | offen |
 | M7 – Grafik & Assets | offen |
 | M8 – Extra-Features | offen |
@@ -35,3 +35,8 @@ Gemessen: Runde ca. 43 s, alle 10 Fahrzeuge kommen ohne Hängenbleiben ins Ziel.
 Online-Rennen für bis zu 10 Spieler per Raumcode oder Link, ohne Konto und ohne eigenen Server: PeerJS/WebRTC mit dem kostenlosen öffentlichen Vermittlungsserver, austauschbar über `SignalingProvider` (für Tests gibt es einen lokalen Vermittler über BroadcastChannel, `?net=local`). Lobby mit Namen, Farben, Bereit-Status, Rundenzahl und Bot-Auffüllung. Der Host simuliert Bots und die gesamte Rennlogik (Runden, Platz, Ziel, Ergebnis) und sendet 30 Snapshots pro Sekunde; Clients fahren ihr eigenes Auto lokal (keine Eingabeverzögerung) und sehen alle anderen interpoliert mit 100 ms Puffer. Verbindungsabbruch: Ein Bot übernimmt das Auto; beim Neuladen innerhalb von 30 s steigt der Spieler an derselben Stelle wieder ein (getestet). Nach dem Rennen geht es gemeinsam zurück in die Lobby.
 
 **Noch offen:** Host-Wechsel. Verlässt der Host das Spiel, endet die Runde für alle mit einer Meldung. Siehe `DECISIONS.md`.
+
+### M4 – Siegertreppe & Wertung
+3D-Siegertreppe auf einer Neon-Bühne über dem Hafenwasser: Plätze 1–3 mit ihren Autos auf den Stufen, drehender Goldpokal, 900 Konfetti-Teilchen, Feuerwerk, Scheinwerfer und Kamerafahrt; Emote-Leiste für Spieler auf dem Podest. Danach Ergebnistabelle mit Auszeichnungen (Schnellste Runde, Drift-König, Meiste Überholungen, Comeback des Rennens). Grand-Prix-Modus mit 4 Rennen, Gesamtwertung nach jedem Rennen und Cup-Siegerehrung nach Gesamtwertung. Online zeigen Host und Clients die Siegertreppe gemeinsam, sobald das Ergebnis feststeht.
+
+Offen: Grand Prix gibt es bisher nur offline; bis M6 besteht der Cup aus 4× Neon Harbor. Emotes auf dem Podest sind noch nicht online synchronisiert.

@@ -31,6 +31,9 @@ export interface RacerStatus {
   lap: number;
   finishTime: number | null;
   bestLap: number | null;
+  drift?: number;
+  overtakes?: number;
+  worst?: number;
 }
 
 export type HostMessage =

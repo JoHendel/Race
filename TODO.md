@@ -13,7 +13,15 @@
 - [ ] Ping-Anzeige in der Lobby
 
 ## M4 – Siegertreppe & Wertung
-- [ ] 3D-Podest mit den Autos der Plätze 1–3, Konfetti, Feuerwerk, Pokal, Kamerafahrt
-- [ ] Emote-Auswahl auf dem Podest
-- [ ] Auszeichnungen: Schnellste Runde, Drift-König, Meiste Überholungen, Comeback
-- [ ] Grand-Prix-Modus: 4 Rennen, Gesamtwertung, Cup-Siegerehrung
+- [x] Podest, Pokal, Konfetti, Feuerwerk, Kamerafahrt, Emotes, Auszeichnungen, Grand Prix offline
+- [ ] Grand Prix online (Host-Einstellung „Modus“)
+- [ ] Emotes online synchronisieren
+
+## M5 – Garage
+- [ ] Daten für 12 Fahrzeuge in 4 Klassen (`packages/shared/src/cars.ts`), Werte 1–10 → Fahrwerte
+- [ ] Unterschiedliche Karosserien pro Klasse (prozedural, später CC0-Modelle in M7)
+- [ ] XP und Credits nach jedem Rennen, Level, Freischalten
+- [ ] Garage-Bildschirm: Auswahl, Werte-Balken, Vorschau mit Drehteller
+- [ ] Leistungs-Tuning (Motor, Getriebe, Reifen, Fahrwerk, Nitro, Gewicht; je 5 Stufen) und Leistungsindex
+- [ ] Optik-Tuning (Lack, Felgen, Spoiler, Unterboden, Decals, Startnummer, Reifenrauch, Hupe)
+- [ ] Speicherstand in localStorage, Auto-Auswahl in der Online-Lobby

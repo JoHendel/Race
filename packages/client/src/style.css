@@ -195,3 +195,18 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .players .state { font-size: 0.8rem; opacity: 0.7; }
 .error { color: #ff6b8a; min-height: 1.2em; font-size: 0.9rem; }
 .summary { opacity: 0.85; }
+
+/* Siegertreppe & Auszeichnungen */
+.emote-bar { position: absolute; left: 50%; bottom: 2rem; transform: translateX(-50%); display: flex; gap: 0.6rem; pointer-events: auto; }
+.emote-bar button { font-size: 1.8rem; width: 3.4rem; height: 3.4rem; border-radius: 50%; border: 1px solid var(--cyan); background: rgba(13, 16, 36, 0.85); cursor: pointer; transition: transform 0.12s; }
+.emote-bar button:hover, .emote-bar button:focus-visible { transform: scale(1.15); outline: none; box-shadow: 0 0 16px var(--cyan); }
+.awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.6rem; margin-top: 1rem; }
+.award { background: rgba(255, 138, 31, 0.08); border: 1px solid rgba(255, 138, 31, 0.4); border-radius: 8px; padding: 0.5rem 0.7rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.award .t { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange); }
+.award .d { font-size: 0.75rem; opacity: 0.7; }
+.standings { margin-top: 1rem; }
+.standings h3 { font-size: 0.8rem; letter-spacing: 0.15em; opacity: 0.7; margin-bottom: 0.4rem; }
+.standings ol { margin: 0; padding-left: 1.4rem; columns: 2; font-size: 0.9rem; }
+.standings li { padding: 0.15rem 0; }
+.standings li b { float: right; margin-right: 1rem; }
+.standings li.me { color: var(--cyan); font-weight: 700; }

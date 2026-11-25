@@ -8,15 +8,16 @@
 
 ![Titelbildschirm](docs/media/title.png)
 
-| Rennen gegen 9 Bots | Ergebnistabelle |
+| Rennen gegen 9 Bots | Siegertreppe |
 | --- | --- |
-| ![Rennen](docs/media/race.png) | ![Ergebnis](docs/media/results.png) |
-| **Startaufstellung** | **Online-Lobby** |
-| ![Start](docs/media/intro.png) | ![Lobby](docs/media/lobby.png) |
+| ![Rennen](docs/media/race.png) | ![Siegertreppe](docs/media/podium.png) |
+| **Ergebnis & Grand-Prix-Wertung** | **Online-Lobby** |
+| ![Ergebnis](docs/media/results.png) | ![Lobby](docs/media/lobby.png) |
+
 
 </div>
 
-> 🚧 **In Entwicklung.** Spielbar: Online-Rennen mit bis zu 10 Spielern, Einzelrennen gegen 9 Bots und ein Testgelände. Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
+> 🚧 **In Entwicklung.** Spielbar: Online-Rennen mit bis zu 10 Spielern, Grand Prix und Einzelrennen gegen Bots, Testgelände. Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
 
 ## Features (geplant)
 

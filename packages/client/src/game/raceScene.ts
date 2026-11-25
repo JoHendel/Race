@@ -7,8 +7,10 @@ import {
   LapTracker,
   PERFECT_START_WINDOW,
   STARTER_CAR,
+  computeAwards,
   formatTime,
   pointsForPlace,
+  type CupStandings,
   rankRacers,
   theme,
   type TrackDef,
@@ -23,6 +25,7 @@ import { createSky } from "./sky";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
 import { SplineTrack, mulberry32 } from "./track/splineTrack";
+import { EMOTES, Podium } from "./podium";
 
 const STEP = 1 / 60;
 export const BOT_NAMES = ["Nova", "Blitz", "Kaito", "Vera", "Rook", "Juno", "Dash", "Mika", "Zed"];
@@ -53,6 +56,11 @@ interface Racer {
   buffer: SnapshotBuffer | null;
   netStatus: RacerStatus | null;
   connected: boolean;
+  driftTime: number;
+  overtakes: number;
+  worstPlace: number;
+  lastPlace: number;
+  onPodium: boolean;
 }
 
 export interface RaceOptions {
@@ -68,11 +76,14 @@ export interface RaceOptions {
   localId?: string;
   grid?: GridEntry[];
   seed?: number;
+  /** Grand Prix: aktuelle Runde, Anzahl Rennen und Gesamtwertung (wird nach dem Rennen ergänzt). */
+  cup?: { round: number; total: number; standings: CupStandings };
 }
 
 export interface RaceCallbacks {
   onRestart: () => void;
   onMenu: () => void;
+  onNext?: () => void;
 }
 
 /** Ein komplettes Rennen: Intro, Countdown, Runden, Zieleinlauf, Ergebnis – offline, als Host oder als Client. */
@@ -102,6 +113,11 @@ export class RaceScene {
   private resultsTimer = 0;
   private resultsFinal = false;
   private refreshTimer = 0;
+  private placeTimer = 0;
+  private podium: Podium | null = null;
+  private podiumTime = 0;
+  private cupRecorded = false;
+  private cupCeremony = false;
   private readonly chase: ChaseCamera;
   private readonly hud: Hud;
   private readonly raceHud: RaceHud;
@@ -179,6 +195,11 @@ export class RaceScene {
         buffer: remote ? new SnapshotBuffer() : null,
         netStatus: null,
         connected: true,
+        driftTime: 0,
+        overtakes: 0,
+        worstPlace: slot + 1,
+        lastPlace: slot + 1,
+        onPodium: false,
       });
     });
     this.player = this.racers.find((r) => r.id === localId) ?? this.racers[0]!;
@@ -224,7 +245,16 @@ export class RaceScene {
   /** Rennstatus eines Fahrers: lokal berechnet oder (als Client) vom Host. */
   private status(r: Racer): RacerStatus {
     if (this.role === "client") return r.netStatus ?? { id: r.id, progress: 0, lap: 0, finishTime: null, bestLap: null };
-    return { id: r.id, progress: r.tracker.progress, lap: r.tracker.lap, finishTime: r.tracker.finishTime, bestLap: r.tracker.bestLap };
+    return {
+      id: r.id,
+      progress: r.tracker.progress,
+      lap: r.tracker.lap,
+      finishTime: r.tracker.finishTime,
+      bestLap: r.tracker.bestLap,
+      drift: Math.round(r.driftTime * 10) / 10,
+      overtakes: r.overtakes,
+      worst: r.worstPlace,
+    };
   }
 
   private finished(r: Racer): boolean {
@@ -276,6 +306,12 @@ export class RaceScene {
     }
     this.syncAll();
     this.updateEffects(dt);
+    if (this.podium) {
+      this.podiumTime += realDt;
+      this.podium.update(realDt, this.camera);
+      if (this.podiumTime > 7 && !this.results.classList.contains("show")) this.showResults(true);
+      return;
+    }
     this.chase.update(this.player.car, realDt);
     this.hud.update(this.player.car, realDt);
     this.raceHud.update(realDt, this.hudInfo(), this.hudRacers());
@@ -357,6 +393,7 @@ export class RaceScene {
     const renderTime = this.remoteRenderTime();
 
     for (const r of this.racers) {
+      if (r.onPodium) continue;
       if (r.buffer) {
         const s = r.buffer.sample(renderTime);
         if (s) r.car.setRemoteTarget(s.p, s.q, r.car.speed, r.car.drifting, r.car.nitroActive);
@@ -371,6 +408,7 @@ export class RaceScene {
       r.car.update(controls, STEP);
     }
     this.world.step();
+    if (this.racing && this.role !== "client") this.updateRaceStats();
 
     // Reset-Position des Spielers folgt der Strecke
     const n = this.track.samples.length;
@@ -403,7 +441,10 @@ export class RaceScene {
     if (this.phase === "results" && !this.resultsFinal) {
       this.graceLeft -= STEP;
       this.refreshTimer -= STEP;
-      if (this.racers.every((r) => r.tracker.finished) || this.graceLeft <= 0) this.resultsFinal = true;
+      if (this.racers.every((r) => r.tracker.finished) || this.graceLeft <= 0) {
+        this.resultsFinal = true;
+        this.onResultsFinal();
+      }
       if (this.refreshTimer <= 0 || this.resultsFinal) {
         this.refreshTimer = 0.5;
         this.renderRows();
@@ -443,19 +484,107 @@ export class RaceScene {
     }
   }
 
-  private showResults(): void {
+  /** Platzierungen, Überholungen und Driftzeit fürs Auszeichnungs-System (Host/Offline). */
+  private updateRaceStats(): void {
+    for (const r of this.racers) if (r.car.drifting && !this.finished(r)) r.driftTime += STEP;
+    this.placeTimer -= STEP;
+    if (this.placeTimer > 0) return;
+    this.placeTimer = 0.5;
+    const ranked = this.ranking();
+    ranked.forEach((r, i) => {
+      const place = i + 1;
+      if (this.raceTime > 3 && !this.finished(r) && place < r.lastPlace) r.overtakes += r.lastPlace - place;
+      if (this.raceTime > 3) r.worstPlace = Math.max(r.worstPlace, place);
+      r.lastPlace = place;
+    });
+  }
+
+  private awards() {
+    const ranked = this.ranking();
+    return computeAwards(
+      ranked.map((r, i) => {
+        const s = this.status(r);
+        return {
+          id: r.id,
+          name: r.name,
+          bestLap: s.bestLap,
+          driftTime: s.drift ?? 0,
+          overtakes: s.overtakes ?? 0,
+          worstPlace: Math.max(s.worst ?? i + 1, i + 1),
+          finalPlace: i + 1,
+        };
+      }),
+    );
+  }
+
+  /** Alle im Ziel oder Frist abgelaufen: Wertung festschreiben und Siegertreppe zeigen. */
+  private onResultsFinal(): void {
+    const cup = this.options.cup;
+    if (cup && !this.cupRecorded) {
+      this.cupRecorded = true;
+      const ranked = this.ranking();
+      const fastest = Math.min(...this.racers.map((r) => this.status(r).bestLap ?? Infinity));
+      cup.standings.add(
+        ranked.map((r, i) => ({ id: r.id, name: r.name, color: r.color, place: i + 1, fastestLap: this.status(r).bestLap === fastest })),
+      );
+    }
+    this.startPodium(this.ranking().slice(0, 3));
+  }
+
+  private startPodium(top: Racer[], title?: string): void {
+    this.podium?.dispose();
+    for (const r of this.racers) r.onPodium = false;
+    const xs = this.track.samples.map((s) => s.pos.x);
+    const zs = this.track.samples.map((s) => s.pos.z);
+    const anchor = new THREE.Vector3((Math.min(...xs) + Math.max(...xs)) / 2, -1.9, Math.min(...zs) - 140);
+    this.podium = new Podium(anchor, 0);
+    this.scene.add(this.podium.group);
+    for (const r of top) r.onPodium = true;
+    this.podium.placeCars(top.map((r) => r.car));
+    this.podiumTime = 0;
+    this.results.classList.remove("show");
+    this.ui.querySelectorAll<HTMLElement>(".race-hud, .hud").forEach((el) => (el.style.display = "none"));
+    this.raceHud.showBanner(title ?? `SIEGER: ${top[0]?.name.toUpperCase() ?? ""}`, 6);
+    this.ui.querySelector(".race-hud")?.setAttribute("style", "");
+    this.ui.querySelectorAll<HTMLElement>(".race-hud > :not(.rh-banner)").forEach((el) => (el.style.display = "none"));
+    this.showEmoteBar(top.includes(this.player));
+  }
+
+  private showEmoteBar(visible: boolean): void {
+    this.ui.querySelector(".emote-bar")?.remove();
+    if (!visible) return;
+    const bar = document.createElement("div");
+    bar.className = "emote-bar";
+    bar.innerHTML = EMOTES.map((e) => `<button type="button" aria-label="Emote ${e}">${e}</button>`).join("");
+    bar.querySelectorAll("button").forEach((b, i) => (b.onclick = () => this.podium?.showEmote(this.player.car, EMOTES[i]!)));
+    this.ui.appendChild(bar);
+  }
+
+  private showResults(afterPodium = false): void {
     if (this.phase === "results" && this.results.classList.contains("show")) return;
+    if (this.podium && !afterPodium && this.podiumTime < 7) return;
     this.phase = "results";
     const canRestart = this.role !== "client";
+    const cup = this.options.cup;
+    let primary = canRestart ? `<button class="btn" data-action="restart">${this.role === "host" ? "Zur Lobby" : "Revanche"}</button>` : `<span class="hint">Der Host startet das nächste Rennen.</span>`;
+    if (cup && this.resultsFinal) {
+      primary = cup.standings.finished
+        ? this.cupCeremony
+          ? ""
+          : `<button class="btn" data-action="ceremony">Cup-Siegerehrung</button>`
+        : `<button class="btn" data-action="next">Nächstes Rennen (${cup.round + 1}/${cup.total})</button>`;
+    }
     this.results.innerHTML = `
       <div class="results-card" data-testid="results">
-        <h2>ERGEBNIS · ${this.options.track.name.toUpperCase()}</h2>
+        <h2>${cup ? `GRAND PRIX · RENNEN ${cup.round}/${cup.total}` : "ERGEBNIS"} · ${this.options.track.name.toUpperCase()}</h2>
         <table>
           <thead><tr><th>#</th><th>Fahrer</th><th>Zeit</th><th>Beste Runde</th><th>Punkte</th></tr></thead>
           <tbody></tbody>
         </table>
+        <div class="awards" data-testid="awards"></div>
+        ${cup ? `<div class="standings"></div>` : ""}
         <div class="results-actions">
-          ${canRestart ? `<button class="btn" data-action="restart">${this.role === "host" ? "Zur Lobby" : "Revanche"}</button>` : `<span class="hint">Der Host startet das nächste Rennen.</span>`}
+          ${primary}
           <button class="btn btn-ghost" data-action="menu">Zum Menü</button>
         </div>
       </div>`;
@@ -463,6 +592,10 @@ export class RaceScene {
     this.results.classList.add("show");
     const restart = this.results.querySelector<HTMLButtonElement>("[data-action=restart]");
     if (restart) restart.onclick = () => this.callbacks.onRestart();
+    const next = this.results.querySelector<HTMLButtonElement>("[data-action=next]");
+    if (next) next.onclick = () => this.callbacks.onNext?.();
+    const ceremony = this.results.querySelector<HTMLButtonElement>("[data-action=ceremony]");
+    if (ceremony) ceremony.onclick = () => this.startCupCeremony();
     this.results.querySelector<HTMLButtonElement>("[data-action=menu]")!.onclick = () => this.callbacks.onMenu();
   }
 
@@ -487,6 +620,36 @@ export class RaceScene {
         </tr>`;
       })
       .join("");
+    const awards = this.results.querySelector(".awards");
+    if (awards) {
+      awards.innerHTML = this.resultsFinal
+        ? this.awards()
+            .map((a) => `<div class="award"><span class="t">${a.title}</span><b>${escapeHtml(a.name)}</b><span class="d">${a.detail}</span></div>`)
+            .join("")
+        : "";
+    }
+    const standings = this.results.querySelector(".standings");
+    const cup = this.options.cup;
+    if (standings && cup && this.cupRecorded) {
+      standings.innerHTML = `<h3>GESAMTWERTUNG nach ${cup.standings.races}/${cup.total}</h3><ol>${cup.standings
+        .table()
+        .slice(0, 10)
+        .map((r) => `<li class="${r.id === this.player.id ? "me" : ""}"><span class="dot" style="background:#${r.color.toString(16).padStart(6, "0")}"></span>${escapeHtml(r.name)}<b>${r.points}</b></li>`)
+        .join("")}</ol>`;
+    }
+  }
+
+  /** Nach dem letzten Grand-Prix-Rennen: Siegertreppe nach Gesamtwertung. */
+  private startCupCeremony(): void {
+    const cup = this.options.cup;
+    if (!cup) return;
+    this.cupCeremony = true;
+    const top = cup.standings
+      .table()
+      .slice(0, 3)
+      .map((row) => this.racers.find((r) => r.id === row.id))
+      .filter((r): r is Racer => Boolean(r));
+    this.startPodium(top, `GRAND-PRIX-SIEGER: ${top[0]?.name.toUpperCase() ?? ""}`);
   }
 
   private syncAll(): void {
@@ -524,7 +687,7 @@ export class RaceScene {
   /** Host: Zustand eines Client-Autos übernehmen (mit Plausibilitätsprüfung). */
   applyRemoteCar(id: string, state: CarState): void {
     const r = this.racers.find((x) => x.id === id);
-    if (!r || !r.buffer) return;
+    if (!r || !r.buffer || r.onPodium) return;
     if (Math.abs(state.v) > STARTER_CAR.topSpeed * 1.6) return;
     r.buffer.push({ time: this.clock, p: state.p, q: state.q });
     r.car.speed = state.v;
@@ -575,6 +738,7 @@ export class RaceScene {
         if (this.phaseTime < 0.5 && Math.hypot(p.x - c.p[0], p.z - c.p[2]) > 8) r.car.teleport(c.p, c.q);
         continue;
       }
+      if (r.onPodium) continue;
       r.buffer?.push({ time: snap.time, p: c.p, q: c.q });
       r.car.speed = c.v;
       r.car.drifting = c.d === 1;
@@ -595,7 +759,9 @@ export class RaceScene {
       this.phaseTime = snap.phaseTime;
     }
     if (phase === "results") {
+      const wasFinal = this.resultsFinal;
       this.resultsFinal = snap.final;
+      if (this.resultsFinal && !wasFinal) this.onResultsFinal();
       this.renderRows();
     }
   }
@@ -607,6 +773,8 @@ export class RaceScene {
 
   dispose(): void {
     window.removeEventListener("keydown", this.skipIntro);
+    this.podium?.dispose();
+    this.ui.querySelector(".emote-bar")?.remove();
     this.hud.dispose();
     this.raceHud.dispose();
     this.results.remove();

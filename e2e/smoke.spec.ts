@@ -30,13 +30,9 @@ test("Testgelände: das Auto fährt los", async ({ page }) => {
   await page.evaluate(() => {
     (window as ApexWindow).apex!.drive!.input.override = { throttle: 1 };
   });
-  await page.waitForTimeout(3000);
-  const state = await page.evaluate(() => {
-    const car = (window as ApexWindow).apex!.drive!.car;
-    return { speed: car.speed, z: car.mesh.position.z };
-  });
-  expect(state.speed).toBeGreaterThan(5);
-  expect(state.z).toBeGreaterThan(-55);
+  // Auf langsamen CI-Rechnern läuft die Physik langsamer: warten, bis das Auto Tempo hat.
+  await page.waitForFunction(() => (window as ApexWindow).apex!.drive!.car.speed > 5, undefined, { timeout: 60_000 });
+  await page.waitForFunction(() => (window as ApexWindow).apex!.drive!.car.mesh.position.z > -55, undefined, { timeout: 60_000 });
   expect(errors).toEqual([]);
 });
 

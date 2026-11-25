@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0 – Siegertreppe & Grand Prix
+- 3D-Siegertreppe mit Pokal, Konfetti, Feuerwerk und Kamerafahrt
+- Auszeichnungen: Schnellste Runde, Drift-König, Meiste Überholungen, Comeback
+- Grand-Prix-Modus mit 4 Rennen, Gesamtwertung und Cup-Siegerehrung
+
 ## v0.3.0 – Online-Multiplayer
 - Online-Rennen für bis zu 10 Spieler per Raumcode oder Link, Peer-to-Peer ohne Server
 - Lobby mit Namen, Bereit-Status, Rundenzahl, Bot-Auffüllung

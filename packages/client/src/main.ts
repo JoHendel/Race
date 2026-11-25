@@ -4,7 +4,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { DEFAULT_LAPS, NEON_HARBOR, TRACKS, clampLaps } from "@apex/shared";
+import { CupStandings, DEFAULT_LAPS, NEON_HARBOR, TRACKS, clampLaps, type TrackDef } from "@apex/shared";
 import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } from "@apex/net";
 import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
@@ -128,6 +128,20 @@ async function startDrive(): Promise<void> {
   busy = false;
 }
 
+/** Grand Prix: 4 Rennen eines Cups. Solange der Cup weniger Strecken hat, wiederholen sie sich. */
+function cupTracks(): TrackDef[] {
+  const neon = TRACKS.filter((t) => t.cup === "neon");
+  return Array.from({ length: 4 }, (_, i) => neon[i % neon.length]!);
+}
+
+let cup: { round: number; total: number; standings: CupStandings; tracks: TrackDef[] } | null = null;
+
+function startGrandPrix(): void {
+  const tracks = cupTracks();
+  cup = { round: 1, total: tracks.length, standings: new CupStandings(tracks.length), tracks };
+  void startOfflineRace();
+}
+
 async function startOfflineRace(): Promise<void> {
   if (busy) return;
   busy = true;
@@ -137,14 +151,23 @@ async function startOfflineRace(): Promise<void> {
     ui!,
     renderer,
     {
-      track: NEON_HARBOR,
+      cup: cup ?? undefined,
+      track: cup ? cup.tracks[cup.round - 1]! : NEON_HARBOR,
       laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
       skill: "normal",
       playerName: "Du",
       autopilot: params.has("autopilot"),
     },
-    { onRestart: () => void startOfflineRace(), onMenu: showMenu },
+    {
+      onRestart: () => void startOfflineRace(),
+      onMenu: showMenu,
+      onNext: () => {
+        if (!cup) return;
+        cup.round++;
+        void startOfflineRace();
+      },
+    },
   );
   current = race;
   setScene(race);
@@ -153,6 +176,7 @@ async function startOfflineRace(): Promise<void> {
 }
 
 function showMenu(): void {
+  cup = null;
   leaveSession();
   clearScreen();
   ui!.insertAdjacentHTML("afterbegin", titleHtml);
@@ -163,7 +187,11 @@ function showMenu(): void {
 
 function bindMenu(): void {
   document.querySelector<HTMLButtonElement>("#start")!.onclick = () => void startDrive();
-  document.querySelector<HTMLButtonElement>("#race")!.onclick = () => void startOfflineRace();
+  document.querySelector<HTMLButtonElement>("#race")!.onclick = () => {
+    cup = null;
+    void startOfflineRace();
+  };
+  document.querySelector<HTMLButtonElement>("#cup")!.onclick = () => startGrandPrix();
   document.querySelector<HTMLButtonElement>("#online")!.onclick = () => showOnlineMenu();
 }
 
@@ -329,7 +357,10 @@ async function beginOnlineRace(
 
 bindMenu();
 window.addEventListener("keydown", (e) => {
-  if (e.code === "Enter" && document.querySelector("#title")) void startOfflineRace();
+  if (e.code === "Enter" && document.querySelector("#title")) {
+    cup = null;
+    void startOfflineRace();
+  }
   if (e.code === "Escape" && current && !session) showMenu();
 });
 
