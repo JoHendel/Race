@@ -48,7 +48,7 @@ export class Car {
     private readonly world: RAPIER.World,
     readonly stats: VehicleStats,
     private readonly events: CarEvents = {},
-    color = theme.cyan,
+    color: number = theme.cyan,
   ) {
     this.nitro = new NitroTank(stats.nitroCapacity);
     this.nitro.charge(stats.nitroCapacity * 0.5);

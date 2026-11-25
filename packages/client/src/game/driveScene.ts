@@ -65,6 +65,11 @@ export class DriveScene {
     this.camera.updateProjectionMatrix();
   }
 
+  dispose(): void {
+    this.hud.dispose();
+    this.world.free();
+  }
+
   update(frameDt: number): void {
     const dt = Math.min(frameDt, 0.1);
     const controls = this.input.read(dt);

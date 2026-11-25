@@ -6,6 +6,10 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
+import { RaceScene } from "./game/raceScene";
+import { DEFAULT_LAPS, NEON_HARBOR, clampLaps } from "@apex/shared";
+
+const params = new URLSearchParams(window.location.search);
 
 interface ActiveScene {
   scene: THREE.Scene;
@@ -16,8 +20,7 @@ interface ActiveScene {
 
 const canvas = document.querySelector<HTMLCanvasElement>("#scene");
 const ui = document.querySelector<HTMLElement>("#ui");
-const startButton = document.querySelector<HTMLButtonElement>("#start");
-if (!canvas || !ui || !startButton) throw new Error("UI-Elemente fehlen");
+if (!canvas || !ui) throw new Error("UI-Elemente fehlen");
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -47,20 +50,68 @@ function resize(): void {
 window.addEventListener("resize", resize);
 resize();
 
-async function startDrive(): Promise<void> {
-  startButton!.disabled = true;
-  await RAPIER.init();
-  const title = document.querySelector<HTMLElement>("#title");
-  title?.remove();
-  const drive = new DriveScene(ui!, renderer);
-  setScene(drive);
-  // Für automatische Tests und Debugging erreichbar
-  (window as unknown as { apex: unknown }).apex = { drive };
+const titleHtml = document.querySelector<HTMLElement>("#title")!.outerHTML;
+let current: { dispose(): void } | null = null;
+let busy = false;
+
+function clearCurrent(): void {
+  current?.dispose();
+  current = null;
+  document.querySelector("#title")?.remove();
 }
 
-startButton.addEventListener("click", () => void startDrive());
+async function startDrive(): Promise<void> {
+  if (busy) return;
+  busy = true;
+  await RAPIER.init();
+  clearCurrent();
+  const drive = new DriveScene(ui!, renderer);
+  current = { dispose: () => drive.dispose() };
+  setScene(drive);
+  (window as unknown as { apex: unknown }).apex = { drive };
+  busy = false;
+}
+
+async function startRace(): Promise<void> {
+  if (busy) return;
+  busy = true;
+  await RAPIER.init();
+  clearCurrent();
+  const race = new RaceScene(
+    ui!,
+    renderer,
+    {
+      track: NEON_HARBOR,
+      laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
+      bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
+      skill: "normal",
+      playerName: "Du",
+      autopilot: params.has("autopilot"),
+    },
+    { onRestart: () => void startRace(), onMenu: showMenu },
+  );
+  current = race;
+  setScene(race);
+  (window as unknown as { apex: unknown }).apex = { race };
+  busy = false;
+}
+
+function showMenu(): void {
+  clearCurrent();
+  ui!.insertAdjacentHTML("afterbegin", titleHtml);
+  bindMenu();
+  setScene(new TitleScene());
+}
+
+function bindMenu(): void {
+  document.querySelector<HTMLButtonElement>("#start")!.onclick = () => void startDrive();
+  document.querySelector<HTMLButtonElement>("#race")!.onclick = () => void startRace();
+}
+bindMenu();
+
 window.addEventListener("keydown", (e) => {
-  if (e.code === "Enter" && !startButton.disabled) void startDrive();
+  if (e.code === "Enter" && document.querySelector("#title")) void startRace();
+  if (e.code === "Escape" && current) showMenu();
 });
 
 const clock = new THREE.Clock();

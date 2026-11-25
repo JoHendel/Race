@@ -8,13 +8,15 @@
 
 ![Titelbildschirm](docs/media/title.png)
 
-| Drift mit Boost-Stufen | Sprung über die Rampe |
+| Rennen gegen 9 Bots | Ergebnistabelle |
 | --- | --- |
-| ![Drift](docs/media/drift.png) | ![Sprung](docs/media/drive.png) |
+| ![Rennen](docs/media/race.png) | ![Ergebnis](docs/media/results.png) |
+| **Startaufstellung** | **Drift mit Boost-Stufen** |
+| ![Start](docs/media/intro.png) | ![Drift](docs/media/drift.png) |
 
 </div>
 
-> 🚧 **In Entwicklung.** Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
+> 🚧 **In Entwicklung.** Spielbar: Einzelrennen auf Neon Harbor gegen 9 Bots und ein Testgelände. Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
 
 ## Features (geplant)
 
