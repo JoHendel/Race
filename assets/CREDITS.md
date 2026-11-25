@@ -1,7 +1,9 @@
-# Credits & Lizenzen
+# Credits & licenses
 
-| Asset | Quelle | Lizenz |
+| Asset | Source | License |
 | --- | --- | --- |
-| Titelbildschirm-Szene | eigener Code | MIT |
+| All 3D models (cars, tracks, podium, scenery) | procedural, created in code | MIT |
+| Title screen scene, sky, particles, decals | procedural, created in code | MIT |
+| Fonts | system fonts of the player's device | – |
 
-Neue Assets werden hier mit Quelle und Lizenz eingetragen. Erlaubt sind nur CC0 oder vergleichbar freie Lizenzen.
+New assets are listed here with source and license. Only CC0 or similarly free licenses are allowed.

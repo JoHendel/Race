@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.0 – Submission release
+- German/English UI toggle (remembered in the browser, `?lang=de|en`)
+- Architecture documentation with module, data-flow and pipeline diagrams (`docs/architecture.md`)
+- README section "How the AI was built (CRISP-DM)", English screenshots
+- `CONTRIBUTING.md` and issue templates; all public documentation in English
+- More robust online end-to-end test on slow CI runners
+
 ## v0.7.0 – AI driver, part 2
 - Stage 2 training: evolution strategy (`pnpm ai:evolve`) on top of behavior cloning
 - APEX-AI v2 is 5.5 % faster than the rule-based bots on an unseen track
@@ -13,30 +20,30 @@
 - Documentation of the AI development along CRISP-DM (`docs/ai-driver.md`, `docs/ai/report.md`)
 
 ## v0.5.0 – Garage
-- 12 Fahrzeuge in 4 Klassen mit eigenen Karosserien
-- XP, Level, Credits, Freischalten per Level oder Grand-Prix-Sieg
-- Leistungs- und Optik-Tuning, Leistungsindex, Speicherstand
+- 12 cars in 4 classes, each with its own body shape
+- XP, levels and credits; cars unlock by level or by winning a Grand Prix
+- Performance and visual tuning, performance index, local save game
 
-## v0.4.0 – Siegertreppe & Grand Prix
-- 3D-Siegertreppe mit Pokal, Konfetti, Feuerwerk und Kamerafahrt
-- Auszeichnungen: Schnellste Runde, Drift-König, Meiste Überholungen, Comeback
-- Grand-Prix-Modus mit 4 Rennen, Gesamtwertung und Cup-Siegerehrung
+## v0.4.0 – Podium & Grand Prix
+- 3D podium with trophy, confetti, fireworks and a camera orbit
+- Awards: fastest lap, drift king, most overtakes, comeback of the race
+- Grand Prix mode with 4 races, overall standings and a cup ceremony
 
-## v0.3.0 – Online-Multiplayer
-- Online-Rennen für bis zu 10 Spieler per Raumcode oder Link, Peer-to-Peer ohne Server
-- Lobby mit Namen, Bereit-Status, Rundenzahl, Bot-Auffüllung
-- Wiedereinstieg nach Verbindungsabbruch, Bot übernimmt so lange
+## v0.3.0 – Online multiplayer
+- Online races for up to 10 players via room code or link, peer-to-peer without a server
+- Lobby with names, ready status, lap count and bot fill
+- Rejoin after a disconnect; a bot drives the car in the meantime
 
-## v0.2.0 – Erstes Rennen
-- Strecke Neon Harbor mit Sprungkante und Hafen-Kulisse
-- 9 Bots, 3 Runden, Countdown mit Perfektstart, Minimap, Platzierung
-- Zieleinlauf in Zeitlupe und Ergebnistabelle mit Punkten
+## v0.2.0 – First race
+- Neon Harbor track with a jump and harbor scenery
+- 9 bots, 3 laps, countdown with perfect start, minimap, positions
+- Slow-motion finish and results table with points
 
-## v0.1.0 – Fahrgefühl
-- Testfahrt auf einem Neon-Testgelände mit Physik, Sprüngen und Pylonen
-- Drift mit drei Boost-Stufen, Nitro, Reset
-- Verfolgerkamera, HUD mit Tacho und Nitro-Leiste
+## v0.1.0 – Driving feel
+- Test drive on a neon test ground with physics, jumps and cones
+- Drift with three boost stages, nitro, reset
+- Chase camera, HUD with speedometer and nitro bar
 
-## v0.0.1 – Fundament
-- Projektstruktur, Build, Tests und automatischer Deploy auf GitHub Pages
-- Animierter Neon-Titelbildschirm
+## v0.0.1 – Foundation
+- Project structure, build, tests and automatic deployment to GitHub Pages
+- Animated neon title screen

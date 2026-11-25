@@ -29,3 +29,10 @@ describe("i18n", () => {
     expect(detectLang(null, "fr-FR")).toBe("en");
   });
 });
+
+describe("i18n and names", () => {
+  it("never translates bot names", async () => {
+    const names = ["Nova", "Blaze", "Rook", "Vera", "Kaito", "Mika", "Dash", "Juno", "Zed", "APEX-AI"];
+    for (const n of names) expect(translate(n, "en")).toBe(n);
+  });
+});

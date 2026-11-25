@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M8 starten – Spiel-UI auf Englisch umschaltbar machen (DE/EN, `packages/shared/i18n.ts`), danach Architektur-Diagramm der Module für README/docs.
+**Nächster Schritt:** M9 starten – nächste Strecke Glacier Rift (Eisflächen mit weniger Grip, Polarlichter) als Spline in `packages/shared/src/tracks.ts`, dann Streckenwahl im Menü und in der Lobby.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -12,8 +12,8 @@
 | M5 – Garage | ✅ fertig |
 | M6 – KI-Fahrer, Teil 1 (Daten & Modell) | ✅ fertig |
 | M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | ✅ fertig |
-| M8 – Abgabe-Release (spätestens 18.12.2026) | ⏳ als Nächstes |
-| M9 – Alle Strecken | offen |
+| M8 – Abgabe-Release (spätestens 18.12.2026) | ✅ fertig (Pages/Release brauchen den Menschen, siehe BLOCKERS.md) |
+| M9 – Alle Strecken | ⏳ als Nächstes |
 | M10 – Grafik & Assets | offen |
 | M11 – Extra-Features | offen |
 | M12 – Sound & Feinschliff | offen |
@@ -60,3 +60,13 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Teststrecke Grand Circuit (ungesehen): v2 94,5 % der Bot-Rundenzeit, Ø Platz 1,2, 0,33 Mauerkontakte/Runde, 100 % Ziel. v1: 102,1 %, Ø Platz 4,0.
 - APEX-AI fährt in jedem Rennen (offline eigener Startplatz, online vom Host simuliert), schwarz-goldene Lackierung, „AI“-Ring auf der Minimap, KI-Badge im Ergebnis. Inferenz im Browser 0,038 ms/Schritt.
 - Report erweitert (v1/v2/Bot-Vergleich, ES-Kurve), `docs/ai-driver.md` Phasen 4–6 vollständig. Lint, 33 Unit-Tests, 3 E2E-Tests grün. Tag `v0.7.0` lokal (Tag-Push durch Proxy blockiert).
+
+## Abschlussbericht M8 – Abgabe-Release
+
+- UI auf Deutsch/Englisch umschaltbar (Knopf oben rechts im Titel, gespeichert, `?lang=`), Wörterbuch in `packages/shared/src/i18n.ts`, Übersetzer per MutationObserver.
+- `docs/architecture.md` mit Modul-, Datenfluss-, Multiplayer- und Pipeline-Diagrammen (Mermaid), Modulgraph auch in der README.
+- README: Abschnitt „How the AI was built (CRISP-DM)“ mit Kennzahlen (stimmen mit `docs/ai/report.md` überein), Online-Anleitung englisch, Screenshots neu mit englischer UI.
+- `CONTRIBUTING.md`, Issue-Vorlagen, CHANGELOG und CREDITS komplett englisch. Version 0.8.0.
+- Bot „Blitz“ in „Blaze“ umbenannt (wurde sonst als Folienname übersetzt); Test sichert, dass Namen nie übersetzt werden.
+- Online-E2E-Test wartet jetzt per Abfrage statt fester 5 s (CI-Fehlschlag bei M6/M7).
+- Offen für den Menschen: Pages einschalten, Release v0.8.0 anlegen, Link abgeben.

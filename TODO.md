@@ -34,7 +34,9 @@
 - [ ] Später: Schwierigkeit von APEX-AI über Leistungsanteil (Motorleistung), Nitro über längeren Fitness-Test/Überhol-Belohnung lernen
 
 ## M8 – Abgabe-Release (bis 18.12.2026)
-- [ ] Gesamte Doku Englisch (PROGRESS/DECISIONS bleiben interne Notizen)
+- [x] Gesamte Doku Englisch (README, docs/, CHANGELOG, CONTRIBUTING, CREDITS, Issue-Vorlagen; PROGRESS/DECISIONS/TODO bleiben interne Notizen)
 - [x] UI-Sprachumschalter DE/EN (Wörterbuch in packages/shared, MutationObserver im Client)
-- [ ] Architektur-Diagramm (README + docs/architecture.md)
-- [ ] Release v0.8.0
+- [x] Architektur-Diagramm (README + docs/architecture.md, Mermaid)
+- [x] README-Abschnitt „How the AI was built (CRISP-DM)“, englische Screenshots
+- [x] Release v0.8.0 (Version + Changelog; Tag nur lokal, GitHub-Release siehe BLOCKERS.md)
+- [ ] Menschlich: Pages einschalten, Release anlegen, Link bis 18.12.2026 abgeben (BLOCKERS.md)

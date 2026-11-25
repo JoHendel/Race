@@ -37,7 +37,7 @@ import { EMOTES, Podium } from "./podium";
 import { AiDriver, CURRENT_MODEL } from "@apex/ai";
 
 const STEP = 1 / 60;
-export const BOT_NAMES = ["Nova", "Blitz", "Kaito", "Vera", "Rook", "Juno", "Dash", "Mika", "Zed"];
+export const BOT_NAMES = ["Nova", "Blaze", "Kaito", "Vera", "Rook", "Juno", "Dash", "Mika", "Zed"];
 export const RACER_COLORS = [theme.cyan, theme.magenta, theme.orange, theme.violet, 0x39ff88, 0xffe14d, 0xff4d6d, 0x4dd2ff, 0xc0c0ff, 0xff9ef0];
 const LEVEL_NAMES = ["", "BOOST", "SUPER BOOST", "ULTRA BOOST"];
 const LEVEL_COLORS = ["white", "cyan", "orange", "violet"] as const;
