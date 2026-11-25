@@ -78,12 +78,22 @@
     "apexAi": {
       "races": 6,
       "finishRate": 1,
-      "bestLap": 43.24999999999755,
-      "meanBestLap": 44.355555555553046,
+      "bestLap": 36.19999999999795,
+      "meanBestLap": 40.77499999999769,
+      "wallContactsPerLap": 0.3333333333333333,
+      "resetsPerRace": 0.3333333333333333,
+      "meanLateralOffset": 3.338519741588184,
+      "meanPlace": 1.1666666666666667
+    },
+    "apexAiV1": {
+      "races": 6,
+      "finishRate": 1,
+      "bestLap": 43.31666666666421,
+      "meanBestLap": 44.02777777777528,
       "wallContactsPerLap": 0.08333333333333333,
       "resetsPerRace": 0.6666666666666666,
-      "meanLateralOffset": 2.9179420449003257,
-      "meanPlace": 4.333333333333333
+      "meanLateralOffset": 2.9280457804805753,
+      "meanPlace": 4
     },
     "ruleBot": {
       "races": 6,
@@ -96,15 +106,20 @@
       "meanPlace": 4.166666666666667
     }
   },
+  "evolution": {
+    "generations": 30,
+    "startValidation": 141.33333333333456,
+    "bestValidation": 154.3583333333341
+  },
   "criteria": [
     {
       "name": "Lap time ≤ 105 % of the rule-based bot",
-      "value": "102.8 %",
+      "value": "94.5 %",
       "ok": true
     },
     {
       "name": "Wall contacts < 1 per lap",
-      "value": "0.08",
+      "value": "0.33",
       "ok": true
     },
     {

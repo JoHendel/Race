@@ -25,11 +25,13 @@
 - [x] sim-Paket, 3 neue Strecken, Beobachtung, Aufzeichnung, MLP + Behavior Cloning + Early Stopping, Report, Doku Phasen 1–4
 
 ## M7 – KI-Fahrer, Teil 2
-- [ ] `pnpm ai:evolve`: Evolutionsstrategie (z. B. OpenAI-ES mit antithetischen Stichproben) ab apex-ai-v1, Belohnung Fortschritt/Zeit, Strafe Mauer/Reset/falsche Richtung, Nitro lernen
-- [ ] Lernkurve der Belohnung im Report, Vergleich v1 vs. v2 auf der Teststrecke
-- [ ] Inferenzzeit im Browser messen (< 0,2 ms)
-- [ ] APEX-AI immer im Startfeld (offline + online), Kennzeichnung im HUD/Ergebnis
-- [ ] `docs/ai-driver.md` Phasen 5–6
+- [x] `pnpm ai:evolve`: Evolutionsstrategie (z. B. OpenAI-ES mit antithetischen Stichproben) ab apex-ai-v1, Belohnung Fortschritt/Zeit, Strafe Mauer/Reset/falsche Richtung, Nitro lernen
+- [x] Lernkurve der Belohnung im Report, Vergleich v1 vs. v2 auf der Teststrecke
+- [x] Inferenzzeit im Browser messen (< 0,2 ms)
+- [x] APEX-AI immer im Startfeld (offline + online), Kennzeichnung im HUD/Ergebnis
+- [x] `docs/ai-driver.md` Phasen 5–6
+
+- [ ] Später: Schwierigkeit von APEX-AI über Leistungsanteil (Motorleistung), Nitro über längeren Fitness-Test/Überhol-Belohnung lernen
 
 ## M8 – Abgabe-Release (bis 18.12.2026)
 - [ ] Gesamte Doku Englisch (PROGRESS/DECISIONS bleiben interne Notizen)

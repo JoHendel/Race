@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M7 starten – Evolutionsstrategie (`pnpm ai:evolve`) auf Basis von `apex-ai-v1.json` bauen: Gewichte variieren, in `HeadlessRace` fahren lassen, Belohnung aus Fortschritt/Rundenzeit, Strafen für Mauer/Reset.
+**Nächster Schritt:** M8 starten – Spiel-UI auf Englisch umschaltbar machen (DE/EN, `packages/shared/i18n.ts`), danach Architektur-Diagramm der Module für README/docs.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -11,8 +11,8 @@
 | M4 – Siegertreppe & Wertung | ✅ fertig |
 | M5 – Garage | ✅ fertig |
 | M6 – KI-Fahrer, Teil 1 (Daten & Modell) | ✅ fertig |
-| M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | ⏳ als Nächstes |
-| M8 – Abgabe-Release (spätestens 18.12.2026) | offen |
+| M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | ✅ fertig |
+| M8 – Abgabe-Release (spätestens 18.12.2026) | ⏳ als Nächstes |
 | M9 – Alle Strecken | offen |
 | M10 – Grafik & Assets | offen |
 | M11 – Extra-Features | offen |
@@ -52,3 +52,11 @@ Offen: Leistungsindex-Limit als Lobby-Schalter; Hupen-Sounds und Reifenrauch-Far
 `packages/sim`: Fahrzeugphysik, Strecken-Geometrie/Kollision, Regel-Bots und komplette Rennen ohne Grafik in Node (2 Runden mit 6 Autos in < 1 s Rechenzeit); das Spiel nutzt dieselben Klassen. Drei neue Strecken (Sunset Canyon, Skyline Loop, Grand Circuit) plus Spiegelung als Augmentation. `packages/ai`: 24 Merkmale (Beobachtung), eigenes MLP 24→32→32→4 mit Backprop + Adam + Early Stopping, Pipeline `pnpm ai:record|train|evaluate|report|all`. Ergebnis (Seed 2026): 280.754 Samples, Split nach Strecken, Lenkung R² 0,80 auf der Teststrecke, APEX-AI fährt auf der ungesehenen Strecke 100 % ins Ziel, 0,08 Mauerkontakte pro Runde, Rundenzeit 102,8 % des besten Regel-Bots. `docs/ai-driver.md` (Phasen 1–4 + erste Evaluation) und `docs/ai/report.md` (alle Datenanalyse-Parameter, Diagramme).
 
 Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 2 (M7) gelernt.
+
+## Abschlussbericht M7 – KI-Fahrer, Teil 2
+
+- Stufe 2: OpenAI-ES (`packages/ai/src/evolve.ts`, `pnpm ai:evolve`), 30 Generationen × 16 Kandidaten, 318 s. Validierungsfitness 141,3 → 154,4, Runde Skyline Loop 44,67 → 35,64 s. Bestes Modell nach Validierung → `apex-ai-v2.json`.
+- Nitro-Ausgang vor Stufe 2 zurückgesetzt; ES findet Nitro zeitweise (bis 12 %), behält es aber kaum (0,6 %) – als Befund dokumentiert.
+- Teststrecke Grand Circuit (ungesehen): v2 94,5 % der Bot-Rundenzeit, Ø Platz 1,2, 0,33 Mauerkontakte/Runde, 100 % Ziel. v1: 102,1 %, Ø Platz 4,0.
+- APEX-AI fährt in jedem Rennen (offline eigener Startplatz, online vom Host simuliert), schwarz-goldene Lackierung, „AI“-Ring auf der Minimap, KI-Badge im Ergebnis. Inferenz im Browser 0,038 ms/Schritt.
+- Report erweitert (v1/v2/Bot-Vergleich, ES-Kurve), `docs/ai-driver.md` Phasen 4–6 vollständig. Lint, 33 Unit-Tests, 3 E2E-Tests grün. Tag `v0.7.0` lokal (Tag-Push durch Proxy blockiert).

@@ -17,3 +17,7 @@
 | 2026-11-25 | Early Stopping nach Validierungs-Loss | Validierungs-Loss steigt ab Epoche ~3–10 (Overfitting); bestes Modell fährt messbar besser. |
 | 2026-11-25 | Regel-Bots driften in engen schnellen Kurven | Sonst enthält der Datensatz keine Drift-Beispiele. |
 | 2026-11-25 | Telemetrie (`data/`) nicht im Repo, nur Modell und Report | Datensatz ~30 MB, jederzeit mit `pnpm ai:record` reproduzierbar. |
+- **M7 Evolutionsstrategie statt RL (PPO):** OpenAI-ES braucht keine Gradienten durch die Physik, ist in ~100 Zeilen TypeScript erklärbar und lief in 5 Minuten auf einem Kern.
+- **M7 Bestes Modell nach Validierungsstrecke behalten:** analog zu Early Stopping in Stufe 1, verhindert Überanpassung an die Trainingsstrecken.
+- **M7 Nitro-Ausgang zurückgesetzt:** Behavior Cloning sah keine Nitro-Nutzung; ohne Reset hätte die ES den Ausgang nie aus „aus“ herausbewegt.
+- **M7 APEX-AI fährt den Volt Hatch:** dasselbe Auto wie im Training, damit Fairness und Modellverhalten übereinstimmen.

@@ -46,7 +46,7 @@ test("Rennen: Countdown, eine Runde, Ergebnistabelle", async ({ page }) => {
   await expect(page.getByTestId("place")).toBeVisible();
   await page.waitForFunction(() => (window as ApexWindow).apex!.race!.phase === "racing", undefined, { timeout: 20_000 });
   await expect(page.getByTestId("results")).toBeVisible({ timeout: 360_000 });
-  await expect(page.getByTestId("results").locator("tbody tr")).toHaveCount(4);
+  await expect(page.getByTestId("results").locator("tbody tr")).toHaveCount(5);
   expect(errors).toEqual([]);
 });
 

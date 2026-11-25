@@ -93,7 +93,9 @@ Pearson correlation of the strongest features with the targets (valid samples):
 
 ![Learning curve](learning-curve.svg)
 
-## 6. Model metrics
+## 6. Model metrics (stage 1, behavior cloning)
+
+These metrics compare the stage-1 network (apex-ai-v1) with the recorded bot actions.
 
 | Metric | Validation (68,513 samples) | Test (78,547 samples) |
 | --- | --- | --- |
@@ -122,21 +124,33 @@ Pearson correlation of the strongest features with the targets (valid samples):
 
 3 races per test track, 2 laps each, against 9 rule-based bots. The comparison driver is a rule-based bot (skill "hard") in the same grid slot.
 
-| Metric | APEX-AI | Rule-based bot |
-| --- | --- | --- |
-| Races | 6 | 6 |
-| Finish rate | 100.0 % | 100.0 % |
-| Best lap | 43.25 s | 41.12 s |
-| Mean best lap | 44.36 s | 43.13 s |
-| Wall contacts per lap | 0.08 | 0.25 |
-| Resets per race | 0.67 | 0.67 |
-| Mean distance to centre line | 2.92 m | 3.24 m |
-| Mean finishing place (of 10) | 4.3 | 4.2 |
+| Metric | APEX-AI v2 (final) | APEX-AI v1 (cloning only) | Rule-based bot |
+| --- | --- | --- | --- |
+| Races | 6 | 6 | 6 |
+| Finish rate | 100.0 % | 100.0 % | 100.0 % |
+| Best lap | 36.20 s | 43.32 s | 41.12 s |
+| Mean best lap | 40.77 s | 44.03 s | 43.13 s |
+| Lap time vs. bot | 94.5 % | 102.1 % | 100.0 % |
+| Wall contacts per lap | 0.33 | 0.08 | 0.25 |
+| Resets per race | 0.33 | 0.67 | 0.67 |
+| Mean distance to centre line | 3.34 m | 2.93 m | 3.24 m |
+| Mean finishing place (of 10) | 1.2 | 4.0 | 4.2 |
 
-## 8. Success criteria
+## 8. Stage 2 – evolution strategy
+
+| Parameter | Value |
+| --- | --- |
+| Generations | 30 |
+| Start (v1) validation fitness | 141.3 (lap 44.67 s) |
+| Best validation fitness | 154.4 |
+| Nitro use of the final candidates | 0.6 % of driving time (mean of the last 5 generations) |
+
+![Evolution curve](evolution-curve.svg)
+
+## 9. Success criteria
 
 | Criterion | Result | Met |
 | --- | --- | --- |
-| Lap time ≤ 105 % of the rule-based bot | 102.8 % | ✅ |
-| Wall contacts < 1 per lap | 0.08 | ✅ |
+| Lap time ≤ 105 % of the rule-based bot | 94.5 % | ✅ |
+| Wall contacts < 1 per lap | 0.33 | ✅ |
 | Finish rate 100 % | 100.0 % | ✅ |

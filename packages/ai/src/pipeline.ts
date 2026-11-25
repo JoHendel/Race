@@ -2,6 +2,7 @@ import { GRAND_CIRCUIT, NEON_HARBOR, SKYLINE_LOOP, SUNSET_CANYON, mirrorTrack, t
 import { HeadlessRace, mulberry32, type Controller, type RacerSpec, type RaceSummary } from "@apex/sim";
 import { Mlp, train, type Dataset, type MlpJson } from "./mlp";
 import { OBS_SIZE, observeRacer } from "./observation";
+import { AiDriver } from "./driver";
 
 /** Fixed configuration so that every run is reproducible. */
 export const CONFIG = {
@@ -128,37 +129,34 @@ export function trainModel(samples: Sample[], log: (s: string) => void = () => {
 
 /** Controller that drives a car with the neural network. */
 export function aiController(model: Mlp): Controller {
-  const obs = new Float32Array(OBS_SIZE);
-  let slowTime = 0;
-  return ({ self, race, dt }) => {
-    const y = model.predict(observeRacer(race, self, obs));
-    const steer = Math.max(-1, Math.min(1, y[0]!));
-    const thr = Math.max(-1, Math.min(1, y[1]!));
-    // Same self-rescue rule as the bots: stuck for 3 s → reset behind the car.
-    slowTime = Math.abs(self.car.speed) < 2 ? slowTime + dt : 0;
-    const reset = slowTime > 3;
-    if (reset) slowTime = 0;
-    return { steer, throttle: Math.max(0, thr), brake: Math.max(0, -thr), drift: y[2]! > 0.5, nitro: y[3]! > 0.5, reset };
-  };
+  const driver = new AiDriver(model);
+  return ({ self, race, dt }) => driver.drive(self.car, race.track, self.index, race.racers.filter((r) => r !== self).map((r) => r.car), dt);
 }
 
 export interface EvalRow {
   track: string;
   run: number;
-  driver: "apex-ai" | "rule-bot";
+  driver: "apex-ai" | "apex-ai-v1" | "rule-bot";
   summary: RaceSummary;
 }
 
 /** CRISP-DM phase 5: let the AI race on the unseen test tracks, compared with a rule-based bot in the same slot. */
-export async function evaluateModel(model: Mlp, tracks: TrackDef[] = tracksOf("test")): Promise<EvalRow[]> {
+export async function evaluateModel(model: Mlp, tracks: TrackDef[] = tracksOf("test"), previous?: Mlp): Promise<EvalRow[]> {
   await HeadlessRace.init();
   const rows: EvalRow[] = [];
   for (const track of tracks) {
     for (let run = 0; run < CONFIG.evalRaces; run++) {
-      for (const driver of ["apex-ai", "rule-bot"] as const) {
+      const drivers = previous ? (["apex-ai", "apex-ai-v1", "rule-bot"] as const) : (["apex-ai", "rule-bot"] as const);
+      for (const driver of drivers) {
         const specs: RacerSpec[] = Array.from({ length: CONFIG.botsPerRace }, (_, i) => ({ id: `bot-${i}`, skill: "normal" as const }));
         // The candidate starts in the middle of the field (slot 4).
-        specs.splice(4, 0, driver === "apex-ai" ? { id: "candidate", controller: aiController(model) } : { id: "candidate", skill: "hard" });
+        specs.splice(
+          4,
+          0,
+          driver === "rule-bot"
+            ? { id: "candidate", skill: "hard" }
+            : { id: "candidate", controller: aiController(driver === "apex-ai" ? model : previous!) },
+        );
         const race = new HeadlessRace(track, specs, CONFIG.lapsPerRace, CONFIG.seed + 1000 + run);
         const summary = race.run(400).find((s) => s.id === "candidate")!;
         race.dispose();

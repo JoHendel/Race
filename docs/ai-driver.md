@@ -10,14 +10,14 @@ All numbers below come from the automatically generated **[data analysis report]
 | 2. Data Understanding | M6 | ✅ done |
 | 3. Data Preparation | M6 | ✅ done |
 | 4. Modeling – stage 1 (behavior cloning) | M6 | ✅ done |
-| 4. Modeling – stage 2 (evolution strategy) | M7 | planned |
-| 5. Evaluation | M6–M7 | first results, full evaluation in M7 |
-| 6. Deployment (AI in every race) | M7 | planned |
+| 4. Modeling – stage 2 (evolution strategy) | M7 | ✅ done |
+| 5. Evaluation | M6–M7 | ✅ done |
+| 6. Deployment (AI in every race) | M7 | ✅ done |
 
 ```
  Business        Data            Data             Modeling          Evaluation        Deployment
-Understanding → Understanding → Preparation →   (MLP, behavior → (unseen test   →  (weights as JSON,
- (goal, KPIs)    (telemetry)     (clean, split)   cloning)          track)            browser inference)
+Understanding → Understanding → Preparation →   (MLP: cloning → (unseen test   →  (weights as JSON,
+ (goal, KPIs)    (telemetry)     (clean, split)   + evolution)      track)            browser inference)
        ↑______________________________________________________________|  iterate
 ```
 
@@ -33,10 +33,10 @@ Understanding → Understanding → Preparation →   (MLP, behavior → (unseen
 
 | Criterion | Target | Current result |
 | --- | --- | --- |
-| Mean best lap compared with the rule-based bot | ≤ 105 % | **102.8 %** ✅ |
-| Wall contacts | < 1 per lap | **0.08** ✅ |
+| Mean best lap compared with the rule-based bot | ≤ 105 % | **94.5 %** ✅ |
+| Wall contacts | < 1 per lap | **0.33** ✅ |
 | Finish rate | 100 % | **100 %** ✅ |
-| Inference time in the browser | < 0.2 ms per step | to be measured in M7 |
+| Inference time in the browser | < 0.2 ms per step | **0.038 ms** ✅ |
 
 **Constraints:** same cars, physics and information as human players (no view of other players' inputs, no cheating), only free tools, runs fully in the browser.
 
@@ -111,7 +111,31 @@ The learning curve shows a typical pattern: the training loss keeps falling (0.4
 
 Steering is predicted well (R² 0.80). Throttle is harder (R² 0.51) because the bots switch between full throttle and lifting off almost like a switch. Drift is detected in 73 % of the real drift moments (recall), but with many false alarms (precision 32 %), which is expected for such a rare class.
 
-**Stage 2 – Fine-tuning (planned for M7):** an evolution strategy changes the network weights slightly, lets every variant race in the simulation and keeps the faster ones. Reward: progress and lap time; penalties: wall contacts, wrong-way driving, resets. This is also where nitro use is learned.
+**Stage 2 – Fine-tuning with an evolution strategy (reinforcement from race results).** Behavior cloning can at most become as good as its teacher. To beat the teacher, APEX-AI is fine-tuned with an **OpenAI-style evolution strategy** (`packages/ai/src/evolve.ts`):
+
+1. Start from the v1 weights θ.
+2. Draw 8 random noise vectors ε and build 16 candidates θ ± σ·ε (*antithetic sampling* halves the noise in the estimate).
+3. Every candidate drives one lap against 3 bots in the headless simulation. Its **fitness** is
+
+   `fitness = 100 · progress + (finished ? 90 − lap time : 0) − 3 · wall contacts − 8 · resets − 0.05 · wrong-way steps`
+
+4. The fitness values are replaced by their ranks (*rank shaping*, robust against outliers), and θ moves in the direction of the better candidates (learning rate 0.03).
+5. After each generation the new θ drives the **validation track** (Skyline Loop). The weights with the best validation fitness are kept – the same idea as early stopping in stage 1.
+
+| Parameter | Value |
+| --- | --- |
+| Generations | 30 (training tracks rotate: Neon Harbor, Sunset Canyon and their mirrors) |
+| Candidates per generation | 16 (8 antithetic pairs) |
+| Noise σ | 0.02 for weights, 0.6 for output biases, 0.15 for the nitro output |
+| Compute time | 318 s on one CPU core |
+| Validation fitness | 141.3 (v1) → **154.4** (best, generation 25) |
+| Validation lap | 44.67 s → **35.64 s** |
+
+![Evolution curve](ai/evolution-curve.svg)
+
+The grey line (population mean) jumps strongly because many noisy candidates crash or drive slowly – that is exactly the exploration the method needs. The validation line rises much more steadily.
+
+**Nitro:** behavior cloning saw no nitro at all, so its nitro output was stuck at "off". Before stage 2 this output neuron is reset to zero and explores with a larger σ. The evolution strategy found nitro (up to 12 % of the driving time in some generations) but did not keep it: the final candidates use it in only 0.6 % of the time. A likely reason is that nitro on a one-lap fitness test increases the risk of wall contacts more than it saves time.
 
 **Rejected alternatives:**
 
@@ -121,22 +145,62 @@ Steering is predicted well (R² 0.80). Throttle is harder (R² 0.51) because the
 | Large ML library (e.g. TensorFlow.js) | Not needed for a model with 1,988 parameters; a library would hide the steps that are meant to be explained. |
 | Pure reinforcement learning from scratch | Needs far more simulation time; behavior cloning gives a good starting point first. |
 
-## 5. Evaluation (first results)
+## 5. Evaluation
 
-APEX-AI drove 6 races (3 per direction, 2 laps each) on the **unseen** Grand Circuit against 9 rule-based bots. As a comparison, a rule-based bot of the highest skill level drove the same races from the same grid slot.
+All numbers come from `pnpm ai:evaluate` and `docs/ai/report.md` (seed 2026) and are reproducible.
 
-| Metric | APEX-AI | Rule-based bot |
+**Setup:** 6 races (3 per direction, 2 laps each) on the **unseen** test track Grand Circuit against 9 rule-based bots. Each of the three drivers starts the same races from the same grid slot: the final model v2, the stage-1 model v1 and a rule-based bot of the highest skill level.
+
+| Metric | APEX-AI v2 (final) | APEX-AI v1 (cloning only) | Rule-based bot |
+| --- | --- | --- | --- |
+| Finish rate | 100 % | 100 % | 100 % |
+| Mean best lap | **40.77 s** | 44.03 s | 43.13 s |
+| Lap time vs. bot | **94.5 %** | 102.1 % | 100 % |
+| Best single lap | 36.20 s | 43.32 s | 41.12 s |
+| Wall contacts per lap | 0.33 | 0.08 | 0.25 |
+| Resets per race | 0.33 | 0.67 | 0.67 |
+| Mean distance to the centre line | 3.34 m | 2.93 m | 3.24 m |
+| Mean finishing place (of 10) | **1.2** | 4.0 | 4.2 |
+
+**Success criteria (from Business Understanding):**
+
+| Criterion | Result | Met |
 | --- | --- | --- |
-| Finish rate | 100 % | 100 % |
-| Mean best lap | 44.36 s | 43.13 s |
-| Wall contacts per lap | 0.08 | 0.25 |
-| Mean distance to the centre line | 2.92 m | 3.24 m |
-| Mean finishing place (of 10) | 4.3 | 4.2 |
+| Lap time ≤ 105 % of the rule-based bot | 94.5 % | ✅ |
+| Wall contacts < 1 per lap | 0.33 | ✅ |
+| Finish rate 100 % | 100 % | ✅ |
 
-APEX-AI already reaches the level of the best rule-based bot on a track it has never seen. It drives cleaner (fewer wall contacts) but slightly slower. This is expected for behavior cloning: the model can at most become as good as its teacher. Beating the teacher is the goal of stage 2 in M7.
+**Interpretation:** stage 1 brought APEX-AI to the level of its teacher; stage 2 made it clearly faster than the teacher (−5.5 % lap time) on a track it never trained on, so the improvement generalizes and is not memorized.
 
-## 6. Deployment (planned for M7)
+**Typical errors and trade-offs:**
 
-- The trained weights are stored as JSON (`packages/ai/models/apex-ai-v1.json`, 19 KB) and versioned in the repository.
-- In the game, APEX-AI uses exactly the same observation code and physics as in training; online, the host simulates it.
-- Retraining: `pnpm ai:record` → `pnpm ai:train` → `pnpm ai:evaluate` → `pnpm ai:report` (or `pnpm ai:all`).
+- *More aggressive lines:* v2 brakes later and cuts corners harder. This saves time but raises wall contacts from 0.08 to 0.33 per lap – still well below the limit of 1.
+- *Higher variance:* v2's best laps range from 36.2 s to 43.0 s. In crowded starts it sometimes loses time behind slower cars, because the fitness test used only 3 opponents.
+- *Nitro is hardly used* (see Modeling). A longer fitness test (2–3 laps) or a reward for overtaking is the next idea.
+- *Strength:* with a mean place of 1.2, APEX-AI is hard to beat for beginners. The planned difficulty setting will scale its engine power (not its knowledge), as required by the fairness rules.
+
+## 6. Deployment
+
+| Item | Implementation |
+| --- | --- |
+| Model files | `packages/ai/models/apex-ai-v1.json` (stage 1) and `apex-ai-v2.json` (stage 2), about 19 KB each, versioned in Git with their training configuration in the JSON |
+| Model in the game | `packages/ai/src/currentModel.ts` selects the version (currently **v2**); the client bundles it at build time |
+| Inference | `AiDriver` (`packages/ai/src/driver.ts`): observation → MLP forward pass → controls, identical code in training and in the browser |
+| Inference time | **0.038 ms per step** measured in headless Chromium (2,000 steps, during a running race) – well below the 0.2 ms budget |
+| In every race | offline: APEX-AI takes one grid slot next to the player and the bots; online: the host simulates it and sends it to all clients like any other car |
+| Recognizable | own black-chrome and gold livery with a lightning decal, gold "AI" ring on the minimap, "KI"/AI badge in the results table |
+| Fairness | same car (Volt Hatch), same physics, only information a player could see (no access to other players' inputs) |
+
+**Retraining from scratch:**
+
+```bash
+pnpm ai:record    # record telemetry of the rule-based bots
+pnpm ai:train     # stage 1: behavior cloning  → apex-ai-v1.json
+pnpm ai:evolve    # stage 2: evolution strategy → apex-ai-v2.json
+pnpm ai:evaluate  # race v2 vs v1 vs rule-based bot on the test track
+pnpm ai:report    # data analysis parameters and charts → docs/ai/
+# or everything at once:
+pnpm ai:all
+```
+
+All steps use fixed random seeds (2026 for data and training, 7 for the evolution strategy), so the results are reproducible.

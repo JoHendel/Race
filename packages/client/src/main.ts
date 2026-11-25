@@ -337,7 +337,7 @@ function showLobby(): void {
 async function beginOnlineRace(
   trackId: string,
   laps: number,
-  grid: { id: string; name: string; color: number; human: boolean }[],
+  grid: { id: string; name: string; color: number; human: boolean; ai?: boolean }[],
   seed: number,
 ): Promise<void> {
   const s = session;

@@ -11,7 +11,7 @@ import {
   type SignalingProvider,
 } from "@apex/net";
 import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, clampLaps } from "@apex/shared";
-import { BOT_NAMES, RACER_COLORS, type GridEntry, type RaceScene } from "../game/raceScene";
+import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry, type RaceScene } from "../game/raceScene";
 import { currentCar } from "../save";
 
 type StartMessage = Extract<HostMessage, { t: "start" }>;
@@ -137,6 +137,8 @@ export class HostSession {
     const humans = this.players.filter((p) => p.connected);
     this.players[0]!.car = currentCar();
     const grid: GridEntry[] = humans.map((p) => ({ id: p.clientId, name: p.name, color: p.color, human: true, car: p.car }));
+    // APEX-AI always races along (if there is a free slot).
+    if (grid.length < MAX_PLAYERS) grid.splice(Math.min(grid.length, 2), 0, apexAiEntry());
     if (this.settings.fillWithBots) {
       let b = 0;
       while (grid.length < MAX_PLAYERS) {

@@ -7,6 +7,7 @@ export interface HudRacer {
   color: number;
   pos: THREE.Vector3;
   isPlayer: boolean;
+  isAi?: boolean;
 }
 
 /** Renn-HUD: Platz, Runde, Zeiten, Minimap, Countdown, Falsche-Richtung-Warnung. */
@@ -115,6 +116,17 @@ export class RaceHud {
         g.lineWidth = 2;
         g.strokeStyle = "#ffffff";
         g.stroke();
+      }
+      if (r.isAi) {
+        // APEX-AI: gold ring with a small "AI" label
+        g.lineWidth = 2;
+        g.strokeStyle = "#ffc94d";
+        g.beginPath();
+        g.arc(x, y, 8, 0, Math.PI * 2);
+        g.stroke();
+        g.fillStyle = "#ffc94d";
+        g.font = "bold 9px system-ui, sans-serif";
+        g.fillText("AI", x + 9, y - 6);
       }
     }
   }

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.0 – AI driver, part 2
+- Stage 2 training: evolution strategy (`pnpm ai:evolve`) on top of behavior cloning
+- APEX-AI v2 is 5.5 % faster than the rule-based bots on an unseen track
+- APEX-AI joins every race, offline and online, with its own livery and AI markers on the minimap and results
+- Report: v1 vs v2 vs rule-based bot, evolution curve; CRISP-DM phases 5–6 documented
+
 ## v0.6.0 – AI driver, part 1
 - Headless simulation package (`packages/sim`) shared by the game and AI training
 - New tracks: Sunset Canyon, Skyline Loop, Grand Circuit

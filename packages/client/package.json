@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@apex/ai": "workspace:*",
     "@apex/net": "workspace:*",
     "@apex/shared": "workspace:*",
     "@apex/sim": "workspace:*",

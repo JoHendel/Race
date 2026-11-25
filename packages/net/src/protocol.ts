@@ -47,7 +47,7 @@ export interface RacerStatus {
 export type HostMessage =
   | { t: "welcome"; clientId: string; players: LobbyPlayer[]; settings: LobbySettings }
   | { t: "lobby"; players: LobbyPlayer[]; settings: LobbySettings }
-  | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean; car?: VehicleChoice }[] }
+  | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean; ai?: boolean; car?: VehicleChoice }[] }
   | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[] }
   | { t: "toLobby" }
   | { t: "kick"; reason: string };

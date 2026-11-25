@@ -162,6 +162,7 @@ export interface ReportInput {
   history: { train: number[]; val: number[]; bestEpoch?: number };
   posWeight: [number, number];
   evaluation: EvalRow[];
+  evolveHistory?: { generation: number; meanFitness: number; bestFitness: number; validationFitness: number; validationTime: number; nitroShare: number }[];
 }
 
 export function buildReport(input: ReportInput): { markdown: string; files: Record<string, string>; metrics: Record<string, unknown> } {
@@ -222,6 +223,9 @@ export function buildReport(input: ReportInput): { markdown: string; files: Reco
   };
   const ai = drive("apex-ai");
   const bot = drive("rule-bot");
+  const hasV1 = evaluation.some((r) => r.driver === "apex-ai-v1");
+  const v1 = hasV1 ? drive("apex-ai-v1") : null;
+  const es = input.evolveHistory ?? [];
   const lapRatio = ai.meanBestLap / bot.meanBestLap;
   const criteria = [
     { name: "Lap time ≤ 105 % of the rule-based bot", value: pct(lapRatio), ok: lapRatio <= 1.05 },
@@ -245,6 +249,20 @@ export function buildReport(input: ReportInput): { markdown: string; files: Reco
       histogram(steer, 10, -1, 1),
       "#00e5ff",
     ),
+    ...(es.length
+      ? {
+          "evolution-curve.svg": lineChart(
+            "Evolution strategy – fitness per generation",
+            [
+              { name: "population mean", color: "#8a8fb0", values: es.map((g) => g.meanFitness) },
+              { name: "best candidate", color: "#00e5ff", values: es.map((g) => g.bestFitness) },
+              { name: "validation (Skyline Loop)", color: "#ff8a1f", values: es.map((g) => g.validationFitness) },
+            ],
+            "generation",
+            "fitness",
+          ),
+        }
+      : {}),
     "correlation-steering.svg": barChart("Pearson correlation of features with steering", topSteer.map((c) => c.name), topSteer.map((c) => c.steer), "#00e5ff", true),
   };
 
@@ -315,7 +333,9 @@ ${topSteer.map((c, i) => `| \`${c.name}\` | ${f(c.steer)} | | \`${topThrottle[i]
 
 ![Learning curve](learning-curve.svg)
 
-## 6. Model metrics
+## 6. Model metrics (stage 1, behavior cloning)
+
+These metrics compare the stage-1 network (apex-ai-v1) with the recorded bot actions.
 
 | Metric | Validation (${mVal.n.toLocaleString("en-US")} samples) | Test (${mTest.n.toLocaleString("en-US")} samples) |
 | --- | --- | --- |
@@ -338,18 +358,36 @@ ${cm(mTest.nitro)}
 
 ${CONFIG.evalRaces} races per test track, ${CONFIG.lapsPerRace} laps each, against ${CONFIG.botsPerRace} rule-based bots. The comparison driver is a rule-based bot (skill "hard") in the same grid slot.
 
-| Metric | APEX-AI | Rule-based bot |
-| --- | --- | --- |
-| Races | ${ai.races} | ${bot.races} |
-| Finish rate | ${pct(ai.finishRate)} | ${pct(bot.finishRate)} |
-| Best lap | ${f(ai.bestLap, 2)} s | ${f(bot.bestLap, 2)} s |
-| Mean best lap | ${f(ai.meanBestLap, 2)} s | ${f(bot.meanBestLap, 2)} s |
-| Wall contacts per lap | ${f(ai.wallContactsPerLap, 2)} | ${f(bot.wallContactsPerLap, 2)} |
-| Resets per race | ${f(ai.resetsPerRace, 2)} | ${f(bot.resetsPerRace, 2)} |
-| Mean distance to centre line | ${f(ai.meanLateralOffset, 2)} m | ${f(bot.meanLateralOffset, 2)} m |
-| Mean finishing place (of 10) | ${f(ai.meanPlace, 1)} | ${f(bot.meanPlace, 1)} |
+${(() => {
+    const cols = v1 ? [["APEX-AI v2 (final)", ai], ["APEX-AI v1 (cloning only)", v1], ["Rule-based bot", bot]] as const : [["APEX-AI", ai], ["Rule-based bot", bot]] as const;
+    const row = (label: string, fn: (d: typeof ai) => string) => `| ${label} | ${cols.map(([, d]) => fn(d)).join(" | ")} |`;
+    return [
+      `| Metric | ${cols.map(([n]) => n).join(" | ")} |`,
+      `| --- | ${cols.map(() => "---").join(" | ")} |`,
+      row("Races", (d) => String(d.races)),
+      row("Finish rate", (d) => pct(d.finishRate)),
+      row("Best lap", (d) => `${f(d.bestLap, 2)} s`),
+      row("Mean best lap", (d) => `${f(d.meanBestLap, 2)} s`),
+      row("Lap time vs. bot", (d) => pct(d.meanBestLap / bot.meanBestLap)),
+      row("Wall contacts per lap", (d) => f(d.wallContactsPerLap, 2)),
+      row("Resets per race", (d) => f(d.resetsPerRace, 2)),
+      row("Mean distance to centre line", (d) => `${f(d.meanLateralOffset, 2)} m`),
+      row("Mean finishing place (of 10)", (d) => f(d.meanPlace, 1)),
+    ].join("\n");
+  })()}
 
-## 8. Success criteria
+${es.length ? `## 8. Stage 2 – evolution strategy
+
+| Parameter | Value |
+| --- | --- |
+| Generations | ${es.length - 1} |
+| Start (v1) validation fitness | ${f(es[0]!.validationFitness, 1)} (lap ${f(es[0]!.validationTime, 2)} s) |
+| Best validation fitness | ${f(maxOf(es.map((g) => g.validationFitness)), 1)} |
+| Nitro use of the final candidates | ${pct(mean(es.slice(-5).map((g) => g.nitroShare)))} of driving time (mean of the last 5 generations) |
+
+![Evolution curve](evolution-curve.svg)
+
+` : ""}## ${es.length ? 9 : 8}. Success criteria
 
 | Criterion | Result | Met |
 | --- | --- | --- |
@@ -364,7 +402,8 @@ ${criteria.map((c) => `| ${c.name} | ${c.value} | ${c.ok ? "✅" : "❌"} |`).jo
     classBalance: { drift: driftShare, nitro: nitroShare, braking: brakeShare },
     validation: mVal,
     test: mTest,
-    driving: { apexAi: ai, ruleBot: bot },
+    driving: { apexAi: ai, apexAiV1: v1, ruleBot: bot },
+    evolution: es.length ? { generations: es.length - 1, startValidation: es[0]!.validationFitness, bestValidation: maxOf(es.map((g) => g.validationFitness)) } : null,
     criteria,
     finalLoss: { train: history.train.at(-1), validation: history.val.at(-1) },
     bestEpoch: history.bestEpoch,

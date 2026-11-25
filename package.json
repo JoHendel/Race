@@ -1,7 +1,7 @@
 {
   "name": "apex-rush",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "APEX RUSH – browserbasiertes Arcade-Rennspiel für bis zu 10 Spieler",
   "license": "MIT",
   "type": "module",
@@ -18,7 +18,8 @@
     "ai:train": "tsx packages/ai/src/cli.ts train",
     "ai:evaluate": "tsx packages/ai/src/cli.ts evaluate",
     "ai:report": "tsx packages/ai/src/cli.ts report",
-    "ai:all": "tsx packages/ai/src/cli.ts all"
+    "ai:all": "tsx packages/ai/src/cli.ts all",
+    "ai:evolve": "tsx packages/ai/src/cli.ts evolve"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

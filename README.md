@@ -21,7 +21,7 @@
 ## Features
 
 - **Up to 10 players online** via room code or link – no account, no server (peer-to-peer WebRTC)
-- **APEX-AI:** a machine-learning driver, developed along CRISP-DM ([documentation](docs/ai-driver.md), [data analysis report](docs/ai/report.md)) – trained and evaluated, joins every race in the next milestone
+- **APEX-AI:** a machine-learning driver, developed along CRISP-DM ([documentation](docs/ai-driver.md), [data analysis report](docs/ai/report.md)) – races in every race, offline and online, and beats the rule-based bots on an unseen track (94.5 % of their lap time)
 - **Multiple laps, Grand Prix scoring and podium** with confetti, trophy and awards (fastest lap, drift king, most overtakes, comeback)
 - **12 cars in 4 classes** to unlock, with performance and visual tuning and a performance index per class
 - **Drift boost in three stages, nitro, jumps**
@@ -55,7 +55,7 @@ pnpm dev
 
 Tests: `pnpm test` (unit tests), `pnpm test:e2e` (browser tests, including a full race and a two-window online race).
 
-AI pipeline: `pnpm ai:all` (record → train → evaluate → report, about 3 minutes, reproducible with a fixed seed).
+AI pipeline: `pnpm ai:all` (record → train → evolve → evaluate → report, about 10 minutes, reproducible with a fixed seed).
 
 ## Architecture (modular)
 
@@ -72,7 +72,7 @@ TypeScript · Vite · Three.js · Rapier physics · PeerJS/WebRTC · Vitest · P
 
 ## AI driver (CRISP-DM)
 
-APEX-AI is trained on telemetry from a headless simulation that uses the same physics as the game. Stage 1 imitates the rule-based bots (behavior cloning). Stage 2 fine-tunes the model with an evolution strategy or reinforcement learning. The development is documented phase by phase in **[docs/ai-driver.md](docs/ai-driver.md)**, including all data analysis parameters: dataset size, feature statistics, data quality, train/validation/test split, metrics and learning curves.
+APEX-AI is trained on telemetry from a headless simulation that uses the same physics as the game. Stage 1 imitates the rule-based bots (behavior cloning). Stage 2 fine-tunes it with an evolution strategy that rewards progress and lap time and penalizes wall contacts, resets and wrong-way driving. The final model (v2) drives 5.5 % faster than its teacher on a track it never trained on and needs 0.038 ms per step in the browser. In-game it is easy to spot: black-and-gold livery, a gold "AI" ring on the minimap and an AI badge in the results. The development is documented phase by phase in **[docs/ai-driver.md](docs/ai-driver.md)**, including all data analysis parameters: dataset size, feature statistics, data quality, train/validation/test split, metrics and learning curves.
 
 ## License
 

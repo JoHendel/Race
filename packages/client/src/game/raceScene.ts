@@ -34,6 +34,7 @@ import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
 import { SplineTrack, mulberry32 } from "./track/splineTrack";
 import { EMOTES, Podium } from "./podium";
+import { AiDriver, CURRENT_MODEL } from "@apex/ai";
 
 const STEP = 1 / 60;
 export const BOT_NAMES = ["Nova", "Blitz", "Kaito", "Vera", "Rook", "Juno", "Dash", "Mika", "Zed"];
@@ -49,7 +50,28 @@ export interface GridEntry {
   name: string;
   color: number;
   human: boolean;
+  /** The machine-learning driver APEX-AI (simulated by the host or offline). */
+  ai?: boolean;
   car?: { id: string; tuning: unknown; looks: unknown };
+}
+
+export const APEX_AI_ID = "apex-ai";
+export const APEX_AI_COLOR = 0xffc94d;
+
+/** APEX-AI drives the car it was trained with, in its own black-and-gold livery. */
+export function apexAiEntry(): GridEntry {
+  return {
+    id: APEX_AI_ID,
+    name: "APEX-AI",
+    color: APEX_AI_COLOR,
+    human: false,
+    ai: true,
+    car: {
+      id: "volt-hatch",
+      tuning: undefined,
+      looks: { color: 0x14162b, finish: "chrome", rimColor: APEX_AI_COLOR, spoiler: true, underglow: APEX_AI_COLOR, decal: "lightning", number: 0, smoke: APEX_AI_COLOR, horn: 3 },
+    },
+  };
 }
 
 export interface RewardSummary {
@@ -65,6 +87,7 @@ interface Racer {
   car: Car;
   tracker: LapTracker;
   bot: BotDriver | null;
+  ai: AiDriver | null;
   human: boolean;
   index: number;
   color: number;
@@ -205,13 +228,15 @@ export class RaceScene {
       car.reset();
       car.setRemote(remote);
       this.scene.add(car.mesh);
-      const drivenByBot = simulatedBot || (isLocal && options.autopilot);
+      const aiDriven = Boolean(entry.ai) && simulatedBot;
+      const drivenByBot = (simulatedBot && !aiDriven) || (isLocal && options.autopilot);
       this.racers.push({
         id: entry.id,
         name: entry.name,
         car,
         tracker: new LapTracker(options.laps),
         bot: drivenByBot ? new BotDriver(car, this.track, isLocal ? "hard" : options.skill, rnd) : null,
+        ai: aiDriven ? new AiDriver(CURRENT_MODEL) : null,
         human: entry.human,
         index: this.track.nearestIndex(pos),
         color: entry.color,
@@ -245,12 +270,14 @@ export class RaceScene {
 
   /** Offline-Aufstellung: Spieler startet im hinteren Mittelfeld, der Rest sind Bots. */
   static offlineGrid(options: RaceOptions): GridEntry[] {
-    const total = Math.min(10, 1 + options.bots);
+    const total = Math.min(10, 2 + options.bots);
     const playerSlot = Math.min(total - 1, Math.floor(total * 0.6));
+    const aiSlot = Math.floor(total * 0.3);
     const grid: GridEntry[] = [];
     let bot = 0;
     for (let slot = 0; slot < total; slot++) {
       if (slot === playerSlot) grid.push({ id: "player", name: options.playerName, color: theme.cyan, human: true });
+      else if (slot === aiSlot) grid.push(apexAiEntry());
       else {
         grid.push({ id: `bot-${bot}`, name: BOT_NAMES[bot % BOT_NAMES.length]!, color: RACER_COLORS[(bot % 9) + 1]!, human: false });
         bot++;
@@ -434,7 +461,10 @@ export class RaceScene {
       let controls: ControlState;
       if (r === this.player) controls = this.localControls(r, playerControls);
       else if (!this.racing) controls = this.idle;
-      else if (this.finished(r) && r.bot) controls = { ...r.bot.drive(STEP), throttle: 0.4, nitro: false };
+      else if (r.ai) {
+        const others = this.racers.filter((x) => x !== r).map((x) => x.car);
+        controls = this.finished(r) ? { ...this.idle, brake: r.car.speed > 3 ? 0.4 : 0 } : r.ai.drive(r.car, this.track, r.index, others, STEP);
+      } else if (this.finished(r) && r.bot) controls = { ...r.bot.drive(STEP), throttle: 0.4, nitro: false };
       else if (r.bot) controls = r.bot.drive(STEP);
       else controls = this.idle;
       r.car.update(controls, STEP);
@@ -659,7 +689,7 @@ export class RaceScene {
         const time = s.finishTime !== null ? formatTime(s.finishTime) : this.resultsFinal ? "DNF" : "fährt …";
         return `<tr class="${r === this.player ? "me" : ""}">
           <td>${i + 1}</td>
-          <td><span class="dot" style="background:#${r.color.toString(16).padStart(6, "0")}"></span>${escapeHtml(r.name)}</td>
+          <td><span class="dot" style="background:#${r.color.toString(16).padStart(6, "0")}"></span>${escapeHtml(r.name)}${r.id === APEX_AI_ID ? ' <span class="ai-badge" title="Neural network driver">KI</span>' : ""}</td>
           <td>${time}</td>
           <td>${formatTime(s.bestLap)}${isFastest ? " ⚡" : ""}</td>
           <td>${pts}</td>
@@ -725,7 +755,7 @@ export class RaceScene {
   }
 
   private hudRacers() {
-    return this.racers.map((r) => ({ name: r.name, color: r.color, pos: r.car.mesh.position, isPlayer: r === this.player }));
+    return this.racers.map((r) => ({ name: r.name, color: r.color, pos: r.car.mesh.position, isPlayer: r === this.player, isAi: r.id === APEX_AI_ID }));
   }
 
   // ---------- Netzwerk ----------

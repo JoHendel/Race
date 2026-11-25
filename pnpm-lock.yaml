@@ -44,6 +44,9 @@ importers:
 
   packages/client:
     dependencies:
+      '@apex/ai':
+        specifier: workspace:*
+        version: link:../ai
       '@apex/net':
         specifier: workspace:*
         version: link:../net
