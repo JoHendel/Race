@@ -8,6 +8,10 @@
 
 ![Titelbildschirm](docs/media/title.png)
 
+| Drift mit Boost-Stufen | Sprung über die Rampe |
+| --- | --- |
+| ![Drift](docs/media/drift.png) | ![Sprung](docs/media/drive.png) |
+
 </div>
 
 > 🚧 **In Entwicklung.** Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.

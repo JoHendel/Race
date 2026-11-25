@@ -3,6 +3,7 @@
   --cyan: #00e5ff;
   --magenta: #ff2bd6;
   --orange: #ff8a1f;
+  --violet: #9b5cff;
   --white: #f4f6ff;
   font-family: system-ui, "Segoe UI", Roboto, sans-serif;
 }
@@ -13,8 +14,10 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 
 #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
-#ui {
-  position: fixed;
+#ui { position: fixed; inset: 0; pointer-events: none; }
+
+#title {
+  position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
@@ -22,7 +25,6 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
   justify-content: center;
   gap: 1rem;
   text-align: center;
-  pointer-events: none;
   padding: 1rem;
 }
 
@@ -39,13 +41,84 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 
 .tagline { font-size: clamp(1rem, 2.4vw, 1.4rem); opacity: 0.85; }
 
+.btn {
+  pointer-events: auto;
+  margin-top: 1.2rem;
+  padding: 0.9rem 2.4rem;
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--cyan);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 0 24px var(--cyan);
+  transform: skewX(-10deg);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn:hover, .btn:focus-visible { transform: skewX(-10deg) scale(1.06); box-shadow: 0 0 40px var(--cyan); outline: none; }
+.btn:disabled { opacity: 0.6; cursor: wait; }
+
 .status {
-  margin-top: 1rem;
   padding: 0.5rem 1.2rem;
   border: 1px solid var(--orange);
   border-radius: 999px;
   color: var(--orange);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* HUD */
+.hud { position: absolute; inset: 0; font-style: italic; }
+
+.hud-speed {
+  position: absolute;
+  right: 2.5rem;
+  bottom: 2rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  text-shadow: 0 0 12px var(--cyan);
+}
+.hud-speed .value { font-size: 4.5rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.hud-speed .unit { font-size: 1.1rem; opacity: 0.8; }
+
+.hud-nitro { position: absolute; right: 2.5rem; bottom: 7.6rem; width: 260px; }
+.hud-nitro .label { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2em; color: var(--magenta); margin-bottom: 0.3rem; text-align: right; }
+.hud-nitro .bar { height: 12px; border: 1px solid var(--magenta); border-radius: 2px; transform: skewX(-20deg); overflow: hidden; }
+.hud-nitro .fill { height: 100%; background: var(--magenta); box-shadow: 0 0 12px var(--magenta); transition: width 0.1s; }
+.hud-nitro .fill.active { background: var(--white); }
+
+.hud-drift {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 16px currentColor;
+}
+
+.hud-toast {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  transform: translateX(-50%);
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px currentColor;
+}
+.hud-toast.pop { animation: pop 0.5s ease-out; }
+@keyframes pop {
+  0% { transform: translateX(-50%) scale(1.8); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.hud-help { position: absolute; left: 1.5rem; bottom: 1.2rem; font-size: 0.8rem; opacity: 0.55; font-style: normal; }

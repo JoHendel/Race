@@ -9,11 +9,14 @@
   </head>
   <body>
     <canvas id="scene" aria-hidden="true"></canvas>
-    <main id="ui">
-      <h1 class="logo">APEX <span>RUSH</span></h1>
-      <p class="tagline">Neon-Arcade-Racing für bis zu 10 Spieler – direkt im Browser.</p>
-      <p class="status" data-testid="status">In Entwicklung · bald spielbar</p>
-    </main>
+    <div id="ui">
+      <main id="title">
+        <h1 class="logo">APEX <span>RUSH</span></h1>
+        <p class="tagline">Neon-Arcade-Racing für bis zu 10 Spieler – direkt im Browser.</p>
+        <button id="start" class="btn" type="button">Testfahrt starten</button>
+        <p class="status" data-testid="status">In Entwicklung · Multiplayer folgt</p>
+      </main>
+    </div>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
