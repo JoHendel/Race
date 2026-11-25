@@ -23,3 +23,5 @@
 - **M7 APEX-AI fährt den Volt Hatch:** dasselbe Auto wie im Training, damit Fairness und Modellverhalten übereinstimmen.
 - **M8 Übersetzung per Wörterbuch + MutationObserver:** Deutsch bleibt Quellsprache im Code, `packages/shared/src/i18n.ts` hält alle englischen Texte (exakt + Muster), der Client übersetzt jeden Textknoten beim Erscheinen. So musste kein Bildschirm umgebaut werden und das Umschalten wirkt sofort, auch mitten im Menü. Spielernamen bleiben unverändert.
 - **M8 Standardsprache:** gespeicherte Wahl, sonst Browsersprache (Deutsch → DE, sonst EN); `?lang=de|en` überschreibt.
+- **M9 Untergrund als Rundenanteil statt Geometrie:** Eisflächen werden als Abschnitt der Runde (von/bis) mit Grip-Faktor definiert. Das ist mit dem vorhandenen Sample-Index sofort abfragbar, in Spiel und Headless-Simulation identisch und braucht keine zusätzlichen Collider.
+- **M9 APEX-AI bekommt keinen Grip-Eingang:** Das Modell bleibt unverändert (24 Merkmale); auf Glacier Rift fährt es trotzdem vorne mit. Ein Grip-Merkmal wäre ein Fall für ein späteres v3-Training.

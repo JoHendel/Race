@@ -122,6 +122,7 @@ export class HeadlessRace {
       else if (r.controller) c = r.controller({ self: r, race: this, dt: SIM_STEP });
       else c = r.bot!.drive(SIM_STEP);
       r.controls = c;
+      r.car.setSurfaceGrip(this.track.gripAt(r.index));
       r.car.update(c, SIM_STEP);
     }
     this.world.step();

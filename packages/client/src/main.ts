@@ -140,6 +140,42 @@ function cupTracks(): TrackDef[] {
   return Array.from({ length: 4 }, (_, i) => neon[i % neon.length]!);
 }
 
+const TRACK_KEY = "apexrush.track";
+function readTrackChoice(): TrackDef {
+  let id = params.get("track");
+  if (!id) {
+    try {
+      id = localStorage.getItem(TRACK_KEY);
+    } catch {
+      id = null;
+    }
+  }
+  return TRACKS.find((t) => t.id === id) ?? NEON_HARBOR;
+}
+let selectedTrack = readTrackChoice();
+
+function bindTrackPicker(): void {
+  const root = document.querySelector<HTMLElement>("[data-testid=track-pick]");
+  if (!root) return;
+  const show = () => {
+    root.querySelector("[data-field=track-name]")!.textContent = selectedTrack.name;
+    root.querySelector("[data-field=track-blurb]")!.textContent = selectedTrack.blurb ?? "";
+  };
+  root.querySelectorAll<HTMLButtonElement>("[data-dir]").forEach((b) => {
+    b.onclick = () => {
+      const i = TRACKS.indexOf(selectedTrack);
+      selectedTrack = TRACKS[(i + Number(b.dataset.dir) + TRACKS.length) % TRACKS.length]!;
+      try {
+        localStorage.setItem(TRACK_KEY, selectedTrack.id);
+      } catch {
+        // not remembered without storage
+      }
+      show();
+    };
+  });
+  show();
+}
+
 let cup: { round: number; total: number; standings: CupStandings; tracks: TrackDef[] } | null = null;
 
 function startGrandPrix(): void {
@@ -159,7 +195,7 @@ async function startOfflineRace(): Promise<void> {
     {
       cup: cup ?? undefined,
       playerCar: currentCar(),
-      track: cup ? cup.tracks[cup.round - 1]! : NEON_HARBOR,
+      track: cup ? cup.tracks[cup.round - 1]! : selectedTrack,
       laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
       skill: "normal",
@@ -210,6 +246,7 @@ function showMenu(): void {
 }
 
 function bindMenu(): void {
+  bindTrackPicker();
   const langBtn = document.querySelector<HTMLButtonElement>("#lang")!;
   // The button shows the language you switch TO.
   const label = () => (langBtn.textContent = currentLang() === "de" ? "EN" : "DE");

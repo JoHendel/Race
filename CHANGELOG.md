@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+- New track **Glacier Rift**: ice patches with less grip, an ice cave and northern lights – the Neon Cup now has four tracks
+- Tracks can define surfaces (grip) and their own environment (sky, fog, scenery)
+- Track selection on the title screen and for the host in the online lobby
+
 ## v0.8.0 – Submission release
 - German/English UI toggle (remembered in the browser, `?lang=de|en`)
 - Architecture documentation with module, data-flow and pipeline diagrams (`docs/architecture.md`)

@@ -270,3 +270,12 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 
 .lang-toggle { position: absolute; top: 1.2rem; right: 1.4rem; font: 800 0.8rem/1 system-ui, sans-serif; letter-spacing: 0.12em; color: #e8ecff; background: rgba(10, 12, 30, 0.6); border: 1px solid rgba(0, 229, 255, 0.5); border-radius: 999px; padding: 0.45rem 0.8rem; cursor: pointer; pointer-events: auto; }
 .lang-toggle:hover, .lang-toggle:focus-visible { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.5); outline: none; }
+
+.track-pick { display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin: 1.1rem auto 0; padding: 0.55rem 0.8rem; width: fit-content; background: rgba(5, 6, 15, 0.72); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; backdrop-filter: blur(4px); pointer-events: auto; }
+.tp-arrow { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid rgba(0, 229, 255, 0.5); background: rgba(10, 12, 30, 0.6); color: #00e5ff; font-size: 0.9rem; cursor: pointer; }
+.tp-arrow:hover, .tp-arrow:focus-visible { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.5); outline: none; }
+.tp-info { display: flex; flex-direction: column; align-items: center; width: 22rem; text-align: center; }
+.tp-info small { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; }
+.tp-info b { font-size: 1.25rem; font-style: italic; font-weight: 900; letter-spacing: 0.06em; color: #e8ecff; }
+.tp-info span { font-size: 0.85rem; opacity: 0.75; }
+.field select { background: rgba(5, 6, 15, 0.8); color: inherit; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 0.35rem 0.5rem; font: inherit; }

@@ -104,6 +104,16 @@ export class VehiclePhysics {
 
   }
 
+  /** Current surface grip factor (1 = asphalt, < 1 = ice). */
+  surfaceGrip = 1;
+
+  /** Set the grip of the surface under the car (from the track, every physics step). */
+  setSurfaceGrip(factor: number): void {
+    if (factor === this.surfaceGrip) return;
+    this.surfaceGrip = factor;
+    for (let i = 0; i < this.wheels.length; i++) this.vehicle.setWheelFrictionSlip(i, this.stats.grip * factor);
+  }
+
   /** Entfernte Autos (andere Spieler) werden nicht simuliert, sondern auf empfangene Zustände gesetzt. */
   remote = false;
 

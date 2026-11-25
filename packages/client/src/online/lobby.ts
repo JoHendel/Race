@@ -87,11 +87,15 @@ export class LobbyView {
     const s = this.root.querySelector(".settings")!;
     if (this.h.isHost) {
       s.innerHTML = `
-        <label class="field inline">Strecke <span>${track?.name ?? settings.trackId}</span></label>
+        <label class="field inline">Strecke
+          <select data-field="track" data-testid="lobby-track">${TRACKS.map((t) => `<option value="${t.id}" ${t.id === settings.trackId ? "selected" : ""}>${t.name}</option>`).join("")}</select>
+        </label>
         <label class="field inline">Runden
           <input type="number" data-field="laps" min="${MIN_LAPS}" max="${MAX_LAPS}" value="${settings.laps}" />
         </label>
         <label class="field inline"><input type="checkbox" data-field="bots" ${settings.fillWithBots ? "checked" : ""}/> Mit Bots auffüllen</label>`;
+      const trackSel = s.querySelector<HTMLSelectElement>("[data-field=track]")!;
+      trackSel.onchange = () => this.h.onSettings({ trackId: trackSel.value });
       const laps = s.querySelector<HTMLInputElement>("[data-field=laps]")!;
       laps.onchange = () => this.h.onSettings({ laps: Number(laps.value) });
       const bots = s.querySelector<HTMLInputElement>("[data-field=bots]")!;

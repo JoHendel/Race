@@ -65,7 +65,9 @@ export class BotDriver {
     const steer = THREE.MathUtils.clamp(angle * 2.4, -1, 1);
 
     const top = this.car.stats.topSpeed * s.pace;
-    const targetSpeed = top * Math.max(0.38, 1 - curve * 0.75 / s.cornering);
+    // On ice (lower grip ahead) the bot takes corners more carefully.
+    const grip = Math.min(this.track.gripAt(this.index), this.track.gripAt(this.index + lookahead));
+    const targetSpeed = top * Math.max(0.38, 1 - (curve * 0.75) / (s.cornering * (0.45 + 0.55 * grip)));
     let throttle = speed < targetSpeed ? 1 : 0.25;
     const brake = speed > targetSpeed + 4 ? 1 : 0;
     const straight = curve < 0.08;

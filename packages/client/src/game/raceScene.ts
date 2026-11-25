@@ -21,6 +21,7 @@ import {
   type CupStandings,
   rankRacers,
   theme,
+  DEFAULT_ENVIRONMENT,
   type TrackDef,
 } from "@apex/shared";
 import { INTERPOLATION_DELAY, SnapshotBuffer, type CarState, type HostMessage, type RacerStatus } from "@apex/net";
@@ -158,6 +159,7 @@ export class RaceScene {
   private refreshTimer = 0;
   private placeTimer = 0;
   private podium: Podium | null = null;
+  private readonly sky: THREE.Group;
   private podiumTime = 0;
   private cupRecorded = false;
   private cupCeremony = false;
@@ -180,8 +182,10 @@ export class RaceScene {
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environmentIntensity = 0.25;
     this.scene.background = new THREE.Color(theme.background);
-    this.scene.fog = new THREE.Fog(0x1a0830, 120, 520);
-    this.scene.add(createSky());
+    const env = options.track.environment ?? DEFAULT_ENVIRONMENT;
+    this.scene.fog = new THREE.Fog(env.fog, 120, 520);
+    this.sky = createSky(env);
+    this.scene.add(this.sky);
     this.scene.add(new THREE.HemisphereLight(0x8899ff, 0x220022, 0.55));
     const sun = new THREE.DirectionalLight(0xffd6f0, 0.9);
     sun.position.set(60, 120, 40);
@@ -335,6 +339,7 @@ export class RaceScene {
 
   update(frameDt: number): void {
     const realDt = Math.min(frameDt, 0.1);
+    (this.sky.userData.update as ((dt: number) => void) | undefined)?.(realDt);
     this.clock += realDt;
     this.phaseTime += realDt;
 
@@ -467,6 +472,7 @@ export class RaceScene {
       } else if (this.finished(r) && r.bot) controls = { ...r.bot.drive(STEP), throttle: 0.4, nitro: false };
       else if (r.bot) controls = r.bot.drive(STEP);
       else controls = this.idle;
+      r.car.setSurfaceGrip(this.track.gripAt(r.index));
       r.car.update(controls, STEP);
     }
     this.world.step();

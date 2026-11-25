@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M9 starten – nächste Strecke Glacier Rift (Eisflächen mit weniger Grip, Polarlichter) als Spline in `packages/shared/src/tracks.ts`, dann Streckenwahl im Menü und in der Lobby.
+**Nächster Schritt:** M9 weiter – Abkürzung durch die Lagerhalle in Neon Harbor: zweiter Spline-Abschnitt mit eigenem Checkpoint, LapTracker muss beide Wege akzeptieren (Tests zuerst in `packages/shared/src/race.test.ts`).
 
 | Meilenstein | Status |
 | --- | --- |
@@ -70,3 +70,9 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Bot „Blitz“ in „Blaze“ umbenannt (wurde sonst als Folienname übersetzt); Test sichert, dass Namen nie übersetzt werden.
 - Online-E2E-Test wartet jetzt per Abfrage statt fester 5 s (CI-Fehlschlag bei M6/M7).
 - Offen für den Menschen: Pages einschalten, Release v0.8.0 anlegen, Link abgeben.
+
+## Zwischenstand M9 (Strecken)
+
+- Neues Streckenformat mit Untergrund-Zonen und Umgebung; Glacier Rift als 5. Strecke (Neon Cup vollständig). Eis kostet Bots ca. 1,4 s pro Runde.
+- Streckenwahl im Titelmenü und in der Lobby. 45 Unit-Tests, 5 E2E-Tests grün.
+- Hinweis: Die KI-Trainingsdaten sind unverändert (Trainingsstrecken ohne Eis, Bot-Formel bei Grip 1 identisch).

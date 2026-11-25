@@ -40,3 +40,14 @@
 - [x] README-Abschnitt „How the AI was built (CRISP-DM)“, englische Screenshots
 - [x] Release v0.8.0 (Version + Changelog; Tag nur lokal, GitHub-Release siehe BLOCKERS.md)
 - [ ] Menschlich: Pages einschalten, Release anlegen, Link bis 18.12.2026 abgeben (BLOCKERS.md)
+
+## M9 – Alle Strecken
+- [x] Streckenformat: Untergrund-Zonen (`surfaces`, Grip-Faktor) und Umgebung (`environment`: Himmel, Nebel, Kulisse, Polarlichter)
+- [x] Glacier Rift: 2 Eisflächen (Grip 0,55), Eishöhle, Eisspitzen, Polarlichter; Neon Cup jetzt vollständig (4 Strecken)
+- [x] Bots bremsen auf Eis früher; Physik nutzt den Grip in Spiel und Headless-Simulation
+- [x] Streckenwahl im Titelmenü (Pfeile, gespeichert, `?track=`), Streckenwahl des Hosts in der Lobby
+- [ ] Abkürzungen (eigene Spline-Abzweigung mit Checkpoint-Logik) – zuerst Lagerhalle in Neon Harbor
+- [ ] Dynamische Ereignisse: Zugbrücke Neon Harbor ab Runde 2, Steinschlag Sunset Canyon
+- [ ] Turbo Cup: Jungle Ruins, Volcano Rush, Orbital Station (geringe Schwerkraft)
+- [ ] Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand)
+- [ ] Rundenzeiten auf 45–75 s bringen (aktuell ca. 35–45 s für schnelle Fahrer)

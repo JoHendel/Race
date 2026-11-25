@@ -32,6 +32,17 @@ test("Language toggle switches the UI between German and English", async ({ page
   await expect(page.locator("#race")).toHaveText("Rennen gegen Bots");
 });
 
+test("Track selection cycles through all tracks and is remembered", async ({ page }) => {
+  await page.goto("./?track=neon-harbor");
+  const name = page.locator("[data-field=track-name]");
+  await expect(name).toHaveText("Neon Harbor");
+  await page.getByTestId("track-next").click();
+  await expect(name).not.toHaveText("Neon Harbor");
+  const picked = await name.textContent();
+  await page.goto("./");
+  await expect(name).toHaveText(picked!);
+});
+
 test("Testgelände: das Auto fährt los", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("./");

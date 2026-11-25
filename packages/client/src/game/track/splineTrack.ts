@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
-import { theme, type TrackDef } from "@apex/shared";
+import { DEFAULT_ENVIRONMENT, theme, type TrackDef } from "@apex/shared";
 import { CURB_WIDTH, TrackGeometry, mulberry32, type MeshArrays } from "@apex/sim";
 
 export { mulberry32 };
@@ -26,7 +26,153 @@ export class SplineTrack extends TrackGeometry {
     this.buildCurbs();
     this.buildWalls();
     this.buildStartLine();
-    this.buildScenery();
+    this.buildSurfaces();
+    if ((this.def.environment ?? DEFAULT_ENVIRONMENT).scenery === "glacier") this.buildGlacier();
+    else this.buildScenery();
+  }
+
+  /** Ribbon over part of the lap (sample indices a..b, wrapping around the start). */
+  private partialRibbon(a: number, b: number, inner: number, outer: number, y: number): THREE.BufferGeometry {
+    const n = this.samples.length;
+    const pos: number[] = [];
+    const uv: number[] = [];
+    const idx: number[] = [];
+    const count = ((b - a + n) % n) + 1;
+    for (let k = 0; k < count; k++) {
+      const s = this.samples[(a + k) % n]!;
+      const p = s.pos.clone().addScaledVector(s.left, inner);
+      const q = s.pos.clone().addScaledVector(s.left, outer);
+      pos.push(p.x, p.y + y, p.z, q.x, q.y + y, q.z);
+      uv.push(0, k / 6, 1, k / 6);
+      if (k > 0) {
+        const i = (k - 1) * 2;
+        idx.push(i, i + 1, i + 2, i + 1, i + 3, i + 2);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  /** Ice zones: glossy, cracked surface and glowing edges so the low grip is visible in advance. */
+  private buildSurfaces(): void {
+    if (!this.def.surfaces?.length) return;
+    const n = this.samples.length;
+    const tex = this.iceTexture();
+    const mat = new THREE.MeshStandardMaterial({
+      map: tex,
+      color: 0x7fb6cc,
+      roughness: 0.1,
+      metalness: 0.45,
+      envMapIntensity: 0.6,
+      emissive: 0x08304a,
+      emissiveIntensity: 0.3,
+      transparent: true,
+      opacity: 0.88,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const edge = new THREE.MeshBasicMaterial({ color: 0x9ff4ff, side: THREE.DoubleSide });
+    const hw = this.halfWidth;
+    for (const z of this.def.surfaces) {
+      const a = Math.floor(z.from * n);
+      const b = Math.floor(z.to * n) % n;
+      const ice = new THREE.Mesh(this.partialRibbon(a, b, hw, -hw, 0.03), mat);
+      ice.renderOrder = 1;
+      this.group.add(ice);
+      for (const side of [1, -1]) this.group.add(new THREE.Mesh(this.partialRibbon(a, b, side * (hw + CURB_WIDTH), side * (hw + CURB_WIDTH + 0.25), 0.08), edge));
+    }
+  }
+
+  private iceTexture(): THREE.CanvasTexture {
+    const c = document.createElement("canvas");
+    c.width = 128;
+    c.height = 128;
+    const g = c.getContext("2d")!;
+    g.fillStyle = "#d8f6ff";
+    g.fillRect(0, 0, 128, 128);
+    const rnd = mulberry32(11);
+    g.strokeStyle = "rgba(90,170,210,0.55)";
+    g.lineWidth = 1;
+    for (let i = 0; i < 22; i++) {
+      let x = rnd() * 128;
+      let y = rnd() * 128;
+      g.beginPath();
+      g.moveTo(x, y);
+      for (let k = 0; k < 5; k++) {
+        x += (rnd() - 0.5) * 40;
+        y += (rnd() - 0.5) * 40;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  /** Glacier scenery: snow field, ice spires and an ice cave over the track. */
+  private buildGlacier(): void {
+    const snow = new THREE.Mesh(
+      new THREE.PlaneGeometry(2000, 2000),
+      new THREE.MeshStandardMaterial({ color: 0x5d7690, roughness: 0.95, envMapIntensity: 0.15 }),
+    );
+    snow.rotation.x = -Math.PI / 2;
+    snow.position.y = -2;
+    this.group.add(snow);
+
+    const rnd = mulberry32(23);
+    const cone = new THREE.ConeGeometry(1, 1, 6);
+    const iceMat = new THREE.MeshStandardMaterial({ color: 0x6fb8d8, roughness: 0.2, metalness: 0.1, emissive: 0x0b4b6b, emissiveIntensity: 0.3, transparent: true, opacity: 0.9 });
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x1b2638, roughness: 0.9, envMapIntensity: 0.1 });
+    const rock = new THREE.DodecahedronGeometry(1, 0);
+    for (let i = 0; i < this.samples.length; i += 6) {
+      const s = this.samples[i]!;
+      for (const side of [1, -1]) {
+        if (rnd() < 0.3) continue;
+        const dist = this.halfWidth + 12 + rnd() * 45;
+        const p = s.pos.clone().addScaledVector(s.left, side * dist);
+        if (this.distanceToTrack(p) < this.halfWidth + 9) continue;
+        if (rnd() < 0.6) {
+          const h = 8 + rnd() * 34;
+          const r = 2 + rnd() * 6;
+          const m = new THREE.Mesh(cone, iceMat);
+          m.scale.set(r, h, r);
+          m.position.set(p.x, -2 + h / 2, p.z);
+          m.rotation.set((rnd() - 0.5) * 0.25, rnd() * Math.PI, (rnd() - 0.5) * 0.25);
+          this.group.add(m);
+        } else {
+          const r = 3 + rnd() * 9;
+          const m = new THREE.Mesh(rock, rockMat);
+          m.scale.set(r, r * (0.5 + rnd() * 0.6), r);
+          m.position.set(p.x, -2 + r * 0.25, p.z);
+          m.rotation.y = rnd() * Math.PI;
+          this.group.add(m);
+        }
+      }
+    }
+
+    // Ice cave: glowing arches over the first ice zone
+    const zone = this.def.surfaces?.[0];
+    if (zone) {
+      const n = this.samples.length;
+      const a = Math.floor(zone.from * n);
+      const b = Math.floor(zone.to * n);
+      const span = this.halfWidth + CURB_WIDTH + 3.5;
+      const arch = new THREE.TorusGeometry(span, 1.1, 6, 24, Math.PI);
+      const archMat = new THREE.MeshStandardMaterial({ color: 0x3f8fb0, roughness: 0.3, emissive: 0x1a8f9a, emissiveIntensity: 0.22, transparent: true, opacity: 0.8 });
+      for (let i = a; i <= b; i += 7) {
+        const s = this.samples[i % n]!;
+        const m = new THREE.Mesh(arch, archMat);
+        m.position.copy(s.pos);
+        m.lookAt(s.pos.clone().add(s.tangent));
+        this.group.add(m);
+      }
+    }
   }
 
   private buildRoad(): void {

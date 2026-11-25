@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
-import type { TrackDef } from "@apex/shared";
+import { surfaceGripAt, type TrackDef } from "@apex/shared";
 
 export const SAMPLE_SPACING = 2; // m between two samples
 export const CURB_WIDTH = 1.2;
@@ -26,6 +26,12 @@ export interface MeshArrays {
 export class TrackGeometry {
   readonly curve: THREE.CatmullRomCurve3;
   readonly samples: TrackSample[] = [];
+
+  /** Grip factor of the surface at a sample index (1 = asphalt, lower = ice). */
+  gripAt(index: number): number {
+    const n = this.samples.length;
+    return surfaceGripAt(this.def, (((index % n) + n) % n) / n);
+  }
   readonly length: number;
   readonly halfWidth: number;
   /** Lateral distance from the centre line to the walls. */

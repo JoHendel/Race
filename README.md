@@ -26,7 +26,7 @@
 - **12 cars in 4 classes** to unlock, with performance and visual tuning and a performance index per class
 - **Drift boost in three stages, nitro, jumps**
 - Rule-based bots fill empty grid slots
-- **4 tracks** (Neon Harbor, Sunset Canyon, Skyline Loop, Grand Circuit), more are planned
+- **5 tracks** (Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift with slippery ice, Grand Circuit) – pick one on the title screen or in the lobby; more are planned
 - **German and English UI** – switch with the button in the top right corner of the title screen
 
 ## Play online

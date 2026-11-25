@@ -10,7 +10,7 @@ import {
   type LobbySettings,
   type SignalingProvider,
 } from "@apex/net";
-import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, clampLaps } from "@apex/shared";
+import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, clampLaps, trackById } from "@apex/shared";
 import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry, type RaceScene } from "../game/raceScene";
 import { currentCar } from "../save";
 
@@ -124,7 +124,8 @@ export class HostSession {
   }
 
   updateSettings(patch: Partial<LobbySettings>): void {
-    this.settings = { ...this.settings, ...patch, laps: clampLaps(patch.laps ?? this.settings.laps) };
+    const trackId = patch.trackId && trackById(patch.trackId) ? patch.trackId : this.settings.trackId;
+    this.settings = { ...this.settings, ...patch, trackId, laps: clampLaps(patch.laps ?? this.settings.laps) };
     this.emitLobby();
   }
 
