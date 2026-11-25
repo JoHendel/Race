@@ -68,6 +68,16 @@ export class LapTracker {
     return false;
   }
 
+  /**
+   * The car passed through an official shortcut that leaves the main track at `from` and rejoins at `to`
+   * (lap shares). The checkpoints in between count as visited for the current lap.
+   */
+  creditShortcut(from: number, to: number): void {
+    const a = Math.floor(from * CHECKPOINTS_PER_LAP);
+    const b = Math.ceil(to * CHECKPOINTS_PER_LAP);
+    for (let c = a; c < b; c++) this.visited.add(c % CHECKPOINTS_PER_LAP);
+  }
+
   currentLapTime(raceTime: number): number {
     return raceTime - this.lapStart;
   }

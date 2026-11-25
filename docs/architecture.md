@@ -34,7 +34,7 @@ Arrows point from a package to the packages it imports. `shared` and `net` depen
 | `ai` | The machine-learning driver and its pipeline | `observe`, `Mlp`, `AiDriver`, `CURRENT_MODEL`, `trainModel`, `evolve`, `evaluateModel`, `buildReport` | – |
 | `client` | The game in the browser | entry point `main.ts` (menu, scenes, online sessions) | Three.js, Rapier |
 
-Game values (car stats, points, lap limits, colors) live as configuration in `shared`, not scattered through the code.
+Game values (car stats, points, lap limits, colors) live as configuration in `shared`, not scattered through the code. Tracks are data as well: a closed spline plus ramps, surface zones (e.g. ice), shortcuts and an environment description; `sim` turns them into road, walls, colliders and a `locate()` function that follows cars along the main track or through a shortcut.
 
 ## How the game and the AI share one simulation
 

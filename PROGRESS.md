@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M9 weiter – Abkürzung durch die Lagerhalle in Neon Harbor: zweiter Spline-Abschnitt mit eigenem Checkpoint, LapTracker muss beide Wege akzeptieren (Tests zuerst in `packages/shared/src/race.test.ts`).
+**Nächster Schritt:** M9 weiter – dynamisches Ereignis Zugbrücke in Neon Harbor: ab Runde 2 hebt sich ein Abschnitt (Rampe wird zum Sprung) – Ereignis als Daten in `TrackDef.events`, Zustand pro Runde in `packages/sim`, sichtbar im Client, für Online-Clients aus der Rundenzahl ableitbar.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -76,3 +76,5 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Neues Streckenformat mit Untergrund-Zonen und Umgebung; Glacier Rift als 5. Strecke (Neon Cup vollständig). Eis kostet Bots ca. 1,4 s pro Runde.
 - Streckenwahl im Titelmenü und in der Lobby. 45 Unit-Tests, 5 E2E-Tests grün.
 - Hinweis: Die KI-Trainingsdaten sind unverändert (Trainingsstrecken ohne Eis, Bot-Formel bei Grip 1 identisch).
+- Abkürzung Lagerhalle in Neon Harbor: zweiter Spline-Abschnitt mit Mauerlücke, Halle mit Deckenlampen und Chevron-Schild, gestrichelt auf der Minimap. Runde zählt nur bei echter Durchfahrt (Checkpoint-Gutschrift in der Mitte). Spart ca. 0,65 s.
+- KI-Training nutzt `withoutShortcuts` – `pnpm ai:evaluate` liefert bit-genau dieselben Ergebnisse wie bei M7.

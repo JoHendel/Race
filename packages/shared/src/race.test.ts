@@ -24,6 +24,37 @@ describe("LapTracker", () => {
     expect(t.lap).toBe(0);
   });
 
+  it("counts a lap through an official shortcut that skips checkpoints", () => {
+    const t = new LapTracker(3);
+    t.update(0, 0);
+    let time = 0;
+    for (let i = 1; i <= 60; i++) t.update(i / 100, (time += 0.5)); // up to 0.60
+    t.creditShortcut(0.6, 0.78); // drove through the shortcut gate
+    for (let i = 78; i <= 100; i++) t.update((i / 100) % 1, (time += 0.5));
+    expect(t.lap).toBe(1);
+  });
+
+  it("does not count the shortcut checkpoints without passing the shortcut", () => {
+    const t = new LapTracker(3);
+    t.update(0, 0);
+    let time = 0;
+    for (let i = 1; i <= 60; i++) t.update(i / 100, (time += 0.5));
+    for (let i = 78; i <= 100; i++) t.update((i / 100) % 1, (time += 0.5));
+    expect(t.lap).toBe(0);
+  });
+
+  it("forgets a shortcut credit after the lap", () => {
+    const t = new LapTracker(3);
+    t.update(0, 0);
+    let time = 0;
+    for (let i = 1; i <= 60; i++) t.update(i / 100, (time += 0.5));
+    t.creditShortcut(0.6, 0.78);
+    for (let i = 78; i <= 100; i++) t.update((i / 100) % 1, (time += 0.5));
+    for (let i = 1; i <= 60; i++) t.update(i / 100, (time += 0.5));
+    for (let i = 78; i <= 100; i++) t.update((i / 100) % 1, (time += 0.5));
+    expect(t.lap).toBe(1);
+  });
+
   it("ist nach der letzten Runde im Ziel", () => {
     const t = new LapTracker(2);
     t.update(0, 0);

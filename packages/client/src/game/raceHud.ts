@@ -21,6 +21,7 @@ export class RaceHud {
   private readonly banner: HTMLElement;
   private readonly map: CanvasRenderingContext2D;
   private readonly mapPath: Path2D;
+  private readonly shortcutPath = new Path2D();
   private readonly mapTransform: (x: number, z: number) => [number, number];
   private bannerTimer = 0;
 
@@ -64,6 +65,13 @@ export class RaceHud {
       else this.mapPath.lineTo(x, y);
     });
     this.mapPath.closePath();
+    for (const c of track.shortcuts) {
+      c.samples.forEach((s, i) => {
+        const [x, y] = this.mapTransform(s.pos.x, s.pos.z);
+        if (i === 0) this.shortcutPath.moveTo(x, y);
+        else this.shortcutPath.lineTo(x, y);
+      });
+    }
   }
 
   setCountdown(text: string, color = "white"): void {
@@ -106,6 +114,11 @@ export class RaceHud {
     g.lineWidth = 2;
     g.strokeStyle = cssColor("cyan");
     g.stroke(this.mapPath);
+    // Shortcuts: dashed orange
+    g.setLineDash([4, 4]);
+    g.strokeStyle = cssColor("orange");
+    g.stroke(this.shortcutPath);
+    g.setLineDash([]);
     for (const r of [...racers].sort((a, b) => Number(a.isPlayer) - Number(b.isPlayer))) {
       const [x, y] = this.mapTransform(r.pos.x, r.pos.z);
       g.beginPath();

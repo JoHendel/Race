@@ -1,0 +1,56 @@
+import { beforeAll, describe, expect, it } from "vitest";
+import RAPIER from "@dimforge/rapier3d-compat";
+import { NEON_HARBOR, SUNSET_CANYON, withoutShortcuts } from "@apex/shared";
+import { TrackGeometry } from "./track";
+
+describe("TrackGeometry shortcuts", () => {
+  beforeAll(async () => {
+    await RAPIER.init();
+  });
+  const make = (def = NEON_HARBOR) => new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), def);
+
+  it("builds the warehouse shortcut of Neon Harbor", () => {
+    const t = make();
+    expect(t.shortcuts).toHaveLength(1);
+    const c = t.shortcuts[0]!;
+    expect(c.samples.length).toBeGreaterThan(40);
+    expect(c.samples[0]!.frac).toBeCloseTo(0.6);
+    expect(c.samples.at(-1)!.frac).toBeCloseTo(0.78);
+  });
+
+  it("opens the main wall only on the side of the shortcut", () => {
+    const t = make();
+    const gaps = (side: 1 | -1) => (t.wallMask(side) ?? []).filter((v) => !v).length;
+    const left = gaps(1);
+    const right = gaps(-1);
+    expect(Math.min(left, right)).toBe(0);
+    expect(Math.max(left, right)).toBeGreaterThan(4);
+  });
+
+  it("locates a car inside the shortcut with the matching lap share", () => {
+    const t = make();
+    const c = t.shortcuts[0]!;
+    const mid = c.samples[Math.floor(c.samples.length / 2)]!;
+    const loc = t.locate(mid.pos, Math.round(0.62 * t.samples.length));
+    expect(loc.shortcut).toBe(c);
+    expect(loc.u).toBeGreaterThan(0.4);
+    expect(loc.u).toBeLessThan(0.6);
+    expect(loc.index / t.samples.length).toBeCloseTo((0.6 + 0.78) / 2, 1);
+  });
+
+  it("on the main track locate equals the nearest sample", () => {
+    const t = make();
+    const s = t.samples[100]!;
+    const loc = t.locate(s.pos, 98);
+    expect(loc.shortcut).toBeNull();
+    expect(loc.index).toBe(100);
+  });
+
+  it("tracks without shortcuts have no wall gaps", () => {
+    for (const def of [SUNSET_CANYON, withoutShortcuts(NEON_HARBOR)]) {
+      const t = make(def);
+      expect(t.shortcuts).toHaveLength(0);
+      expect(t.wallMask(1)).toBeUndefined();
+    }
+  });
+});

@@ -480,14 +480,17 @@ export class RaceScene {
 
     // Reset-Position des Spielers folgt der Strecke
     const n = this.track.samples.length;
-    this.player.index = this.track.nearestIndex(this.player.car.body.translation() as THREE.Vector3, this.player.index);
+    const playerLoc = this.track.locate(this.player.car.body.translation(), this.player.index);
+    this.player.index = playerLoc.index;
     const back = this.track.sample(this.player.index - 2);
     this.player.car.setResetPose(back.pos, Math.atan2(back.tangent.x, back.tangent.z));
 
     if (!this.racing) return;
 
     // Falsche Richtung für den lokalen Spieler
-    const tangent = this.track.sample(this.player.index).tangent;
+    const tangent = playerLoc.shortcut
+      ? playerLoc.shortcut.samples[Math.round(playerLoc.u * (playerLoc.shortcut.samples.length - 1))]!.tangent
+      : this.track.sample(this.player.index).tangent;
     const wrong = this.player.car.forward(this.tmp).dot(tangent) < -0.3 && Math.abs(this.player.car.speed) > 3;
     this.player.wrongWayTime = wrong ? this.player.wrongWayTime + STEP : 0;
 
@@ -497,8 +500,10 @@ export class RaceScene {
     }
 
     for (const r of this.racers) {
-      if (r !== this.player) r.index = this.track.nearestIndex(r.car.body.translation() as THREE.Vector3, r.index);
+      const loc = r === this.player ? playerLoc : this.track.locate(r.car.body.translation(), r.index);
+      r.index = loc.index;
       const lapDone = r.tracker.update(r.index / n, this.raceTime);
+      if (loc.shortcut && loc.u > 0.4 && loc.u < 0.6) r.tracker.creditShortcut(loc.shortcut.def.from, loc.shortcut.def.to);
       if (r === this.player && lapDone) this.onPlayerLap();
       if (lapDone && r.tracker.finished && this.phase === "racing") {
         this.phase = "finishing";

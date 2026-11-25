@@ -25,3 +25,5 @@
 - **M8 Standardsprache:** gespeicherte Wahl, sonst Browsersprache (Deutsch → DE, sonst EN); `?lang=de|en` überschreibt.
 - **M9 Untergrund als Rundenanteil statt Geometrie:** Eisflächen werden als Abschnitt der Runde (von/bis) mit Grip-Faktor definiert. Das ist mit dem vorhandenen Sample-Index sofort abfragbar, in Spiel und Headless-Simulation identisch und braucht keine zusätzlichen Collider.
 - **M9 APEX-AI bekommt keinen Grip-Eingang:** Das Modell bleibt unverändert (24 Merkmale); auf Glacier Rift fährt es trotzdem vorne mit. Ein Grip-Merkmal wäre ein Fall für ein späteres v3-Training.
+- **M9 Abkürzung als eigener Pfad mit Checkpoint-Gutschrift:** Statt die Checkpoint-Regel zu lockern, schreibt der Lap-Tracker die übersprungenen Checkpoints nur gut, wenn das Auto die Mitte der offiziellen Abkürzung passiert. Querfeldein abkürzen bleibt damit wirkungslos.
+- **M9 KI-Daten ohne Abkürzungen:** `tracksOf()` entfernt Abkürzungen, damit `pnpm ai:all` reproduzierbar bleibt (geprüft: `ai:evaluate` bit-genau gleich).

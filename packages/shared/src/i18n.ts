@@ -22,7 +22,7 @@ export const EN: Record<string, string> = {
   "3 Runden · bis zu 10 Spieler · Enter startet ein Rennen gegen Bots": "3 laps · up to 10 players · Enter starts a race against bots",
   "Vorherige Strecke": "Previous track",
   "Nächste Strecke": "Next track",
-  "Hafen bei Nacht, Sprung über das Hafenbecken": "Harbor at night, jump across the dock",
+  "Hafen bei Nacht, Sprung über das Hafenbecken, Abkürzung durch die Lagerhalle": "Harbor at night, jump across the dock, shortcut through the warehouse",
   "Wüstenschlucht im Abendlicht, großer Sprung": "Desert canyon at sunset, big jump",
   "Hochhäuser und Rampen zwischen den Dächern": "Skyscrapers and ramps between the rooftops",
   "Klassische Rennstrecke, lange Geraden für den Windschatten": "Classic circuit, long straights for slipstreaming",

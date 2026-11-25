@@ -46,7 +46,8 @@
 - [x] Glacier Rift: 2 Eisflächen (Grip 0,55), Eishöhle, Eisspitzen, Polarlichter; Neon Cup jetzt vollständig (4 Strecken)
 - [x] Bots bremsen auf Eis früher; Physik nutzt den Grip in Spiel und Headless-Simulation
 - [x] Streckenwahl im Titelmenü (Pfeile, gespeichert, `?track=`), Streckenwahl des Hosts in der Lobby
-- [ ] Abkürzungen (eigene Spline-Abzweigung mit Checkpoint-Logik) – zuerst Lagerhalle in Neon Harbor
+- [x] Abkürzungen: eigener Spline-Abschnitt mit Mauerlücke, Gutschrift der Checkpoints nur bei Durchfahrt (`creditShortcut`), Lagerhalle in Neon Harbor (spart ca. 0,65 s), gestrichelt auf der Minimap
+- [ ] Abkürzungen für die übrigen Strecken (Sunset Canyon nach dem Steinschlag, Skyline Loop, Glacier Rift, Grand Circuit Boxengasse)
 - [ ] Dynamische Ereignisse: Zugbrücke Neon Harbor ab Runde 2, Steinschlag Sunset Canyon
 - [ ] Turbo Cup: Jungle Ruins, Volcano Rush, Orbital Station (geringe Schwerkraft)
 - [ ] Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand)

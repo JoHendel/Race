@@ -13,6 +13,8 @@ export interface TrackDef {
   ramps: { at: number; length: number; height: number }[];
   /** Zones with a different surface, e.g. ice: start/end as share of the lap (0..1), grip factor (1 = asphalt). */
   surfaces?: TrackSurface[];
+  /** Official shortcuts: leave the track at `from`, rejoin at `to` (lap shares). */
+  shortcuts?: TrackShortcut[];
   /** Look of the surroundings (sky, fog, scenery). Default: neon night harbor. */
   environment?: TrackEnvironment;
   /** One-line description for the track selection. German source text, translated in i18n. */
@@ -24,6 +26,23 @@ export interface TrackSurface {
   to: number;
   grip: number;
   kind: "ice";
+}
+
+export interface TrackShortcut {
+  /** Lap share where the shortcut leaves the main track. */
+  from: number;
+  /** Lap share where it rejoins. */
+  to: number;
+  /** Control points in between (x, z); the height is interpolated. */
+  via: [number, number][];
+  width: number;
+  /** Building the shortcut runs through (visual only). */
+  kind: "warehouse";
+}
+
+/** Track definition without shortcuts – used for AI training so the recorded data stays reproducible. */
+export function withoutShortcuts(def: TrackDef): TrackDef {
+  return def.shortcuts ? { ...def, shortcuts: undefined } : def;
 }
 
 export interface TrackEnvironment {
@@ -76,7 +95,8 @@ export const NEON_HARBOR: TrackDef = {
     [40, 0, -75],
   ],
   ramps: [{ at: 0.86, length: 14, height: 2.4 }],
-  blurb: "Hafen bei Nacht, Sprung über das Hafenbecken",
+  shortcuts: [{ from: 0.6, to: 0.78, via: [[296, -62], [262, -122]], width: 10, kind: "warehouse" }],
+  blurb: "Hafen bei Nacht, Sprung über das Hafenbecken, Abkürzung durch die Lagerhalle",
 };
 
 export const SUNSET_CANYON: TrackDef = {
@@ -203,5 +223,5 @@ export function trackById(id: string): TrackDef | undefined {
 
 /** Mirrored copy of a track (left and right swapped) – used for data augmentation. */
 export function mirrorTrack(def: TrackDef): TrackDef {
-  return { ...def, id: `${def.id}-mirror`, name: `${def.name} (mirror)`, points: def.points.map(([x, y, z]) => [-x, y, z]) as [number, number, number][] };
+  return { ...def, id: `${def.id}-mirror`, name: `${def.name} (mirror)`, points: def.points.map(([x, y, z]) => [-x, y, z]) as [number, number, number][], shortcuts: def.shortcuts?.map((c) => ({ ...c, via: c.via.map(([x, z]) => [-x, z] as [number, number]) })) };
 }

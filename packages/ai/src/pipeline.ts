@@ -1,4 +1,4 @@
-import { GRAND_CIRCUIT, NEON_HARBOR, SKYLINE_LOOP, SUNSET_CANYON, mirrorTrack, type TrackDef } from "@apex/shared";
+import { GRAND_CIRCUIT, NEON_HARBOR, SKYLINE_LOOP, SUNSET_CANYON, mirrorTrack, withoutShortcuts, type TrackDef } from "@apex/shared";
 import { HeadlessRace, mulberry32, type Controller, type RacerSpec, type RaceSummary } from "@apex/sim";
 import { Mlp, train, type Dataset, type MlpJson } from "./mlp";
 import { OBS_SIZE, observeRacer } from "./observation";
@@ -40,7 +40,8 @@ export interface Sample {
 }
 
 export function tracksOf(split: SplitName): TrackDef[] {
-  const base = CONFIG.split[split];
+  // The AI data was recorded without shortcuts; keep it that way so `pnpm ai:all` stays reproducible.
+  const base = CONFIG.split[split].map(withoutShortcuts);
   return CONFIG.mirror ? [...base, ...base.map(mirrorTrack)] : base;
 }
 

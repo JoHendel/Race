@@ -4,6 +4,7 @@
 - New track **Glacier Rift**: ice patches with less grip, an ice cave and northern lights – the Neon Cup now has four tracks
 - Tracks can define surfaces (grip) and their own environment (sky, fog, scenery)
 - Track selection on the title screen and for the host in the online lobby
+- **Shortcut** through a warehouse on Neon Harbor – laps through it count only when you really drive through; shown dashed on the minimap
 
 ## v0.8.0 – Submission release
 - German/English UI toggle (remembered in the browser, `?lang=de|en`)

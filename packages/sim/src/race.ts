@@ -131,8 +131,10 @@ export class HeadlessRace {
 
     for (const r of this.racers) {
       const p = r.car.position;
-      r.index = this.track.nearestIndex(p, r.index);
+      const loc = this.track.locate(p, r.index);
+      r.index = loc.index;
       r.tracker.update(r.index / n, this.time);
+      if (loc.shortcut && loc.u > 0.4 && loc.u < 0.6) r.tracker.creditShortcut(loc.shortcut.def.from, loc.shortcut.def.to);
       // Reset pose follows the track.
       const back = this.track.sample(r.index - 2);
       r.car.setResetPose(back.pos, Math.atan2(back.tangent.x, back.tangent.z));

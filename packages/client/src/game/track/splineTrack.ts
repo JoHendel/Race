@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 import { DEFAULT_ENVIRONMENT, theme, type TrackDef } from "@apex/shared";
-import { CURB_WIDTH, TrackGeometry, mulberry32, type MeshArrays } from "@apex/sim";
+import { CURB_WIDTH, TrackGeometry, mulberry32, stripRibbon, stripWall, type MeshArrays, type ShortcutPath } from "@apex/sim";
 
 export { mulberry32 };
 
@@ -27,8 +27,95 @@ export class SplineTrack extends TrackGeometry {
     this.buildWalls();
     this.buildStartLine();
     this.buildSurfaces();
+    for (const c of this.shortcuts) this.buildShortcut(c);
     if ((this.def.environment ?? DEFAULT_ENVIRONMENT).scenery === "glacier") this.buildGlacier();
     else this.buildScenery();
+  }
+
+  private nearShortcut(p: THREE.Vector3, margin: number): boolean {
+    return this.shortcuts.some((c) => c.samples.some((s) => Math.hypot(s.pos.x - p.x, s.pos.z - p.z) < c.halfWidth + margin));
+  }
+
+  /** Shortcut: road, curbs, walls with neon trim and a warehouse over the middle part. */
+  private buildShortcut(c: ShortcutPath): void {
+    const hw = c.halfWidth;
+    const road = new THREE.MeshStandardMaterial({ map: this.asphaltTexture(), roughness: 0.8, metalness: 0.1, envMapIntensity: 0.1, side: THREE.DoubleSide });
+    const roadMesh = new THREE.Mesh(toGeometry(stripRibbon(c.samples, false, hw, -hw, 0.02, 0.02)), road);
+    roadMesh.renderOrder = 1;
+    this.group.add(roadMesh);
+    const curb = new THREE.MeshStandardMaterial({ color: theme.orange, emissive: theme.orange, emissiveIntensity: 0.25, side: THREE.DoubleSide });
+    for (const side of [1, -1]) this.group.add(new THREE.Mesh(toGeometry(stripRibbon(c.samples, false, side * hw, side * (hw + CURB_WIDTH), 0.04, 0.06)), curb));
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x0c0d1c, roughness: 0.7, envMapIntensity: 0.1, side: THREE.DoubleSide });
+    const trim = new THREE.MeshBasicMaterial({ color: theme.orange, side: THREE.DoubleSide });
+    const off = hw + CURB_WIDTH + 0.5;
+    for (const [side, mask] of [
+      [1, c.wallMask.left],
+      [-1, c.wallMask.right],
+    ] as const) {
+      this.group.add(new THREE.Mesh(toGeometry(stripWall(c.samples, false, side * off, WALL_HEIGHT, mask)), wallMat));
+      this.group.add(new THREE.Mesh(toGeometry(stripRibbon(c.samples, false, side * off, side * (off + 0.05), WALL_HEIGHT, WALL_HEIGHT + 0.12, mask)), trim));
+    }
+
+    // Warehouse over the middle 60 % of the shortcut
+    const k0 = Math.floor(c.samples.length * 0.2);
+    const k1 = Math.ceil(c.samples.length * 0.8);
+    const hall = c.samples.slice(k0, k1 + 1);
+    const H = 8;
+    const shell = new THREE.MeshStandardMaterial({ color: 0x15172b, roughness: 0.85, metalness: 0.2, envMapIntensity: 0.1, side: THREE.DoubleSide });
+    for (const side of [1, -1]) this.group.add(new THREE.Mesh(toGeometry(stripWall(hall, false, side * (off + 0.3), H)), shell));
+    this.group.add(new THREE.Mesh(toGeometry(stripRibbon(hall, false, off + 0.3, -(off + 0.3), H, H)), shell));
+    // Ceiling lights and a neon stripe along the hall
+    const lamp = new THREE.MeshBasicMaterial({ color: 0xfff1c9 });
+    const lampGeo = new THREE.BoxGeometry(hw * 1.2, 0.15, 0.6);
+    for (let k = 0; k < hall.length; k += 5) {
+      const s = hall[k]!;
+      const m = new THREE.Mesh(lampGeo, lamp);
+      m.position.copy(s.pos).add(new THREE.Vector3(0, H - 0.3, 0));
+      m.lookAt(m.position.clone().add(s.tangent));
+      this.group.add(m);
+    }
+    for (const side of [1, -1]) this.group.add(new THREE.Mesh(toGeometry(stripRibbon(hall, false, side * (off + 0.25), side * (off + 0.25), 3.2, 3.6)), new THREE.MeshBasicMaterial({ color: theme.magenta, side: THREE.DoubleSide })));
+    // Crates along the inner walls
+    const crate = new THREE.MeshStandardMaterial({ color: 0x5a3a1c, roughness: 0.9, envMapIntensity: 0.1 });
+    const rnd = mulberry32(41);
+    for (let k = 3; k < hall.length - 3; k += 4) {
+      const s = hall[k]!;
+      const side = rnd() < 0.5 ? 1 : -1;
+      const size = 1.2 + rnd() * 0.8;
+      const m = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), crate);
+      m.position.copy(s.pos).addScaledVector(s.left, side * (off - 0.4 - size / 2 + 0.2)).add(new THREE.Vector3(0, size / 2, 0));
+      if (Math.abs(side * (off - 0.4 - size / 2)) < hw + CURB_WIDTH) continue;
+      m.rotation.y = rnd() * Math.PI;
+      this.group.add(m);
+    }
+    // Glowing chevron sign above the entry so the shortcut is easy to spot
+    const entry = c.samples[Math.min(c.samples.length - 1, k0)]!;
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(hw * 1.6, 1.4), new THREE.MeshBasicMaterial({ map: this.chevronTexture(), transparent: true, side: THREE.DoubleSide }));
+    sign.position.copy(entry.pos).add(new THREE.Vector3(0, H + 1.4, 0));
+    sign.lookAt(sign.position.clone().sub(entry.tangent));
+    this.group.add(sign);
+  }
+
+  private chevronTexture(): THREE.CanvasTexture {
+    const c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 56;
+    const g = c.getContext("2d")!;
+    g.fillStyle = "rgba(5,6,15,0.85)";
+    g.fillRect(0, 0, 256, 56);
+    g.strokeStyle = "#ff8a1f";
+    g.lineWidth = 9;
+    for (let i = 0; i < 5; i++) {
+      const x = 30 + i * 48;
+      g.beginPath();
+      g.moveTo(x, 10);
+      g.lineTo(x + 18, 28);
+      g.lineTo(x, 46);
+      g.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
   }
 
   /** Ribbon over part of the lap (sample indices a..b, wrapping around the start). */
@@ -136,7 +223,7 @@ export class SplineTrack extends TrackGeometry {
         if (rnd() < 0.3) continue;
         const dist = this.halfWidth + 12 + rnd() * 45;
         const p = s.pos.clone().addScaledVector(s.left, side * dist);
-        if (this.distanceToTrack(p) < this.halfWidth + 9) continue;
+        if (this.distanceToTrack(p) < this.halfWidth + 9 || this.nearShortcut(p, 12)) continue;
         if (rnd() < 0.6) {
           const h = 8 + rnd() * 34;
           const r = 2 + rnd() * 6;
@@ -237,10 +324,11 @@ export class SplineTrack extends TrackGeometry {
       [1, this.def.accent],
       [-1, this.def.accent2],
     ] as const) {
-      const geo = toGeometry(this.wall(side * off, WALL_HEIGHT));
+      const mask = this.wallMask(side);
+      const geo = toGeometry(this.wall(side * off, WALL_HEIGHT, mask));
       this.group.add(new THREE.Mesh(geo, wallMat));
       // Kollision höher als sichtbar, damit niemand rausfliegt.
-      const glow = toGeometry(this.ribbon(side * off, side * (off + 0.05), WALL_HEIGHT, WALL_HEIGHT + 0.12));
+      const glow = toGeometry(this.ribbon(side * off, side * (off + 0.05), WALL_HEIGHT, WALL_HEIGHT + 0.12, mask));
       this.group.add(new THREE.Mesh(glow, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide })));
     }
   }
@@ -307,7 +395,7 @@ export class SplineTrack extends TrackGeometry {
         const h = 6 + rnd() * 30;
         const w = 8 + rnd() * 14;
         const p = s.pos.clone().addScaledVector(s.left, side * dist);
-        if (this.distanceToTrack(p) < this.halfWidth + 10) continue;
+        if (this.distanceToTrack(p) < this.halfWidth + 10 || this.nearShortcut(p, 14)) continue;
         const b = new THREE.Mesh(box, dark);
         b.scale.set(w, h, w);
         b.position.set(p.x, -2 + h / 2, p.z);
