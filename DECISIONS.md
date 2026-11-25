@@ -12,3 +12,8 @@
 | 2026-11-25 | Versions-Tags werden nicht aus der Arbeitsumgebung gepusht | Tag-Pushes sind dort gesperrt; Versionen stehen im CHANGELOG. |
 | 2026-11-25 | KI-Fahrer und englische Doku vor weiteren Strecken und Grafik | Projektanforderungen mit Abgabe bis 18.12.2026 haben Vorrang. |
 | 2026-11-25 | Eigenes kleines MLP statt ML-Bibliothek | Kostenlos, klein im Browser, und jeder Schritt der KI ist im Code nachvollziehbar und erklärbar. |
+| 2026-11-25 | Rapier-Physik und Rennlogik in `packages/sim`, Spiel-Klassen erben davon | KI trainiert mit exakt derselben Physik wie im Spiel; kein doppelter Code. |
+| 2026-11-25 | Split nach Strecken: Train NH+SC, Val Skyline Loop, Test Grand Circuit (jeweils + Spiegelung) | Verhindert Datenleck durch fast identische Nachbar-Samples. |
+| 2026-11-25 | Early Stopping nach Validierungs-Loss | Validierungs-Loss steigt ab Epoche ~3–10 (Overfitting); bestes Modell fährt messbar besser. |
+| 2026-11-25 | Regel-Bots driften in engen schnellen Kurven | Sonst enthält der Datensatz keine Drift-Beispiele. |
+| 2026-11-25 | Telemetrie (`data/`) nicht im Repo, nur Modell und Report | Datensatz ~30 MB, jederzeit mit `pnpm ai:record` reproduzierbar. |

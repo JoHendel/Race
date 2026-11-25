@@ -1,0 +1,122 @@
+{
+  "seed": 2026,
+  "samples": 280754,
+  "valid": 277658,
+  "split": {
+    "train": 130598,
+    "validation": 68513,
+    "test": 78547
+  },
+  "classBalance": {
+    "drift": 0.004282246504692824,
+    "nitro": 0.000007203105979298274,
+    "braking": 0.09562843498116388
+  },
+  "validation": {
+    "n": 68513,
+    "steer": {
+      "mae": 0.07506507026718116,
+      "r2": 0.8476186946700692
+    },
+    "throttle": {
+      "mae": 0.3094120589499234,
+      "r2": 0.4817647860159898
+    },
+    "drift": {
+      "accuracy": 0.9613504006538905,
+      "precision": 0.15527310202679492,
+      "recall": 0.7051482059282371,
+      "tp": 452,
+      "fp": 2459,
+      "tn": 65413,
+      "fn": 189,
+      "positives": 641
+    },
+    "nitro": {
+      "accuracy": 0.9999854042298542,
+      "precision": 0,
+      "recall": 0,
+      "tp": 0,
+      "fp": 0,
+      "tn": 68512,
+      "fn": 1,
+      "positives": 1
+    }
+  },
+  "test": {
+    "n": 78547,
+    "steer": {
+      "mae": 0.06957673341325213,
+      "r2": 0.8029986540551706
+    },
+    "throttle": {
+      "mae": 0.2970741111329793,
+      "r2": 0.5127384311875431
+    },
+    "drift": {
+      "accuracy": 0.9986377582848486,
+      "precision": 0.3208955223880597,
+      "recall": 0.7288135593220338,
+      "tp": 43,
+      "fp": 91,
+      "tn": 78397,
+      "fn": 16,
+      "positives": 59
+    },
+    "nitro": {
+      "accuracy": 1,
+      "precision": 0,
+      "recall": 0,
+      "tp": 0,
+      "fp": 0,
+      "tn": 78547,
+      "fn": 0,
+      "positives": 0
+    }
+  },
+  "driving": {
+    "apexAi": {
+      "races": 6,
+      "finishRate": 1,
+      "bestLap": 43.24999999999755,
+      "meanBestLap": 44.355555555553046,
+      "wallContactsPerLap": 0.08333333333333333,
+      "resetsPerRace": 0.6666666666666666,
+      "meanLateralOffset": 2.9179420449003257,
+      "meanPlace": 4.333333333333333
+    },
+    "ruleBot": {
+      "races": 6,
+      "finishRate": 1,
+      "bestLap": 41.11666666666434,
+      "meanBestLap": 43.12777777777533,
+      "wallContactsPerLap": 0.25,
+      "resetsPerRace": 0.6666666666666666,
+      "meanLateralOffset": 3.2351274887952925,
+      "meanPlace": 4.166666666666667
+    }
+  },
+  "criteria": [
+    {
+      "name": "Lap time ≤ 105 % of the rule-based bot",
+      "value": "102.8 %",
+      "ok": true
+    },
+    {
+      "name": "Wall contacts < 1 per lap",
+      "value": "0.08",
+      "ok": true
+    },
+    {
+      "name": "Finish rate 100 %",
+      "value": "100.0 %",
+      "ok": true
+    }
+  ],
+  "finalLoss": {
+    "train": 0.15036383033829845,
+    "validation": 0.40578449580461695
+  },
+  "bestEpoch": 10,
+  "bestValidationLoss": 0.37438803830601775
+}

@@ -1,46 +1,27 @@
 import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat";
+import type RAPIER from "@dimforge/rapier3d-compat";
 import { theme, type TrackDef } from "@apex/shared";
+import { CURB_WIDTH, TrackGeometry, mulberry32, type MeshArrays } from "@apex/sim";
 
-const SAMPLE_SPACING = 2; // m zwischen zwei Stützpunkten
+export { mulberry32 };
+
 const WALL_HEIGHT = 1.4;
-const CURB_WIDTH = 1.2;
 
-export interface TrackSample {
-  pos: THREE.Vector3;
-  tangent: THREE.Vector3;
-  left: THREE.Vector3; // zeigt nach links, waagrecht
+function toGeometry(m: MeshArrays): THREE.BufferGeometry {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(m.positions, 3));
+  if (m.uvs.length) geo.setAttribute("uv", new THREE.BufferAttribute(m.uvs, 2));
+  geo.setIndex(new THREE.BufferAttribute(m.indices, 1));
+  geo.computeVertexNormals();
+  return geo;
 }
 
-/** Baut aus einer Streckendefinition Fahrbahn, Randsteine, Mauern, Kollision und Hilfsdaten. */
-export class SplineTrack {
+/** Track with visuals: geometry and collision come from @apex/sim, this class adds the look. */
+export class SplineTrack extends TrackGeometry {
   readonly group = new THREE.Group();
-  readonly curve: THREE.CatmullRomCurve3;
-  readonly samples: TrackSample[] = [];
-  readonly length: number;
-  readonly halfWidth: number;
 
-  constructor(
-    private readonly world: RAPIER.World,
-    readonly def: TrackDef,
-  ) {
-    this.halfWidth = def.width / 2;
-    this.curve = new THREE.CatmullRomCurve3(
-      def.points.map(([x, y, z]) => new THREE.Vector3(x, y, z)),
-      true,
-      "centripetal",
-    );
-    this.length = this.curve.getLength();
-    const n = Math.round(this.length / SAMPLE_SPACING);
-    const up = new THREE.Vector3(0, 1, 0);
-    for (let i = 0; i < n; i++) {
-      const u = i / n;
-      const pos = this.curve.getPointAt(u);
-      pos.y += this.rampOffset(u);
-      const tangent = this.curve.getTangentAt(u).normalize();
-      const left = new THREE.Vector3().crossVectors(up, tangent).normalize();
-      this.samples.push({ pos, tangent, left });
-    }
+  constructor(world: RAPIER.World, def: TrackDef) {
+    super(world, def);
     this.buildRoad();
     this.buildCurbs();
     this.buildWalls();
@@ -48,60 +29,15 @@ export class SplineTrack {
     this.buildScenery();
   }
 
-  /** Zusätzliche Höhe durch Rampen: steigt an und bricht dann ab (Sprungkante). */
-  private rampOffset(u: number): number {
-    for (const r of this.def.ramps) {
-      const len = r.length / this.length;
-      const d = u - (r.at - len);
-      if (d >= 0 && d <= len) return (d / len) * r.height;
-    }
-    return 0;
-  }
-
-  /** Ribbon-Geometrie entlang der Stützpunkte zwischen zwei seitlichen Abständen. */
-  private ribbon(inner: number, outer: number, yInner = 0, yOuter = 0): THREE.BufferGeometry {
-    const n = this.samples.length;
-    const pos: number[] = [];
-    const uv: number[] = [];
-    const idx: number[] = [];
-    let dist = 0;
-    for (let i = 0; i <= n; i++) {
-      const s = this.samples[i % n]!;
-      if (i > 0) dist += s.pos.distanceTo(this.samples[(i - 1) % n]!.pos);
-      const a = s.pos.clone().addScaledVector(s.left, inner);
-      const b = s.pos.clone().addScaledVector(s.left, outer);
-      pos.push(a.x, a.y + yInner, a.z, b.x, b.y + yOuter, b.z);
-      uv.push(0, dist / 8, 1, dist / 8);
-      if (i < n) {
-        const k = i * 2;
-        idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3);
-      }
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-    geo.setIndex(idx);
-    geo.computeVertexNormals();
-    return geo;
-  }
-
-  private addTrimesh(geo: THREE.BufferGeometry, friction = 1): void {
-    const vertices = new Float32Array(geo.attributes.position!.array);
-    const indices = new Uint32Array(geo.index!.array);
-    this.world.createCollider(RAPIER.ColliderDesc.trimesh(vertices, indices).setFriction(friction));
-  }
-
   private buildRoad(): void {
     const hw = this.halfWidth;
-    const geo = this.ribbon(hw, -hw);
+    const geo = toGeometry(this.ribbon(hw, -hw));
     const tex = this.asphaltTexture();
     const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.75, metalness: 0.15, envMapIntensity: 0.12, side: THREE.DoubleSide });
     this.group.add(new THREE.Mesh(geo, mat));
-    this.addTrimesh(geo);
     // Seitenstreifen (befahrbar, aber langsamer gibt es erst mit Untergrund-Typen in M6)
     for (const side of [1, -1]) {
-      const shoulder = this.ribbon(side * hw, side * (hw + CURB_WIDTH + 3));
-      this.addTrimesh(shoulder, 0.6);
+      const shoulder = toGeometry(this.ribbon(side * hw, side * this.wallOffset));
       this.group.add(new THREE.Mesh(shoulder, new THREE.MeshStandardMaterial({ color: 0x07080f, roughness: 0.95, envMapIntensity: 0.05, side: THREE.DoubleSide })));
     }
   }
@@ -144,7 +80,7 @@ export class SplineTrack {
     tex.colorSpace = THREE.SRGBColorSpace;
     const mat = new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.18, side: THREE.DoubleSide, envMapIntensity: 0.1 });
     for (const side of [1, -1]) {
-      this.group.add(new THREE.Mesh(this.ribbon(side * hw, side * (hw + CURB_WIDTH), 0.02, 0.06), mat));
+      this.group.add(new THREE.Mesh(toGeometry(this.ribbon(side * hw, side * (hw + CURB_WIDTH), 0.02, 0.06)), mat));
     }
   }
 
@@ -155,33 +91,12 @@ export class SplineTrack {
       [1, this.def.accent],
       [-1, this.def.accent2],
     ] as const) {
-      const geo = this.wallGeometry(side * off, WALL_HEIGHT);
+      const geo = toGeometry(this.wall(side * off, WALL_HEIGHT));
       this.group.add(new THREE.Mesh(geo, wallMat));
       // Kollision höher als sichtbar, damit niemand rausfliegt.
-      this.addTrimesh(this.wallGeometry(side * off, 6), 0.2);
-      const glow = this.ribbon(side * off, side * (off + 0.05), WALL_HEIGHT, WALL_HEIGHT + 0.12);
+      const glow = toGeometry(this.ribbon(side * off, side * (off + 0.05), WALL_HEIGHT, WALL_HEIGHT + 0.12));
       this.group.add(new THREE.Mesh(glow, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide })));
     }
-  }
-
-  private wallGeometry(offset: number, height: number): THREE.BufferGeometry {
-    const n = this.samples.length;
-    const pos: number[] = [];
-    const idx: number[] = [];
-    for (let i = 0; i <= n; i++) {
-      const s = this.samples[i % n]!;
-      const p = s.pos.clone().addScaledVector(s.left, offset);
-      pos.push(p.x, p.y - 0.5, p.z, p.x, p.y + height, p.z);
-      if (i < n) {
-        const k = i * 2;
-        idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2);
-      }
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    geo.setIndex(idx);
-    geo.computeVertexNormals();
-    return geo;
   }
 
   private buildStartLine(): void {
@@ -232,7 +147,6 @@ export class SplineTrack {
     const grid = new THREE.GridHelper(2000, 200, theme.violet, theme.grid);
     grid.position.y = -1.95;
     this.group.add(grid);
-    this.world.createCollider(RAPIER.ColliderDesc.cuboid(1000, 0.5, 1000).setTranslation(0, -2.5, 0));
 
     // Lagerhallen, Kräne und Neon-Türme am Rand
     const box = new THREE.BoxGeometry(1, 1, 1);
@@ -261,63 +175,4 @@ export class SplineTrack {
       }
     }
   }
-
-  /** Index des nächstgelegenen Stützpunkts, optional nur in der Nähe eines bekannten Index gesucht. */
-  nearestIndex(p: THREE.Vector3, hint?: number, window = 40): number {
-    const n = this.samples.length;
-    let best = 0;
-    let bestD = Infinity;
-    if (hint === undefined) {
-      for (let i = 0; i < n; i++) {
-        const d = this.samples[i]!.pos.distanceToSquared(p);
-        if (d < bestD) {
-          bestD = d;
-          best = i;
-        }
-      }
-      return best;
-    }
-    for (let k = -window; k <= window; k++) {
-      const i = (((hint + k) % n) + n) % n;
-      const d = this.samples[i]!.pos.distanceToSquared(p);
-      if (d < bestD) {
-        bestD = d;
-        best = i;
-      }
-    }
-    return best;
-  }
-
-  distanceToTrack(p: THREE.Vector3): number {
-    const s = this.samples[this.nearestIndex(p)]!;
-    return Math.hypot(p.x - s.pos.x, p.z - s.pos.z);
-  }
-
-  sample(i: number): TrackSample {
-    const n = this.samples.length;
-    return this.samples[((Math.round(i) % n) + n) % n]!;
-  }
-
-  /** Startaufstellung: 2er-Reihen versetzt hinter der Linie. */
-  gridSlot(slot: number): { pos: THREE.Vector3; yaw: number } {
-    const row = Math.floor(slot / 2);
-    const col = slot % 2;
-    const back = 6 + row * 7 + col * 3.5;
-    const idx = -Math.round(back / SAMPLE_SPACING);
-    const s = this.sample(idx);
-    const pos = s.pos.clone().addScaledVector(s.left, col === 0 ? 3.5 : -3.5);
-    return { pos, yaw: Math.atan2(s.tangent.x, s.tangent.z) };
-  }
-}
-
-/** Kleiner deterministischer Zufallsgenerator, damit die Kulisse immer gleich aussieht. */
-export function mulberry32(seed: number): () => number {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }

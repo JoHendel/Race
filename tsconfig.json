@@ -10,10 +10,13 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "@apex/shared": ["packages/shared/src/index.ts"],
-      "@apex/net": ["packages/net/src/index.ts"]
+      "@apex/net": ["packages/net/src/index.ts"],
+      "@apex/sim": ["packages/sim/src/index.ts"],
+      "@apex/ai": ["packages/ai/src/index.ts"]
     }
   },
   "include": ["packages/*/src", "e2e"]

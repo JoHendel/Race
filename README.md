@@ -21,7 +21,7 @@
 ## Features
 
 - **Up to 10 players online** via room code or link – no account, no server (peer-to-peer WebRTC)
-- **APEX-AI:** a machine-learning driver in every race, developed along CRISP-DM ([documentation](docs/ai-driver.md)) – *in development*
+- **APEX-AI:** a machine-learning driver, developed along CRISP-DM ([documentation](docs/ai-driver.md), [data analysis report](docs/ai/report.md)) – trained and evaluated, joins every race in the next milestone
 - **Multiple laps, Grand Prix scoring and podium** with confetti, trophy and awards (fastest lap, drift king, most overtakes, comeback)
 - **12 cars in 4 classes** to unlock, with performance and visual tuning and a performance index per class
 - **Drift boost in three stages, nitro, jumps**
@@ -55,6 +55,8 @@ pnpm dev
 
 Tests: `pnpm test` (unit tests), `pnpm test:e2e` (browser tests, including a full race and a two-window online race).
 
+AI pipeline: `pnpm ai:all` (record → train → evaluate → report, about 3 minutes, reproducible with a fixed seed).
+
 ## Architecture (modular)
 
 ```
@@ -62,8 +64,8 @@ packages/
   client/   game in the browser: rendering, UI, input, garage
   net/      peer-to-peer networking: lobby protocol, snapshots, interpolation
   shared/   game data and rules: cars, tuning, tracks, scoring, progression
-  sim/      physics and race logic without graphics, used by AI training (planned)
-  ai/       APEX-AI: data, model, training, evaluation (planned)
+  sim/      physics, tracks, bots and races without graphics (game + AI training)
+  ai/       APEX-AI: observation, neural network, training, evaluation, report
 ```
 
 TypeScript · Vite · Three.js · Rapier physics · PeerJS/WebRTC · Vitest · Playwright · GitHub Actions + Pages

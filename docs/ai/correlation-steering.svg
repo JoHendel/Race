@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 226" font-family="sans-serif" font-size="12">
+<rect width="640" height="226" fill="#0d1024"/>
+<text x="320" y="22" fill="#f4f6ff" text-anchor="middle" font-size="15">Pearson correlation of features with steering</text>
+<text x="132" y="54" fill="#f4f6ff" text-anchor="end">heading_40m</text><rect x="360" y="43" width="220.0" height="14" fill="#00e5ff"/><text x="586" y="54" fill="#9aa3c7">0.651</text>
+<text x="132" y="76" fill="#f4f6ff" text-anchor="end">heading_60m</text><rect x="360" y="65" width="210.4" height="14" fill="#00e5ff"/><text x="586" y="76" fill="#9aa3c7">0.623</text>
+<text x="132" y="98" fill="#f4f6ff" text-anchor="end">heading_20m</text><rect x="360" y="87" width="195.6" height="14" fill="#00e5ff"/><text x="586" y="98" fill="#9aa3c7">0.579</text>
+<text x="132" y="120" fill="#f4f6ff" text-anchor="end">heading_80m</text><rect x="360" y="109" width="195.5" height="14" fill="#00e5ff"/><text x="586" y="120" fill="#9aa3c7">0.579</text>
+<text x="132" y="142" fill="#f4f6ff" text-anchor="end">lateral_velocity</text><rect x="360" y="131" width="154.4" height="14" fill="#00e5ff"/><text x="586" y="142" fill="#9aa3c7">0.457</text>
+<text x="132" y="164" fill="#f4f6ff" text-anchor="end">heading_10m</text><rect x="360" y="153" width="133.5" height="14" fill="#00e5ff"/><text x="586" y="164" fill="#9aa3c7">0.395</text>
+<text x="132" y="186" fill="#f4f6ff" text-anchor="end">ray_-30</text><rect x="228.88341499721938" y="175" width="131.1" height="14" fill="#ff2bd6"/><text x="586" y="186" fill="#9aa3c7">-0.388</text>
+<text x="132" y="208" fill="#f4f6ff" text-anchor="end">ray_30</text><rect x="360" y="197" width="117.9" height="14" fill="#00e5ff"/><text x="586" y="208" fill="#9aa3c7">0.349</text>
+<line x1="360" x2="360" y1="36" y2="220" stroke="#9aa3c7"/>
+</svg>

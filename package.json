@@ -1,7 +1,7 @@
 {
   "name": "apex-rush",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "APEX RUSH – browserbasiertes Arcade-Rennspiel für bis zu 10 Spieler",
   "license": "MIT",
   "type": "module",
@@ -13,12 +13,19 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "ai:record": "tsx packages/ai/src/cli.ts record",
+    "ai:train": "tsx packages/ai/src/cli.ts train",
+    "ai:evaluate": "tsx packages/ai/src/cli.ts evaluate",
+    "ai:report": "tsx packages/ai/src/cli.ts report",
+    "ai:all": "tsx packages/ai/src/cli.ts all"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@playwright/test": "1.63.0",
+    "@types/node": "^26.6.10",
     "eslint": "^9.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.0",
     "typescript-eslint": "^8.0.0",
     "vitest": "^5.0.0"

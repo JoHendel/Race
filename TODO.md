@@ -22,16 +22,12 @@
 - [ ] PI-Limit als Schalter in der Lobby
 
 ## M6 – KI-Fahrer, Teil 1 (Daten & Modell)
-- [ ] `packages/sim`: Car-Physik, Strecke (Kollision ohne Grafik), LapTracker, Bots headless in Node
-- [ ] 2 weitere Strecken vorziehen (Sunset Canyon, Grand Circuit) für Training/Test
-- [ ] Beobachtungsvektor + Normierung in `packages/ai`
-- [ ] `pnpm ai:record`: Telemetrie der Regel-Bots als Datensatz
-- [ ] MLP in TypeScript + Behavior Cloning (`pnpm ai:train`)
-- [ ] `pnpm ai:report`: Datenanalyse-Parameter als Markdown + Diagramme
-- [ ] `docs/ai-driver.md` Phasen 1–4 mit echten Zahlen
+- [x] sim-Paket, 3 neue Strecken, Beobachtung, Aufzeichnung, MLP + Behavior Cloning + Early Stopping, Report, Doku Phasen 1–4
 
 ## M7 – KI-Fahrer, Teil 2
-- [ ] Feinschliff per Evolutionsstrategie/RL, Auswertung auf ungesehener Strecke
+- [ ] `pnpm ai:evolve`: Evolutionsstrategie (z. B. OpenAI-ES mit antithetischen Stichproben) ab apex-ai-v1, Belohnung Fortschritt/Zeit, Strafe Mauer/Reset/falsche Richtung, Nitro lernen
+- [ ] Lernkurve der Belohnung im Report, Vergleich v1 vs. v2 auf der Teststrecke
+- [ ] Inferenzzeit im Browser messen (< 0,2 ms)
 - [ ] APEX-AI immer im Startfeld (offline + online), Kennzeichnung im HUD/Ergebnis
 - [ ] `docs/ai-driver.md` Phasen 5–6
 

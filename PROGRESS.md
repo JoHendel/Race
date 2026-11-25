@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M6 starten – Physik und Rennlogik in `packages/sim` auslagern, sodass ein Rennen headless in Node läuft (Grundlage für das KI-Training).
+**Nächster Schritt:** M7 starten – Evolutionsstrategie (`pnpm ai:evolve`) auf Basis von `apex-ai-v1.json` bauen: Gewichte variieren, in `HeadlessRace` fahren lassen, Belohnung aus Fortschritt/Rundenzeit, Strafen für Mauer/Reset.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -10,8 +10,8 @@
 | M3 – Multiplayer | ✅ fertig (Host-Wechsel offen) |
 | M4 – Siegertreppe & Wertung | ✅ fertig |
 | M5 – Garage | ✅ fertig |
-| M6 – KI-Fahrer, Teil 1 (Daten & Modell) | ⏳ als Nächstes |
-| M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | offen |
+| M6 – KI-Fahrer, Teil 1 (Daten & Modell) | ✅ fertig |
+| M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | ⏳ als Nächstes |
 | M8 – Abgabe-Release (spätestens 18.12.2026) | offen |
 | M9 – Alle Strecken | offen |
 | M10 – Grafik & Assets | offen |
@@ -47,3 +47,8 @@ Offen: Grand Prix gibt es bisher nur offline; bis M6 besteht der Cup aus 4× Neo
 12 Fahrzeuge in 4 Klassen mit eigenen Werten (1–10) und fünf prozeduralen Karosserieformen (Hatch, Coupé, Keil, Muscle, Hyper). Fortschritt mit XP, Level und Credits nach jedem Rennen; Autos werden per Level oder Grand-Prix-Sieg freigeschaltet. Garage mit Drehteller, Werte-Balken (Serie und getunt), Leistungsindex gegen das Klassenlimit, Leistungs-Tuning (Motor, Getriebe, Reifen, Fahrwerk, Nitro, Gewicht in je 5 Stufen, Übersetzung, Reifentyp) und Optik (Lack, Oberfläche, Felgen, Unterboden, Folie, Spoiler, Startnummer, Reifenrauch, Hupe). Spielstand in localStorage. Online bringt jeder Spieler sein Auto mit in die Lobby.
 
 Offen: Leistungsindex-Limit als Lobby-Schalter; Hupen-Sounds und Reifenrauch-Farbe werden erst mit M8/M9 hör- und sichtbar.
+
+### M6 – KI-Fahrer, Teil 1
+`packages/sim`: Fahrzeugphysik, Strecken-Geometrie/Kollision, Regel-Bots und komplette Rennen ohne Grafik in Node (2 Runden mit 6 Autos in < 1 s Rechenzeit); das Spiel nutzt dieselben Klassen. Drei neue Strecken (Sunset Canyon, Skyline Loop, Grand Circuit) plus Spiegelung als Augmentation. `packages/ai`: 24 Merkmale (Beobachtung), eigenes MLP 24→32→32→4 mit Backprop + Adam + Early Stopping, Pipeline `pnpm ai:record|train|evaluate|report|all`. Ergebnis (Seed 2026): 280.754 Samples, Split nach Strecken, Lenkung R² 0,80 auf der Teststrecke, APEX-AI fährt auf der ungesehenen Strecke 100 % ins Ziel, 0,08 Mauerkontakte pro Runde, Rundenzeit 102,8 % des besten Regel-Bots. `docs/ai-driver.md` (Phasen 1–4 + erste Evaluation) und `docs/ai/report.md` (alle Datenanalyse-Parameter, Diagramme).
+
+Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 2 (M7) gelernt.

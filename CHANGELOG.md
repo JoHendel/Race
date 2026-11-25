@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0 – AI driver, part 1
+- Headless simulation package (`packages/sim`) shared by the game and AI training
+- New tracks: Sunset Canyon, Skyline Loop, Grand Circuit
+- APEX-AI pipeline (`packages/ai`): telemetry recording, own MLP, behavior cloning with early stopping, evaluation and data analysis report
+- Documentation of the AI development along CRISP-DM (`docs/ai-driver.md`, `docs/ai/report.md`)
+
 ## v0.5.0 – Garage
 - 12 Fahrzeuge in 4 Klassen mit eigenen Karosserien
 - XP, Level, Credits, Freischalten per Level oder Grand-Prix-Sieg

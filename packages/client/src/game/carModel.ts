@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { theme, type BodyStyle, type CarDef, type CarLooks, type DecalPattern } from "@apex/shared";
+import { wheelLayout } from "@apex/sim";
 
 /** Seitenprofil (z nach vorne, y nach oben) pro Karosserie, normiert auf Länge 1 und Höhe 1. */
 const PROFILES: Record<BodyStyle, [number, number][]> = {
@@ -99,13 +100,7 @@ export function buildCarModel(def: CarDef, looks: CarLooks): CarModel {
     }
   }
 
-  const radius = def.body === "muscle" ? 0.4 : def.body === "hyper" ? 0.36 : 0.35;
-  const wheels: [number, number, boolean][] = [
-    [-(W / 2 - 0.1), L * 0.32, true],
-    [W / 2 - 0.1, L * 0.32, true],
-    [-(W / 2 - 0.1), -L * 0.3, false],
-    [W / 2 - 0.1, -L * 0.3, false],
-  ];
+  const { wheels, radius } = wheelLayout(def);
   const tire = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
   const rim = new THREE.MeshBasicMaterial({ color: looks.rimColor });
   const wheelMeshes: THREE.Object3D[] = [];

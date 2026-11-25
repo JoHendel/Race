@@ -1,12 +1,6 @@
-/** Eingabe-Zustand eines Frames, unabhängig vom Gerät. */
-export interface ControlState {
-  throttle: number; // 0..1
-  brake: number; // 0..1 (auch Rückwärts)
-  steer: number; // -1 (links) .. 1 (rechts)
-  drift: boolean;
-  nitro: boolean;
-  reset: boolean;
-}
+import type { ControlState } from "@apex/sim";
+
+export type { ControlState };
 
 const KEYS = {
   throttle: ["KeyW", "ArrowUp"],

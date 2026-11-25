@@ -6,6 +6,8 @@ export default defineConfig({
     alias: {
       "@apex/shared": fileURLToPath(new URL("./packages/shared/src/index.ts", import.meta.url)),
       "@apex/net": fileURLToPath(new URL("./packages/net/src/index.ts", import.meta.url)),
+      "@apex/sim": fileURLToPath(new URL("./packages/sim/src/index.ts", import.meta.url)),
+      "@apex/ai": fileURLToPath(new URL("./packages/ai/src/index.ts", import.meta.url)),
     },
   },
   test: {
