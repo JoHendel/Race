@@ -6,3 +6,4 @@ export * from "./tracks";
 export * from "./cup";
 export * from "./cars";
 export * from "./progress";
+export * from "./i18n";

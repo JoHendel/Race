@@ -11,6 +11,7 @@ import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
+import { currentLang, initI18n, setLang } from "./i18n";
 import { Garage } from "./garage/garage";
 import { currentCar, loadSave, storeSave } from "./save";
 import { applyReward, levelFromXp, type RaceReward } from "@apex/shared";
@@ -97,6 +98,7 @@ function clientId(): string {
 // ---------- Ablauf ----------
 
 const titleHtml = document.querySelector<HTMLElement>("#title")!.outerHTML;
+initI18n(params.get("lang"));
 let current: { dispose(): void } | null = null;
 let session: HostSession | ClientSession | null = null;
 let lobby: LobbyView | null = null;
@@ -208,6 +210,14 @@ function showMenu(): void {
 }
 
 function bindMenu(): void {
+  const langBtn = document.querySelector<HTMLButtonElement>("#lang")!;
+  // The button shows the language you switch TO.
+  const label = () => (langBtn.textContent = currentLang() === "de" ? "EN" : "DE");
+  label();
+  langBtn.onclick = () => {
+    setLang(currentLang() === "de" ? "en" : "de");
+    label();
+  };
   document.querySelector<HTMLButtonElement>("#start")!.onclick = () => void startDrive();
   document.querySelector<HTMLButtonElement>("#race")!.onclick = () => {
     cup = null;

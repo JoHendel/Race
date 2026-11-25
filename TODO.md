@@ -35,5 +35,6 @@
 
 ## M8 – Abgabe-Release (bis 18.12.2026)
 - [ ] Gesamte Doku Englisch (PROGRESS/DECISIONS bleiben interne Notizen)
-- [ ] Architektur-Diagramm, UI-Sprachumschalter DE/EN
+- [x] UI-Sprachumschalter DE/EN (Wörterbuch in packages/shared, MutationObserver im Client)
+- [ ] Architektur-Diagramm (README + docs/architecture.md)
 - [ ] Release v0.8.0

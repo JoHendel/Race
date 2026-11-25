@@ -19,6 +19,19 @@ interface ApexWindow {
   };
 }
 
+test("Language toggle switches the UI between German and English", async ({ page }) => {
+  await page.goto("./?lang=de");
+  await expect(page.locator("#race")).toHaveText("Rennen gegen Bots");
+  await page.getByTestId("lang").click();
+  await expect(page.locator("#race")).toHaveText("Race vs. bots");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  // the choice is remembered
+  await page.goto("./");
+  await expect(page.locator("#race")).toHaveText("Race vs. bots");
+  await page.getByTestId("lang").click();
+  await expect(page.locator("#race")).toHaveText("Rennen gegen Bots");
+});
+
 test("Testgelände: das Auto fährt los", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("./");
@@ -82,13 +95,15 @@ test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ b
     });
   const h0 = await view(host);
   const c0 = await view(client);
-  await host.waitForTimeout(5000);
-  const h = await view(host);
-  const c = await view(client);
-  expect(h.count).toBe(10);
-  expect(c.count).toBe(10);
-  expect(Math.hypot(h.x - h0.x, h.z - h0.z)).toBeGreaterThan(3);
-  expect(Math.hypot(c.x - c0.x, c.z - c0.z)).toBeGreaterThan(3);
+  expect(h0.count).toBe(10);
+  expect(c0.count).toBe(10);
+  // Slow CI runners (software rendering) need longer, so poll instead of a fixed wait.
+  const moved = async (page: Page, start: { x: number; z: number }) => {
+    const v = await view(page);
+    return Math.hypot(v.x - start.x, v.z - start.z);
+  };
+  await expect.poll(() => moved(host, h0), { timeout: 45_000, intervals: [1000] }).toBeGreaterThan(3);
+  await expect.poll(() => moved(client, c0), { timeout: 45_000, intervals: [1000] }).toBeGreaterThan(3);
   expect([...hostErrors, ...clientErrors]).toEqual([]);
   await ctx.close();
 });

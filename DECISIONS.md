@@ -21,3 +21,5 @@
 - **M7 Bestes Modell nach Validierungsstrecke behalten:** analog zu Early Stopping in Stufe 1, verhindert Überanpassung an die Trainingsstrecken.
 - **M7 Nitro-Ausgang zurückgesetzt:** Behavior Cloning sah keine Nitro-Nutzung; ohne Reset hätte die ES den Ausgang nie aus „aus“ herausbewegt.
 - **M7 APEX-AI fährt den Volt Hatch:** dasselbe Auto wie im Training, damit Fairness und Modellverhalten übereinstimmen.
+- **M8 Übersetzung per Wörterbuch + MutationObserver:** Deutsch bleibt Quellsprache im Code, `packages/shared/src/i18n.ts` hält alle englischen Texte (exakt + Muster), der Client übersetzt jeden Textknoten beim Erscheinen. So musste kein Bildschirm umgebaut werden und das Umschalten wirkt sofort, auch mitten im Menü. Spielernamen bleiben unverändert.
+- **M8 Standardsprache:** gespeicherte Wahl, sonst Browsersprache (Deutsch → DE, sonst EN); `?lang=de|en` überschreibt.
