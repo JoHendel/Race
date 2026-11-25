@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { NEON_HARBOR, SUNSET_CANYON, withoutShortcuts } from "@apex/shared";
+import { NEON_HARBOR, SUNSET_CANYON, forTraining, withoutShortcuts } from "@apex/shared";
 import { TrackGeometry } from "./track";
 
 describe("TrackGeometry shortcuts", () => {
@@ -52,5 +52,47 @@ describe("TrackGeometry shortcuts", () => {
       expect(t.shortcuts).toHaveLength(0);
       expect(t.wallMask(1)).toBeUndefined();
     }
+  });
+});
+
+describe("Drawbridge", () => {
+  beforeAll(async () => {
+    await RAPIER.init();
+  });
+
+  it("stays flat in lap 1 and rises once the leader starts lap 2", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), NEON_HARBOR);
+    expect(t.bridges).toHaveLength(1);
+    const b = t.bridges[0]!;
+    for (let i = 0; i < 600; i++) t.updateEvents(0, 1 / 60);
+    expect(b.angle).toBe(0);
+    expect(t.updateEvents(1, 1 / 60)).toEqual([b]);
+    for (let i = 0; i < 600; i++) t.updateEvents(1, 1 / 60);
+    expect((b.angle * 180) / Math.PI).toBeCloseTo(10, 5);
+  });
+
+  it("leaves a gap in the fixed road only where the bridge is", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), NEON_HARBOR);
+    const gaps = t.roadMask!.filter((v) => !v).length;
+    expect(gaps * 2).toBeCloseTo(NEON_HARBOR.events![0]!.span, -1);
+  });
+
+  it("the training variant has no bridge and no road gap", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), forTraining(NEON_HARBOR));
+    expect(t.bridges).toHaveLength(0);
+    expect(t.roadMask).toBeUndefined();
+  });
+});
+
+describe("Drawbridge state", () => {
+  beforeAll(async () => {
+    await RAPIER.init();
+  });
+  it("stays open once it has opened", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), NEON_HARBOR);
+    const b = t.bridges[0]!;
+    b.update(1, 10);
+    b.update(0, 1 / 60);
+    expect((b.angle * 180) / Math.PI).toBeCloseTo(10, 5);
   });
 });

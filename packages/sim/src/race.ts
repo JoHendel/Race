@@ -125,6 +125,7 @@ export class HeadlessRace {
       r.car.setSurfaceGrip(this.track.gripAt(r.index));
       r.car.update(c, SIM_STEP);
     }
+    if (this.track.bridges.length) this.track.updateEvents(Math.max(...this.racers.map((r) => r.tracker.lap)), SIM_STEP);
     this.world.step();
     this.time += SIM_STEP;
     this.steps++;

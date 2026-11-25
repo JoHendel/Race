@@ -15,6 +15,8 @@ export interface TrackDef {
   surfaces?: TrackSurface[];
   /** Official shortcuts: leave the track at `from`, rejoin at `to` (lap shares). */
   shortcuts?: TrackShortcut[];
+  /** Dynamic events that change the track during the race. */
+  events?: TrackEvent[];
   /** Look of the surroundings (sky, fog, scenery). Default: neon night harbor. */
   environment?: TrackEnvironment;
   /** One-line description for the track selection. German source text, translated in i18n. */
@@ -38,6 +40,44 @@ export interface TrackShortcut {
   width: number;
   /** Building the shortcut runs through (visual only). */
   kind: "warehouse";
+}
+
+/**
+ * Drawbridge: two leaves that lie flat in the first lap(s) and rise once the leader has completed `fromLap - 1`
+ * laps. Raised, they turn into a jump ramp with a landing slope on the other side.
+ */
+export interface DrawbridgeEvent {
+  kind: "drawbridge";
+  /** Lap share of the bridge centre. */
+  at: number;
+  /** Total length of both leaves in m. */
+  span: number;
+  /** First lap (1-based) in which the bridge is open. */
+  fromLap: number;
+  /** Opening angle in degrees. */
+  angle: number;
+}
+
+export type TrackEvent = DrawbridgeEvent;
+
+/** Seconds a drawbridge needs to rise. */
+export const DRAWBRIDGE_RISE_TIME = 4;
+
+/**
+ * Current angle of a drawbridge in radians.
+ * @param leaderLaps laps completed by the race leader
+ * @param secondsOpen seconds since the bridge started to rise
+ */
+export function drawbridgeAngle(ev: DrawbridgeEvent, leaderLaps: number, secondsOpen: number): number {
+  if (leaderLaps + 1 < ev.fromLap) return 0;
+  const t = Math.min(1, Math.max(0, secondsOpen / DRAWBRIDGE_RISE_TIME));
+  const eased = t * t * (3 - 2 * t);
+  return (ev.angle * Math.PI) / 180 * eased;
+}
+
+/** Track as used for AI training: no shortcuts and no dynamic events, so recorded data stays reproducible. */
+export function forTraining(def: TrackDef): TrackDef {
+  return def.shortcuts || def.events ? { ...def, shortcuts: undefined, events: undefined } : def;
 }
 
 /** Track definition without shortcuts – used for AI training so the recorded data stays reproducible. */
@@ -96,7 +136,8 @@ export const NEON_HARBOR: TrackDef = {
   ],
   ramps: [{ at: 0.86, length: 14, height: 2.4 }],
   shortcuts: [{ from: 0.6, to: 0.78, via: [[296, -62], [262, -122]], width: 10, kind: "warehouse" }],
-  blurb: "Hafen bei Nacht, Sprung über das Hafenbecken, Abkürzung durch die Lagerhalle",
+  events: [{ kind: "drawbridge", at: 0.075, span: 24, fromLap: 2, angle: 10 }],
+  blurb: "Hafen bei Nacht, Zugbrücke ab Runde 2, Abkürzung durch die Lagerhalle",
 };
 
 export const SUNSET_CANYON: TrackDef = {

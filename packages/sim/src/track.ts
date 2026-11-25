@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { surfaceGripAt, type TrackDef, type TrackShortcut } from "@apex/shared";
+import { Drawbridge } from "./drawbridge";
 
 export const SAMPLE_SPACING = 2; // m between two samples
 export const CURB_WIDTH = 1.2;
@@ -77,7 +78,9 @@ export class TrackGeometry {
       this.samples.push({ pos, tangent, left });
     }
     this.buildShortcuts();
+    this.buildRoadGaps();
     this.buildColliders();
+    this.buildEvents();
   }
 
   /** Extra height from ramps: rises and then drops (jump edge). */
@@ -106,6 +109,43 @@ export class TrackGeometry {
   }
 
   readonly shortcuts: ShortcutPath[] = [];
+  readonly bridges: Drawbridge[] = [];
+  /** Road segments that are replaced by moving parts (drawbridges); false = no fixed road there. */
+  roadMask?: boolean[];
+
+  private bridgeRange(at: number, span: number): [number, number] {
+    const n = this.samples.length;
+    const c = Math.round(at * n);
+    const half = Math.round(span / 2 / SAMPLE_SPACING);
+    return [c - half, c + half];
+  }
+
+  private buildRoadGaps(): void {
+    const bridges = (this.def.events ?? []).filter((e) => e.kind === "drawbridge");
+    if (!bridges.length) return;
+    const n = this.samples.length;
+    const mask = this.samples.map(() => true);
+    for (const e of bridges) {
+      const [a, b] = this.bridgeRange(e.at, e.span);
+      for (let i = a; i < b; i++) mask[((i % n) + n) % n] = false;
+    }
+    this.roadMask = mask;
+  }
+
+  private buildEvents(): void {
+    const n = this.samples.length;
+    for (const e of this.def.events ?? []) {
+      if (e.kind !== "drawbridge") continue;
+      this.bridges.push(new Drawbridge(this.world, e, this.sample(Math.round(e.at * n)), this.wallOffset - 0.15));
+    }
+  }
+
+  /** Advance dynamic events. Returns the events that just started (for banners and sounds). */
+  updateEvents(leaderLaps: number, dt: number): Drawbridge[] {
+    const started: Drawbridge[] = [];
+    for (const b of this.bridges) if (b.update(leaderLaps, dt)) started.push(b);
+    return started;
+  }
   private mainMask: { left?: boolean[]; right?: boolean[] } = {};
 
   private buildShortcuts(): void {
@@ -182,9 +222,9 @@ export class TrackGeometry {
 
   private buildColliders(): void {
     const hw = this.halfWidth;
-    this.trimesh(this.ribbon(hw, -hw), 1);
+    this.trimesh(this.ribbon(hw, -hw, 0, 0, this.roadMask), 1);
     for (const side of [1, -1] as const) {
-      this.trimesh(this.ribbon(side * hw, side * this.wallOffset), 0.6);
+      this.trimesh(this.ribbon(side * hw, side * this.wallOffset, 0, 0, this.roadMask), 0.6);
       // Wall colliders are higher than the visible wall so nobody flies off.
       this.trimesh(this.wall(side * this.wallOffset, WALL_COLLIDER_HEIGHT, this.wallMask(side)), 0.2);
     }

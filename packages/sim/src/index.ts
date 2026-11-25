@@ -4,3 +4,4 @@ export * from "./track";
 export * from "./vehicle";
 export * from "./bot";
 export * from "./race";
+export * from "./drawbridge";

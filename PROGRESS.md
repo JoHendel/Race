@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M9 weiter – dynamisches Ereignis Zugbrücke in Neon Harbor: ab Runde 2 hebt sich ein Abschnitt (Rampe wird zum Sprung) – Ereignis als Daten in `TrackDef.events`, Zustand pro Runde in `packages/sim`, sichtbar im Client, für Online-Clients aus der Rundenzahl ableitbar.
+**Nächster Schritt:** M9 weiter – Steinschlag in Sunset Canyon: neues Ereignis `rockfall` in `TrackEvent`, Felsen blockieren eine Abkürzung (Shortcut mit `closedUntilLap`), ab Runde 2 fallen sie (kinematisch animiert, danach entfernt) und geben sie frei. `locate()`/Mauerlücke müssen geschlossene Abkürzungen ignorieren.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -78,3 +78,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Hinweis: Die KI-Trainingsdaten sind unverändert (Trainingsstrecken ohne Eis, Bot-Formel bei Grip 1 identisch).
 - Abkürzung Lagerhalle in Neon Harbor: zweiter Spline-Abschnitt mit Mauerlücke, Halle mit Deckenlampen und Chevron-Schild, gestrichelt auf der Minimap. Runde zählt nur bei echter Durchfahrt (Checkpoint-Gutschrift in der Mitte). Spart ca. 0,65 s.
 - KI-Training nutzt `withoutShortcuts` – `pnpm ai:evaluate` liefert bit-genau dieselben Ergebnisse wie bei M7.
+- Zugbrücke Neon Harbor (Ereignisse als Daten in `TrackDef.events`, `Drawbridge` in `packages/sim`): Klappen heben sich ab Runde 2, alle Fahrer kommen sicher drüber (ca. 0,3 s Zeitverlust), Banner „ZUGBRÜCKE ÖFFNET SICH!“. KI-Training nutzt `forTraining()` (ohne Abkürzungen und Ereignisse), `ai:evaluate` bit-genau gleich.

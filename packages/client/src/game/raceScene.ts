@@ -160,6 +160,7 @@ export class RaceScene {
   private placeTimer = 0;
   private podium: Podium | null = null;
   private readonly sky: THREE.Group;
+  private bridgeBannerIn = 0;
   private podiumTime = 0;
   private cupRecorded = false;
   private cupCeremony = false;
@@ -340,6 +341,11 @@ export class RaceScene {
   update(frameDt: number): void {
     const realDt = Math.min(frameDt, 0.1);
     (this.sky.userData.update as ((dt: number) => void) | undefined)?.(realDt);
+    this.track.syncBridges(realDt);
+    if (this.bridgeBannerIn > 0) {
+      this.bridgeBannerIn -= realDt;
+      if (this.bridgeBannerIn <= 0) this.raceHud.showBanner("ZUGBRÜCKE ÖFFNET SICH!", 3);
+    }
     this.clock += realDt;
     this.phaseTime += realDt;
 
@@ -474,6 +480,11 @@ export class RaceScene {
       else controls = this.idle;
       r.car.setSurfaceGrip(this.track.gripAt(r.index));
       r.car.update(controls, STEP);
+    }
+    if (this.track.bridges.length && this.racing) {
+      const leaderLaps = Math.max(...this.racers.map((r) => this.status(r).lap));
+      // Shown a moment later so it does not collide with the lap banner of the leader.
+      if (this.track.updateEvents(leaderLaps, STEP).length) this.bridgeBannerIn = 1.8;
     }
     this.world.step();
     if (this.racing && this.role !== "client") this.updateRaceStats();

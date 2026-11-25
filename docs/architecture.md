@@ -34,7 +34,7 @@ Arrows point from a package to the packages it imports. `shared` and `net` depen
 | `ai` | The machine-learning driver and its pipeline | `observe`, `Mlp`, `AiDriver`, `CURRENT_MODEL`, `trainModel`, `evolve`, `evaluateModel`, `buildReport` | – |
 | `client` | The game in the browser | entry point `main.ts` (menu, scenes, online sessions) | Three.js, Rapier |
 
-Game values (car stats, points, lap limits, colors) live as configuration in `shared`, not scattered through the code. Tracks are data as well: a closed spline plus ramps, surface zones (e.g. ice), shortcuts and an environment description; `sim` turns them into road, walls, colliders and a `locate()` function that follows cars along the main track or through a shortcut.
+Game values (car stats, points, lap limits, colors) live as configuration in `shared`, not scattered through the code. Tracks are data as well: a closed spline plus ramps, surface zones (e.g. ice), shortcuts, dynamic events (e.g. a drawbridge that rises from lap 2) and an environment description; `sim` turns them into road, walls, colliders and a `locate()` function that follows cars along the main track or through a shortcut.
 
 ## How the game and the AI share one simulation
 
@@ -97,6 +97,8 @@ flowchart LR
   ev --> rep["ai:report<br/>docs/ai/report.md"]
   v2 --> game["game: APEX-AI<br/>in every race"]
 ```
+
+The AI is trained on `forTraining()` variants of the tracks (no shortcuts, no dynamic events), so new track features never change the recorded data – `pnpm ai:evaluate` stays bit-identical.
 
 Details and all numbers: [ai-driver.md](ai-driver.md) (CRISP-DM) and [ai/report.md](ai/report.md).
 

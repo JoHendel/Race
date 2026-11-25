@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 import { DEFAULT_ENVIRONMENT, theme, type TrackDef } from "@apex/shared";
-import { CURB_WIDTH, TrackGeometry, mulberry32, stripRibbon, stripWall, type MeshArrays, type ShortcutPath } from "@apex/sim";
+import { CURB_WIDTH, LEAF_THICKNESS, TrackGeometry, mulberry32, stripRibbon, stripWall, type Drawbridge, type MeshArrays, type ShortcutPath } from "@apex/sim";
 
 export { mulberry32 };
 
@@ -28,8 +28,88 @@ export class SplineTrack extends TrackGeometry {
     this.buildStartLine();
     this.buildSurfaces();
     for (const c of this.shortcuts) this.buildShortcut(c);
+    for (const b of this.bridges) this.buildBridge(b);
     if ((this.def.environment ?? DEFAULT_ENVIRONMENT).scenery === "glacier") this.buildGlacier();
     else this.buildScenery();
+  }
+
+  private readonly bridgeVisuals: { bridge: Drawbridge; leaves: THREE.Object3D[]; lights: THREE.MeshBasicMaterial[] }[] = [];
+  private blink = 0;
+
+  /** Drawbridge: two leaves (follow the physics bodies), towers with counterweights and warning lights. */
+  private buildBridge(b: Drawbridge): void {
+    const deckTex = this.asphaltTexture();
+    const deck = new THREE.MeshStandardMaterial({ map: deckTex, roughness: 0.75, metalness: 0.2, envMapIntensity: 0.12 });
+    const steel = new THREE.MeshStandardMaterial({ color: 0x1b1e36, roughness: 0.6, metalness: 0.5, envMapIntensity: 0.2 });
+    const stripe = new THREE.MeshBasicMaterial({ color: theme.orange });
+    const leaves: THREE.Object3D[] = [];
+    for (const leaf of b.leaves) {
+      const g = new THREE.Group();
+      const w = leaf.halfWidth * 2;
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(w, LEAF_THICKNESS, leaf.length), [steel, steel, deck, steel, steel, steel]);
+      slab.position.set(0, -LEAF_THICKNESS / 2, (leaf.dir * leaf.length) / 2);
+      g.add(slab);
+      // warning stripes on the tip edge
+      const tip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.06, 0.6), stripe);
+      tip.position.set(0, 0.02, leaf.dir * (leaf.length - 0.3));
+      g.add(tip);
+      // side girders with neon edges
+      for (const side of [1, -1]) {
+        const girder = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, leaf.length), steel);
+        girder.position.set(side * (leaf.halfWidth - 0.2), 0.4, (leaf.dir * leaf.length) / 2);
+        g.add(girder);
+        const edge = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.12, leaf.length), stripe);
+        edge.position.set(side * (leaf.halfWidth - 0.2), 1.05, (leaf.dir * leaf.length) / 2);
+        g.add(edge);
+      }
+      // hazard chevrons painted on the deck near the tip
+      const hazard = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.8, 3), new THREE.MeshBasicMaterial({ map: this.chevronTexture(), transparent: true }));
+      hazard.rotation.x = -Math.PI / 2;
+      hazard.rotation.z = -Math.PI / 2; // chevrons point in driving direction on both leaves
+      hazard.position.set(0, 0.03, leaf.dir * (leaf.length - 2.5));
+      g.add(hazard);
+      this.group.add(g);
+      leaves.push(g);
+    }
+    // Towers at the pivots with blinking warning lights
+    const lights: THREE.MeshBasicMaterial[] = [];
+    const tower = new THREE.BoxGeometry(1.6, 12, 1.6);
+    for (const leaf of b.leaves) {
+      const q = b.leafRotation(leaf);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(q).setY(0).normalize();
+      for (const side of [1, -1]) {
+        const base = leaf.pivot.clone().addScaledVector(right, side * (leaf.halfWidth + 1.6));
+        const t = new THREE.Mesh(tower, steel);
+        t.position.copy(base).add(new THREE.Vector3(0, 6 - 2, 0));
+        this.group.add(t);
+        for (const y of [3, 6.5]) {
+          const band = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.25, 1.7), stripe);
+          band.position.copy(base).add(new THREE.Vector3(0, y, 0));
+          this.group.add(band);
+        }
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0x331100 });
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 8), lightMat);
+        lamp.position.copy(base).add(new THREE.Vector3(0, 10.4, 0));
+        this.group.add(lamp);
+        lights.push(lightMat);
+      }
+    }
+    this.bridgeVisuals.push({ bridge: b, leaves, lights });
+    this.syncBridges(0);
+  }
+
+  /** Move the bridge meshes to the physics pose; blink the warning lights while a bridge is open. */
+  syncBridges(dt: number): void {
+    this.blink += dt;
+    for (const v of this.bridgeVisuals) {
+      v.bridge.leaves.forEach((leaf, i) => {
+        const g = v.leaves[i]!;
+        g.position.copy(leaf.pivot);
+        v.bridge.leafRotation(leaf, g.quaternion);
+      });
+      const on = v.bridge.open && Math.floor(this.blink * 2.5) % 2 === 0;
+      for (const m of v.lights) m.color.setHex(on ? 0xff3b1f : 0x331100);
+    }
   }
 
   private nearShortcut(p: THREE.Vector3, margin: number): boolean {
@@ -264,13 +344,13 @@ export class SplineTrack extends TrackGeometry {
 
   private buildRoad(): void {
     const hw = this.halfWidth;
-    const geo = toGeometry(this.ribbon(hw, -hw));
+    const geo = toGeometry(this.ribbon(hw, -hw, 0, 0, this.roadMask));
     const tex = this.asphaltTexture();
     const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.75, metalness: 0.15, envMapIntensity: 0.12, side: THREE.DoubleSide });
     this.group.add(new THREE.Mesh(geo, mat));
     // Seitenstreifen (befahrbar, aber langsamer gibt es erst mit Untergrund-Typen in M6)
     for (const side of [1, -1]) {
-      const shoulder = toGeometry(this.ribbon(side * hw, side * this.wallOffset));
+      const shoulder = toGeometry(this.ribbon(side * hw, side * this.wallOffset, 0, 0, this.roadMask));
       this.group.add(new THREE.Mesh(shoulder, new THREE.MeshStandardMaterial({ color: 0x07080f, roughness: 0.95, envMapIntensity: 0.05, side: THREE.DoubleSide })));
     }
   }

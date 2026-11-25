@@ -27,3 +27,5 @@
 - **M9 APEX-AI bekommt keinen Grip-Eingang:** Das Modell bleibt unverändert (24 Merkmale); auf Glacier Rift fährt es trotzdem vorne mit. Ein Grip-Merkmal wäre ein Fall für ein späteres v3-Training.
 - **M9 Abkürzung als eigener Pfad mit Checkpoint-Gutschrift:** Statt die Checkpoint-Regel zu lockern, schreibt der Lap-Tracker die übersprungenen Checkpoints nur gut, wenn das Auto die Mitte der offiziellen Abkürzung passiert. Querfeldein abkürzen bleibt damit wirkungslos.
 - **M9 KI-Daten ohne Abkürzungen:** `tracksOf()` entfernt Abkürzungen, damit `pnpm ai:all` reproduzierbar bleibt (geprüft: `ai:evaluate` bit-genau gleich).
+- **M9 Zugbrücke als Buckel statt Lücke:** Die Klappen drehen sich um ihre äußeren Enden, die Spitzen treffen sich in der Mitte. Geöffnet entsteht ein 2-m-Buckel, der schnelle Autos springen lässt, langsame aber nicht ins Wasser fallen lässt – fair für Anfänger, spektakulär für Schnelle.
+- **M9 Brückenzustand aus der Rundenzahl des Führenden:** Host/Offline und Online-Clients leiten den Zustand aus denselben Daten ab (Snapshot enthält Runden), daher keine neue Netzwerknachricht.
