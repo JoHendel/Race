@@ -2,51 +2,50 @@
 
 # APEX RUSH
 
-**Neon-Arcade-Racing für bis zu 10 Spieler – direkt im Browser.**
+**Neon arcade racing for up to 10 players – right in your browser.**
 
-[▶ Jetzt spielen](https://johendel.github.io/Race/) · [Fortschritt](PROGRESS.md) · [Changelog](CHANGELOG.md)
+[▶ Play now](https://johendel.github.io/Race/) · [Progress](PROGRESS.md) · [Changelog](CHANGELOG.md) · [AI driver](docs/ai-driver.md)
 
-![Titelbildschirm](docs/media/title.png)
-
-| Rennen gegen 9 Bots | Siegertreppe |
-| --- | --- |
-| ![Rennen](docs/media/race.png) | ![Siegertreppe](docs/media/podium.png) |
-| **Ergebnis & Grand-Prix-Wertung** | **Online-Lobby** |
-| ![Ergebnis](docs/media/results.png) | ![Lobby](docs/media/lobby.png) |
-
+![Title screen](docs/media/title.png)
 
 </div>
 
-> 🚧 **In Entwicklung.** Spielbar: Online-Rennen mit bis zu 10 Spielern, Grand Prix und Einzelrennen gegen Bots, Testgelände. Das Spiel wird Meilenstein für Meilenstein gebaut. Jeder Stand auf `main` ist automatisch unter dem Link oben spielbar.
+> 🚧 **Work in progress.** Playable today: online races with up to 10 players, Grand Prix and single races against bots, a garage with 12 cars, and a test ground. Every commit on `main` is deployed automatically.
 
-## Features (geplant)
+| Racing against the field | Podium ceremony |
+| --- | --- |
+| ![Race](docs/media/race.png) | ![Podium](docs/media/podium.png) |
+| **Results & Grand Prix standings** | **Garage & tuning** |
+| ![Results](docs/media/results.png) | ![Garage](docs/media/garage.png) |
 
-- **Bis zu 10 Spieler online** per Link oder Raumcode – ohne Konto, ohne Server (Peer-to-Peer)
-- **8 Strecken in 2 Cups** mit Abkürzungen, Sprüngen und Ereignissen wie Zugbrücken und Lavaströmen
-- **Mehrere Runden, Grand-Prix-Wertung und Siegertreppe** mit Konfetti, Pokal und Ergebnistabelle
-- **12 Fahrzeuge in 4 Klassen** zum Freischalten, mit Leistungs- und Optik-Tuning
-- **Drift-Boost, Windschatten, Nitro, Air-Tricks**
-- Chaos-Modus mit Power-ups, Wetter, Nacht, Ghosts, Replays, Fotomodus, Bots
+## Features
 
-## Online spielen
+- **Up to 10 players online** via room code or link – no account, no server (peer-to-peer WebRTC)
+- **APEX-AI:** a machine-learning driver in every race, developed along CRISP-DM ([documentation](docs/ai-driver.md)) – *in development*
+- **Multiple laps, Grand Prix scoring and podium** with confetti, trophy and awards (fastest lap, drift king, most overtakes, comeback)
+- **12 cars in 4 classes** to unlock, with performance and visual tuning and a performance index per class
+- **Drift boost in three stages, nitro, jumps**
+- Rule-based bots fill empty grid slots
 
-1. **Online spielen → Raum erstellen**
-2. Raumcode oder Link an Freunde schicken (bis zu 10 Spieler)
-3. Alle drücken **Bereit**, der Host startet. Freie Plätze füllen Bots.
+## Play online
 
-Die Verbindung läuft direkt zwischen den Browsern (WebRTC). Für den Verbindungsaufbau wird der kostenlose öffentliche PeerJS-Server genutzt. In sehr strengen Firmen- oder Uni-Netzen kann der direkte Aufbau scheitern.
+1. **Online spielen → Raum erstellen** (Play online → create room)
+2. Send the room code or link to your friends (up to 10 players)
+3. Everyone presses **Bereit** (ready), then the host starts the race. Free slots are filled with bots.
 
-## Steuerung
+The connection runs directly between browsers (WebRTC). The free public PeerJS server is only used to set up the connection. Very strict corporate or campus networks may block direct connections.
 
-| Aktion | Tastatur | Gamepad |
+## Controls
+
+| Action | Keyboard | Gamepad |
 | --- | --- | --- |
-| Gas / Bremse | W / S oder ↑ / ↓ | RT / LT |
-| Lenken | A / D oder ← / → | Linker Stick |
-| Drift | Leertaste | A |
+| Throttle / brake | W / S or ↑ / ↓ | RT / LT |
+| Steer | A / D or ← / → | Left stick |
+| Drift | Space | A |
 | Nitro | Shift | X |
-| Zurücksetzen | R | Y |
+| Reset car | R | Y |
 
-## Lokal starten
+## Run locally
 
 ```bash
 corepack enable
@@ -54,17 +53,25 @@ pnpm install
 pnpm dev
 ```
 
-## Technik
+Tests: `pnpm test` (unit tests), `pnpm test:e2e` (browser tests, including a full race and a two-window online race).
 
-TypeScript · Vite · Three.js · Rapier-Physik · PeerJS/WebRTC · Vitest · Playwright · GitHub Actions + Pages
+## Architecture (modular)
 
 ```
 packages/
-  client/   Spiel im Browser (Rendering, UI, Eingabe)
-  net/      Peer-to-Peer-Netzwerk (Host im Browser)
-  shared/   Spielwerte, Strecken, Farben, Wertung
+  client/   game in the browser: rendering, UI, input, garage
+  net/      peer-to-peer networking: lobby protocol, snapshots, interpolation
+  shared/   game data and rules: cars, tuning, tracks, scoring, progression
+  sim/      physics and race logic without graphics, used by AI training (planned)
+  ai/       APEX-AI: data, model, training, evaluation (planned)
 ```
 
-## Lizenz
+TypeScript · Vite · Three.js · Rapier physics · PeerJS/WebRTC · Vitest · Playwright · GitHub Actions + Pages
 
-Code: [MIT](LICENSE). Assets: siehe [assets/CREDITS.md](assets/CREDITS.md) – ausschließlich CC0 oder vergleichbar freie Lizenzen.
+## AI driver (CRISP-DM)
+
+APEX-AI is trained on telemetry from a headless simulation that uses the same physics as the game. Stage 1 imitates the rule-based bots (behavior cloning). Stage 2 fine-tunes the model with an evolution strategy or reinforcement learning. The development is documented phase by phase in **[docs/ai-driver.md](docs/ai-driver.md)**, including all data analysis parameters: dataset size, feature statistics, data quality, train/validation/test split, metrics and learning curves.
+
+## License
+
+Code: [MIT](LICENSE). Assets: see [assets/CREDITS.md](assets/CREDITS.md) – CC0 or similarly free licenses only.
