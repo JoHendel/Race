@@ -1,0 +1,7 @@
+{
+  "assets": [
+    { "id": "menu-bg", "typ": "bild", "quelle": "higgsfield", "lizenz": "offen – Nutzungsbedingungen prüfen", "status": "placeholder" },
+    { "id": "readme-banner", "typ": "bild", "quelle": "higgsfield", "lizenz": "offen – Nutzungsbedingungen prüfen", "status": "placeholder" },
+    { "id": "loading-bg", "typ": "bild", "quelle": "higgsfield", "lizenz": "offen – Nutzungsbedingungen prüfen", "status": "placeholder" }
+  ]
+}
