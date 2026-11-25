@@ -10,6 +10,14 @@ Das Projekt wird **öffentlich auf GitHub veröffentlicht**: sauberes Repo, gute
 
 **Kostenlos-Regel:** Das Projekt darf keinen Cent kosten. Nutze nur kostenlose Werkzeuge und Dienste und nur frei lizenzierte Assets (CC0 o. ä.). Keine Abos, keine Testphasen mit Zahlungsdaten, keine Käufe. Das Repo ist https://github.com/JoHendel/Race, Branch `main`.
 
+**Projektanforderungen (verbindlich):**
+
+- **Dokumentation auf Englisch:** README, alles unter `docs/`, `CONTRIBUTING.md` und `CHANGELOG.md` sind auf Englisch. Code-Kommentare dürfen deutsch bleiben, neue Kommentare schreibst du auf Englisch.
+- **Modulare Entwicklung:** Jede Aufgabe hat ihr eigenes Paket mit klarer Schnittstelle (siehe Ordnerstruktur). Kein Paket greift in die Interna eines anderen.
+- **KI-Entwicklung nach CRISP-DM:** Der KI-Fahrer (siehe eigener Abschnitt) wird nach den sechs CRISP-DM-Phasen entwickelt und in `docs/ai-driver.md` gesondert beschrieben, so dass man die KI-Entwicklung daran mündlich erklären kann.
+- **Datenanalyse-Parameter:** Die KI-Doku enthält die Kennzahlen der Datenanalyse (Datensatzgröße, Merkmale, Verteilungen, Datenqualität, Aufteilung, Metriken), siehe Abschnitt KI-Fahrer.
+- **Abgabe:** Spätestens am **18.12.2026** ist ein vollständiger, öffentlicher Stand auf GitHub (Meilenstein M8). Alles danach ist Bonus.
+
 Regeln für dich:
 
 - Alle Figuren, Fahrzeuge, Strecken, Namen und Logos sind eigene Erfindungen. Keine Marken, Charaktere oder geschützten Designs bekannter Spiele oder Autohersteller.
@@ -101,6 +109,32 @@ Bis zu 10 echte Spieler fahren online gegeneinander, jeder an seinem eigenen Ger
 - **Lokaler Modus als Bonus:** 2 Spieler im Splitscreen an einem Rechner mit 2 Controllern.
 - **Steuerung:** Tastatur, Gamepad (Gamepad-API) und Touch auf dem Handy mit virtuellen Tasten und Neigungssteuerung als Option.
 - **Zielwerte:** 60 FPS auf einem Mittelklasse-Laptop, spielbar bis 150 ms Ping. Der Host braucht für 10 Spieler ca. 2 Mbit/s Upload.
+
+## KI-Fahrer (APEX-AI)
+
+In jedem Rennen fährt immer **genau ein KI-Fahrer** mit: **APEX-AI**. Er wird von einem selbst trainierten neuronalen Netz gesteuert, nicht von festen Regeln. Die regelbasierten Bots bleiben als Füller und als Vergleichsgegner. APEX-AI belegt einen der 10 Startplätze, offline und online (online simuliert ihn der Host). Er ist im Spiel klar erkennbar: eigene Lackierung, Namensschild „APEX-AI“ und ein KI-Symbol in Ergebnistabelle und Minimap.
+
+**Aufbau (Paket `packages/ai`, nur kostenlose Werkzeuge, alles in TypeScript):**
+
+- **Beobachtung (Eingaben, normiert auf −1…1):** Tempo, Winkel zwischen Fahrtrichtung und Strecke an 5 Vorschaupunkten (10–80 m), seitlicher Abstand zur Ideallinie, 7 Abstandsstrahlen zur Mauer (−90°…+90°), Krümmung voraus, Abstand und Richtung der 2 nächsten Gegner, Nitro-Füllstand, ob in der Luft.
+- **Aktionen (Ausgaben):** Lenkung (−1…1), Gas/Bremse (−1…1), Drift (an/aus), Nitro (an/aus).
+- **Modell:** kleines MLP (z. B. 24 → 32 → 32 → 4), eigene Implementierung in TypeScript ohne schwere Bibliothek, Gewichte als JSON in `packages/ai/models/`.
+- **Simulation ohne Grafik:** Training und Auswertung laufen headless in Node mit derselben Rapier-Physik und denselben Strecken wie das Spiel, schneller als Echtzeit.
+- **Training in zwei Stufen:** (1) *Behavior Cloning* aus aufgezeichneten Fahrten der Regel-Bots (überwachtes Lernen), (2) *Feinschliff per Evolutionsstrategie* oder Reinforcement Learning mit Belohnung für Fortschritt und Rundenzeit, Strafe für Mauerkontakt und falsche Richtung.
+- **Fairness:** Gleiche Autos und Physik wie alle anderen, kein Wissen, das ein Spieler nicht auch hätte (kein Blick auf fremde Eingaben). Schwierigkeit über Leistungsanteil wählbar, nicht über Schummeln.
+
+**Gesonderte Dokumentation `docs/ai-driver.md` (Englisch), gegliedert nach CRISP-DM:**
+
+1. *Business Understanding:* Ziel (menschenähnlicher, fairer, schneller Gegner), Erfolgskriterien in Zahlen (z. B. Runde ≤ 105 % der Bot-Bestzeit, < 1 Mauerkontakt pro Runde, 100 % Zielankünfte).
+2. *Data Understanding:* woher die Daten kommen (Telemetrie der Simulation), welche Merkmale, erste Auswertung.
+3. *Data Preparation:* Bereinigung, Normierung, Spiegelung von Strecken als Datenaugmentation, Aufteilung in Training/Validierung/Test (nach Strecken getrennt, damit kein Datenleck entsteht).
+4. *Modeling:* Netzarchitektur, Hyperparameter, beide Trainingsstufen, verworfene Varianten mit Begründung.
+5. *Evaluation:* Metriken auf ungesehenen Strecken, Vergleich mit Regel-Bot, Lernkurven, typische Fehler mit Beispielen.
+6. *Deployment:* Export der Gewichte, Inferenz im Browser (unter 0,2 ms pro Schritt), Versionierung der Modelle, wie man neu trainiert.
+
+**Datenanalyse-Parameter, die die Doku enthalten muss** (automatisch erzeugt mit `pnpm ai:report`, Tabellen und Diagramme unter `docs/ai/`): Anzahl Datensätze und Fahrten, Anzahl und Bedeutung der Merkmale, je Merkmal Minimum, Maximum, Mittelwert, Standardabweichung und Anteil fehlender oder ungültiger Werte, Verteilung der Aktionen (Klassenbalance für Drift und Nitro), Korrelationen der wichtigsten Merkmale, Aufteilung Training/Validierung/Test, Metriken (MAE und R² für Lenkung und Gas, Genauigkeit, Precision und Recall für Drift und Nitro, Konfusionsmatrix), Fahrmetriken (Rundenzeit, Mauerkontakte, Zielquote, Abstand zur Ideallinie) und Lernkurven.
+
+**Skripte:** `pnpm ai:record` (Telemetrie aufzeichnen), `pnpm ai:train` (trainieren), `pnpm ai:evaluate` (gegen Regel-Bots fahren lassen), `pnpm ai:report` (Kennzahlen und Diagramme für die Doku erzeugen). Alles ist reproduzierbar mit festem Zufallsstartwert.
 
 ## Strecken
 
@@ -221,14 +255,15 @@ Das Spiel läuft komplett im Browser mit TypeScript, damit jeder per Link mitspi
 | UI | Leichtgewichtiges HTML/CSS-Overlay (z. B. Svelte oder Preact) |
 | Audio | Howler.js, Motor-Sound mit Pitch nach Drehzahl, dynamische Musik |
 | 3D-Modelle | CC0-Pakete (Kenney, Quaternius), Anbauteile im Code |
+| KI-Fahrer | eigenes MLP in TypeScript, Training headless in Node mit Rapier (`packages/ai`) |
 | Tests | Vitest (Logik), Playwright (Smoke-Test mit 2 Browser-Fenstern: Lobby → Rennen → Podest) |
 
-**Ordnerstruktur:** `packages/client`, `packages/net`, `packages/shared` (Fahrzeugwerte, Streckendaten, Netzwerk-Nachrichten), `assets/`, `docs/`.
+**Ordnerstruktur (modular):** `packages/client` (Spiel im Browser), `packages/net` (Peer-to-Peer), `packages/shared` (Fahrzeugwerte, Strecken, Wertung, Fortschritt), `packages/sim` (Physik und Rennlogik ohne Grafik, genutzt von Spiel und KI-Training), `packages/ai` (KI-Fahrer: Daten, Modell, Training, Auswertung), `assets/`, `docs/` (englische Doku, `docs/ai-driver.md`, `docs/ai/`).
 
 **GitHub-Veröffentlichung**
 
 - Öffentliches Repo https://github.com/JoHendel/Race, Branch `main`. Lizenz: MIT für den Code, Asset-Lizenzen in `assets/CREDITS.md`.
-- **README** mit Banner, Trailer-GIF, Screenshots, Feature-Liste, Button „Jetzt spielen“, Steuerung, lokaler Start in 3 Befehlen und Architekturübersicht.
+- **README auf Englisch** mit Banner, Trailer-GIF, Screenshots, Feature-Liste, Button „Play now“, Steuerung, lokaler Start in 3 Befehlen, Architekturübersicht der Module und einem eigenen Abschnitt zum KI-Fahrer mit Link auf `docs/ai-driver.md`.
 - **GitHub Actions:** bei jedem Push Lint, Tests und Build. Bei Push auf `main` wird das Spiel automatisch auf **GitHub Pages** veröffentlicht (kostenlos für öffentliche Repos). Muss Pages in den Repo-Einstellungen auf „GitHub Actions“ gestellt werden, kommt das mit Anleitung in `BLOCKERS.md`.
 - **Kein Game-Server:** Durch Peer-to-Peer reicht GitHub Pages für alles.
 - **Releases** mit Versions-Tags (`v0.1.0` … `v1.0.0`) und Changelog. Issue-Vorlagen für Bugs und Wünsche, `CONTRIBUTING.md`.
@@ -244,11 +279,14 @@ Arbeite sie der Reihe nach ab. Jeder Meilenstein endet mit einem spielbaren Stan
 4. **M3 – Multiplayer:** PeerJS/WebRTC, Lobby mit Raumcode und Link, bis zu 10 Spieler, Vorhersage und Interpolation, Host-Wechsel, Reconnect.
 5. **M4 – Siegertreppe & Wertung:** 3D-Podest mit Effekten, Auszeichnungen, Revanche-Ablauf, Grand-Prix-Modus mit Punktetabelle.
 6. **M5 – Garage:** alle 12 Fahrzeuge, Werte, Freischalt-System, Leistungs- und Optik-Tuning, Leistungsindex-Limit, Speicherstand.
-7. **M6 – Alle Strecken:** die restlichen 7 Strecken mit Abkürzungen, Sprüngen und dynamischen Ereignissen. Streckenwahl und Abstimmung.
-8. **M7 – Grafik & Assets:** CC0-Modelle, HDRI-Skyboxen und Texturen einbauen, Neon-Post-Processing, Wetter-Shader, Higgsfield-Bilder falls vorhanden.
-9. **M8 – Extra-Features:** Chaos-Modus mit Power-ups, Wetter und Nacht, Ghosts, Replay und Fotomodus, Highlight-Clip, Emotes, Hupe, Zuschauermodus, Rivalen.
-10. **M9 – Sound & Feinschliff:** Motor-Sounds, Musik mit Final-Lap-Wechsel, Menü-Animationen, Gamepad und Touch, Performance-Optimierung auf 60 FPS, Barrierefreiheit (Farbenblind-Modus, Untertitel, Tastenbelegung).
-11. **M10 – Release v1.0:** Trailer aus Spielszenen (per Headless-Browser aufgenommen und mit ffmpeg geschnitten), README mit allen Medien, Changelog, Release `v1.0.0`, Abschlussbericht in `PROGRESS.md` mit Link zum Spielen.
+7. **M6 – KI-Fahrer, Teil 1 (Daten & Modell):** Physik und Rennlogik in `packages/sim` auslagern (headless lauffähig), mindestens 3 Trainingsstrecken (dafür die ersten Strecken aus M9 vorziehen), Telemetrie-Aufzeichnung, Datensatz, MLP, Behavior Cloning, erste Kennzahlen. CRISP-DM-Phasen 1–4 in `docs/ai-driver.md`.
+8. **M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau):** Feinschliff per Evolutionsstrategie oder RL, Auswertung auf ungesehenen Strecken, Vergleich mit Regel-Bots, `pnpm ai:report` erzeugt alle Datenanalyse-Parameter und Diagramme. APEX-AI fährt in jedem Rennen mit (offline und online). CRISP-DM-Phasen 5–6 dokumentiert.
+9. **M8 – Abgabe-Release (spätestens 18.12.2026):** README und gesamte Doku auf Englisch, Architektur-Diagramm der Module, Spiel-UI zusätzlich auf Englisch umschaltbar, alle Tests grün, spielbar per Link, Release `v0.8.0`. Kurze Zusammenfassung „How the AI was built (CRISP-DM)“ in der README.
+10. **M9 – Alle Strecken:** die restlichen Strecken mit Abkürzungen, Sprüngen und dynamischen Ereignissen. Streckenwahl und Abstimmung.
+11. **M10 – Grafik & Assets:** CC0-Modelle, HDRI-Skyboxen und Texturen einbauen, Neon-Post-Processing, Wetter-Shader, Higgsfield-Bilder falls vorhanden.
+12. **M11 – Extra-Features:** Chaos-Modus mit Power-ups, Wetter und Nacht, Ghosts, Replay und Fotomodus, Highlight-Clip, Emotes, Hupe, Zuschauermodus, Rivalen.
+13. **M12 – Sound & Feinschliff:** Motor-Sounds, Musik mit Final-Lap-Wechsel, Menü-Animationen, Gamepad und Touch, Performance-Optimierung auf 60 FPS, Barrierefreiheit (Farbenblind-Modus, Untertitel, Tastenbelegung).
+14. **M13 – Release v1.0:** Trailer aus Spielszenen (per Headless-Browser aufgenommen und mit ffmpeg geschnitten), README mit allen Medien, Changelog, Release `v1.0.0`, Abschlussbericht in `PROGRESS.md` mit Link zum Spielen.
 
 ## Qualitätsregeln & Definition of Done
 
@@ -260,6 +298,7 @@ Ein Meilenstein gilt erst als fertig, wenn alle Punkte erfüllt sind:
 - [ ] 60 FPS auf einem Mittelklasse-Laptop mit 10 Fahrzeugen (mit Bots getestet).
 - [ ] Keine Konsolenfehler, keine toten Buttons, kein Platzhaltertext in der UI.
 - [ ] `PROGRESS.md`, `TODO.md` und README sind aktuell, Git-Tag ist gesetzt.
+- [ ] Bei KI-Meilensteinen: `pnpm ai:evaluate` und `pnpm ai:report` laufen reproduzierbar durch, die Zahlen in `docs/ai-driver.md` stimmen mit dem Bericht überein.
 
 Allgemeine Regeln:
 

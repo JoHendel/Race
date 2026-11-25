@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M6 starten – die restlichen 7 Strecken als Spline-Daten anlegen.
+**Nächster Schritt:** M6 starten – Physik und Rennlogik in `packages/sim` auslagern, sodass ein Rennen headless in Node läuft (Grundlage für das KI-Training).
 
 | Meilenstein | Status |
 | --- | --- |
@@ -10,12 +10,14 @@
 | M3 – Multiplayer | ✅ fertig (Host-Wechsel offen) |
 | M4 – Siegertreppe & Wertung | ✅ fertig |
 | M5 – Garage | ✅ fertig |
-| M6 – Alle Strecken | ⏳ als Nächstes |
-| M7 – Grafik & Assets | offen |
-| M8 – Extra-Features | offen |
-| M9 – Sound & Feinschliff | offen |
-| M10 – Release v1.0 | offen |
-
+| M6 – KI-Fahrer, Teil 1 (Daten & Modell) | ⏳ als Nächstes |
+| M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | offen |
+| M8 – Abgabe-Release (spätestens 18.12.2026) | offen |
+| M9 – Alle Strecken | offen |
+| M10 – Grafik & Assets | offen |
+| M11 – Extra-Features | offen |
+| M12 – Sound & Feinschliff | offen |
+| M13 – Release v1.0 | offen |
 ## Berichte
 
 ### M0 – Fundament
