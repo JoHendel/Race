@@ -68,7 +68,9 @@ export type HostMessage =
   | { t: "kick"; reason: string }
   /** Track vote: candidates, seconds left, current votes (clientId → trackId). Sent at the start and on every new vote. */
   | { t: "vote"; candidates: string[]; seconds: number; votes: Record<string, string> }
-  | { t: "voteResult"; winner: string; tie: string[] };
+  | { t: "voteResult"; winner: string; tie: string[] }
+  /** Horn or emote of a racer, relayed to everyone (value = emoji for emotes). */
+  | { t: "fx"; id: string; kind: "emote" | "horn"; value?: string };
 
 export type ClientMessage =
   | { t: "hello"; clientId: string; name: string; car?: VehicleChoice }
@@ -77,7 +79,8 @@ export type ClientMessage =
   | { t: "vehicle"; car: VehicleChoice }
   | { t: "car"; state: CarState }
   | { t: "vote"; trackId: string }
-  | { t: "useItem" };
+  | { t: "useItem" }
+  | { t: "fx"; kind: "emote" | "horn"; value?: string };
 
 export const SNAPSHOT_RATE = 30;
 export const RECONNECT_WINDOW = 30;

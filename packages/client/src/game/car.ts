@@ -10,6 +10,8 @@ export type { CarEvents };
 export class Car extends VehiclePhysics {
   readonly mesh = new THREE.Group();
   private readonly wheelMeshes: THREE.Object3D[];
+  /** Model id (decides e.g. the horn sound). */
+  readonly modelId: string;
 
   constructor(
     world: RAPIER.World,
@@ -22,6 +24,7 @@ export class Car extends VehiclePhysics {
         ? { def: carById("volt-hatch"), looks: { ...defaultLooks(carById("volt-hatch")), color: appearance, rimColor: appearance, underglow: appearance, spoiler: true } }
         : appearance;
     super(world, stats, events, wheelLayout(look.def));
+    this.modelId = look.def.id;
     const model = buildCarModel(look.def, look.looks);
     this.mesh.add(model.group);
     this.wheelMeshes = model.wheelMeshes;

@@ -20,7 +20,7 @@ export class Hud {
       <div class="hud-nitro"><div class="label">NITRO</div><div class="bar"><div class="fill"></div></div></div>
       <div class="hud-drift"></div>
       <div class="hud-toast"></div>
-      <div class="hud-help">W/S Gas/Bremse · A/D Lenken · Leertaste Drift · Shift Nitro · R Zurücksetzen</div>
+      <div class="hud-help">W/S Gas/Bremse · A/D Lenken · Leertaste Drift · Shift Nitro · R Zurücksetzen · H Hupe · 1–6 Emotes</div>
     `;
     parent.appendChild(this.root);
     this.speed = this.root.querySelector(".hud-speed .value")!;

@@ -12,3 +12,4 @@ export * from "./weather";
 export * from "./items";
 export * from "./ghost";
 export * from "./replay";
+export * from "./fx";

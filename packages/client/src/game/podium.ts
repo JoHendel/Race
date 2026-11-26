@@ -255,7 +255,7 @@ function numberTexture(n: number): THREE.CanvasTexture {
 }
 
 const emojiCache = new Map<string, THREE.CanvasTexture>();
-function emojiTexture(emoji: string): THREE.CanvasTexture {
+export function emojiTexture(emoji: string): THREE.CanvasTexture {
   const cached = emojiCache.get(emoji);
   if (cached) return cached;
   const c = document.createElement("canvas");
@@ -271,4 +271,4 @@ function emojiTexture(emoji: string): THREE.CanvasTexture {
   return tex;
 }
 
-export const EMOTES = ["🏆", "😎", "🔥", "🎉", "😤", "👋"];
+export { EMOTES } from "@apex/shared";

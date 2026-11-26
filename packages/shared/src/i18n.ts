@@ -36,7 +36,7 @@ export const EN: Record<string, string> = {
   "Gletscher mit Eisflächen (weniger Grip) und Polarlichtern": "Glacier with ice patches (less grip) and northern lights",
   "Early Access · weitere Strecken folgen": "Early access · more tracks coming",
   "APEX RUSH – Arcade-Rennspiel im Browser für bis zu 10 Spieler.": "APEX RUSH – browser arcade racer for up to 10 players.",
-  "W/S Gas/Bremse · A/D Lenken · Leertaste Drift · Shift Nitro · R Zurücksetzen": "W/S throttle/brake · A/D steer · Space drift · Shift nitro · R reset",
+  "W/S Gas/Bremse · A/D Lenken · Leertaste Drift · Shift Nitro · R Zurücksetzen · H Hupe · 1–6 Emotes": "W/S throttle/brake · A/D steer · Space drift · Shift nitro · R reset · H horn · 1–6 emotes",
   Zurück: "Back",
   OK: "OK",
 

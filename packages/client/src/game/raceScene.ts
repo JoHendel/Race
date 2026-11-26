@@ -28,6 +28,10 @@ import {
   type TrackDef,
   type Weather,
   ReplayRecorder,
+  EMOTES,
+  FxLimiter,
+  isEmote,
+  type FxKind,
   pickHighlights,
   type Replay,
 } from "@apex/shared";
@@ -43,11 +47,12 @@ import { POST_FX, type PostFx } from "./postFx";
 import { Chaos } from "./chaos";
 import { SoloMode } from "./soloMode";
 import { ReplayView } from "./replayView";
+import { CarFx } from "./carFx";
 import { Rain, weatherEnvIntensity, weatherEnvironment, weatherFog, weatherLight, weatherPostFx } from "./weatherFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
 import { SplineTrack, mulberry32 } from "./track/splineTrack";
-import { EMOTES, Podium } from "./podium";
+import { Podium } from "./podium";
 import { AiDriver, CURRENT_MODEL } from "@apex/ai";
 
 const STEP = 1 / 60;
@@ -151,6 +156,8 @@ export interface RaceCallbacks {
   onReward?: (reward: RaceReward, info: { place: number; cupWin: boolean }) => RewardSummary;
   /** Online client: the player wants to use the held item (sent to the host). */
   onUseItem?: () => void;
+  /** A horn or emote happened here (own car, or a bot on host/offline) – online it goes to everyone. */
+  onFx?: (id: string, kind: FxKind, value?: string) => void;
 }
 
 /** Ein komplettes Rennen: Intro, Countdown, Runden, Zieleinlauf, Ergebnis – offline, als Host oder als Client. */
@@ -182,6 +189,8 @@ export class RaceScene {
   private refreshTimer = 0;
   private placeTimer = 0;
   private podium: Podium | null = null;
+  private readonly carFx: CarFx;
+  private readonly fxLimiter = new FxLimiter();
   private readonly canvas: HTMLCanvasElement;
   private readonly replayRec = new ReplayRecorder();
   private replayClock = 0;
@@ -352,6 +361,46 @@ export class RaceScene {
     this.solo = options.mode && options.mode !== "race" && this.role === "offline" ? new SoloMode(options.mode, options.track, this.scene, ui, this.player.car) : null;
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
+    this.carFx = new CarFx(this.scene, this.camera);
+    window.addEventListener("keydown", this.onFxKey);
+  }
+
+  /** H = horn, 1–6 = emotes (also on the podium). */
+  private readonly onFxKey = (e: KeyboardEvent): void => {
+    if (this.replayView || this.phase === "intro" || e.repeat) return;
+    if (e.target instanceof HTMLInputElement) return;
+    if (e.code === "KeyH") this.localFx("horn");
+    const n = /^Digit([1-6])$/.exec(e.code);
+    if (n) this.localFx("emote", EMOTES[Number(n[1]) - 1]);
+  };
+
+  /** The local player honks or emotes: show it here and send it to the others. */
+  localFx(kind: FxKind, value?: string): void {
+    if (!this.fxLimiter.allow(`${this.player.id}:${kind}`, this.clock)) return;
+    this.showFx(this.player.id, kind, value);
+    this.callbacks.onFx?.(this.player.id, kind, value);
+  }
+
+  /** Show a horn or emote of any racer (also called for messages from the network). */
+  showFx(id: string, kind: FxKind, value?: string): void {
+    const r = this.racers.find((x) => x.id === id);
+    if (!r) return;
+    if (kind === "horn") this.carFx.horn(r.car.mesh, r.car.modelId);
+    else if (isEmote(value)) {
+      if (this.podium && r.onPodium) this.podium.showEmote(r.car, value);
+      else this.carFx.emote(r.car.mesh, value);
+    }
+  }
+
+  /** Bots sometimes honk or show off when they pass someone closely (only where bots are simulated). */
+  private botBanter(r: Racer, passed: Racer | undefined): void {
+    if (!passed || this.role === "client" || r.human || this.options.autopilot) return;
+    if (r.car.mesh.position.distanceTo(passed.car.mesh.position) > 12 || Math.random() > 0.35) return;
+    if (!this.fxLimiter.allow(r.id, this.clock)) return;
+    const kind: FxKind = Math.random() < 0.6 ? "horn" : "emote";
+    const value = kind === "emote" ? (Math.random() < 0.5 ? "😎" : "👋") : undefined;
+    this.showFx(r.id, kind, value);
+    this.callbacks.onFx?.(r.id, kind, value);
   }
 
   /** Bots fahren Autos aus den ersten drei Klassen in ihrer Farbe. */
@@ -465,6 +514,7 @@ export class RaceScene {
     }
     this.clock += realDt;
     this.phaseTime += realDt;
+    this.carFx.update(realDt);
     if (this.replayView) {
       this.replayView.update(realDt);
       return;
@@ -786,7 +836,10 @@ export class RaceScene {
     const ranked = this.ranking();
     ranked.forEach((r, i) => {
       const place = i + 1;
-      if (this.raceTime > 3 && !this.finished(r) && place < r.lastPlace) r.overtakes += r.lastPlace - place;
+      if (this.raceTime > 3 && !this.finished(r) && place < r.lastPlace) {
+        r.overtakes += r.lastPlace - place;
+        this.botBanter(r, ranked[i + 1]);
+      }
       if (this.raceTime > 3) r.worstPlace = Math.max(r.worstPlace, place);
       r.lastPlace = place;
     });
@@ -862,7 +915,7 @@ export class RaceScene {
     const bar = document.createElement("div");
     bar.className = "emote-bar";
     bar.innerHTML = EMOTES.map((e) => `<button type="button" aria-label="Emote ${e}">${e}</button>`).join("");
-    bar.querySelectorAll("button").forEach((b, i) => (b.onclick = () => this.podium?.showEmote(this.player.car, EMOTES[i]!)));
+    bar.querySelectorAll("button").forEach((b, i) => (b.onclick = () => this.localFx("emote", EMOTES[i])));
     this.ui.appendChild(bar);
   }
 
@@ -1105,6 +1158,8 @@ export class RaceScene {
     this.solo?.dispose();
     this.replayView?.dispose();
     window.removeEventListener("keydown", this.skipIntro);
+    window.removeEventListener("keydown", this.onFxKey);
+    this.carFx.dispose();
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();
     this.hud.dispose();

@@ -75,7 +75,7 @@
 - [x] Zeitrennen mit Ghost: Positionen alle 0,1 s, Delta-kodiert (int16, Base64) pro Strecke in localStorage (~4 KB/Runde), halbtransparentes Ghost-Auto, Banner mit Abstand zur Bestzeit; allein ohne Bots/APEX-AI
 - [x] Replay & Fotomodus: alle Autos alle 0,1 s aufgezeichnet (Ghost-Format), Abspielen mit Verfolger-/Orbit-/freier Kamera, Zeitlupe 0,5×/0,25×, Pause, Zeitleiste, Fahrerwechsel, PNG-Foto ohne UI
 - [x] Highlight-Clip: knappste Überholung, längster Drift, größter Sprung, zusammen max. 15 s mit Zeitlupe; läuft nach Offline-Rennen automatisch, sonst per Knopf
-- [ ] Emotes im Rennen online synchronisieren, Hupe
+- [x] Emotes (Tasten 1–6, auch auf dem Podest) und Hupe (H, eigener Zweiklang pro Automodell per WebAudio, leiser mit Abstand) für alle sichtbar/hörbar; online über `fx`-Nachricht, Host prüft und begrenzt; Bots hupen/winken manchmal beim knappen Überholen
 - [ ] Zuschauermodus, Rivalen-System
 - [x] Drift-Challenge: Punkte nach Driftwinkel und Tempo, Combo bis ×3 bei langen Drifts, Mauerkontakt im Drift verliert die Punkte, Bestwert pro Strecke
 - [ ] Weltbestzeit-Ghost (bräuchte Server/Gist – vorerst nur eigene Bestzeit)

@@ -551,6 +551,7 @@ async function beginOnlineRace(
       onMenu: showMenu,
       onReward: (reward, info) => grantReward(reward, info),
       onUseItem: () => (s instanceof ClientSession ? s.useItem() : undefined),
+      onFx: (id, kind, value) => (s instanceof ClientSession ? s.fx(kind, value) : s.sendFx(id, kind, value)),
     },
   );
   s.race = race;

@@ -168,6 +168,27 @@ test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ b
   };
   await expect.poll(() => moved(host, h0), { timeout: 90_000, intervals: [1000] }).toBeGreaterThan(3);
   await expect.poll(() => moved(client, c0), { timeout: 90_000, intervals: [1000] }).toBeGreaterThan(3);
+  // Horn and emotes reach the other side.
+  const seen = (page: Page) =>
+    page.evaluate(() => {
+      const w = window as unknown as { __fx?: string[]; apex: { race: { showFx: (id: string, k: string, v?: string) => void } } };
+      if (!w.__fx) {
+        w.__fx = [];
+        const race = w.apex.race;
+        const orig = race.showFx.bind(race);
+        race.showFx = (id, k, v) => {
+          w.__fx!.push(`${k}:${v ?? ""}`);
+          orig(id, k, v);
+        };
+      }
+      return w.__fx;
+    });
+  await seen(host);
+  await seen(client);
+  await client.keyboard.press("Digit3");
+  await host.keyboard.press("KeyH");
+  await expect.poll(async () => (await seen(host)).join(","), { timeout: 15_000 }).toContain("emote:🔥");
+  await expect.poll(async () => (await seen(client)).join(","), { timeout: 15_000 }).toContain("horn:");
   expect([...hostErrors, ...clientErrors]).toEqual([]);
   await ctx.close();
 });
