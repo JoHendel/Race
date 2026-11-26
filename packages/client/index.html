@@ -24,6 +24,10 @@
     <div id="ui">
       <main id="title">
         <button id="lang" class="lang-toggle" type="button" data-testid="lang" aria-label="Sprache / Language"></button>
+        <div class="sound-ctl" data-testid="sound">
+          <button id="mute" type="button" aria-label="Ton an/aus" title="Ton an/aus (M)" data-testid="mute">🔊</button>
+          <input id="volume" type="range" min="0" max="100" step="5" aria-label="Lautstärke" data-testid="volume" />
+        </div>
         <h1 class="logo">APEX <span>RUSH</span></h1>
         <p class="tagline">Neon-Arcade-Racing für bis zu 10 Spieler – direkt im Browser.</p>
         <div class="menu">
@@ -43,7 +47,7 @@
         <div class="weather-pick" data-testid="weather-pick"></div>
         <label class="chaos-toggle"><input type="checkbox" data-testid="chaos-toggle" /> <span>Chaos-Modus (Power-ups)</span></label>
         <p class="hint">3 Runden · bis zu 10 Spieler · Enter startet ein Rennen gegen Bots</p>
-        <p class="status" data-testid="status">Early Access · weitere Strecken folgen</p>
+        <p class="status" data-testid="status">8 Strecken · 12 Autos · APEX-AI fährt mit</p>
       </main>
     </div>
     <script type="module" src="./src/main.ts"></script>

@@ -12,6 +12,7 @@ import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
 import { runFrameHooks } from "./game/frameHooks";
+import { initSound, sound } from "./audio/sound";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
 import { VoteView } from "./online/vote";
@@ -125,7 +126,7 @@ let lobby: LobbyView | null = null;
 let busy = false;
 
 function expose(value: Record<string, unknown>): void {
-  (window as unknown as { apex: unknown }).apex = value;
+  (window as unknown as { apex: unknown }).apex = { ...value, sound };
 }
 
 function clearScreen(): void {
@@ -331,7 +332,32 @@ function showMenu(): void {
   expose({});
 }
 
+function bindSoundControls(): void {
+  const box = document.querySelector<HTMLElement>(".sound-ctl");
+  const mute = document.querySelector<HTMLButtonElement>("#mute");
+  const vol = document.querySelector<HTMLInputElement>("#volume");
+  if (!box || !mute || !vol) return;
+  const show = (): void => {
+    const st = sound.settings;
+    mute.textContent = st.muted || st.volume === 0 ? "🔇" : "🔊";
+    box.classList.toggle("muted", st.muted);
+    vol.value = String(Math.round(st.volume * 100));
+  };
+  show();
+  mute.onclick = () => sound.toggleMute();
+  vol.oninput = () => sound.setSettings({ volume: Number(vol.value) / 100, muted: false });
+  const off = sound.onChange(show);
+  // the title screen is rebuilt on every visit: drop the old listener with it
+  new MutationObserver((_, obs) => {
+    if (!document.contains(box)) {
+      off();
+      obs.disconnect();
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
 function bindMenu(): void {
+  bindSoundControls();
   bindTrackPicker();
   bindWeatherPicker();
   bindChaosToggle();
@@ -567,6 +593,8 @@ async function beginOnlineRace(
 
 // ---------- Start ----------
 
+initSound();
+expose({});
 bindMenu();
 window.addEventListener("keydown", (e) => {
   if (e.code === "Enter" && document.querySelector("#title")) {

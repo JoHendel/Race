@@ -49,3 +49,5 @@
 - **M11 Hupe per WebAudio statt Sample:** Bis das Audio-System in M12 kommt, erzeugt ein Zweiklang-Oszillator pro Automodell die Hupe. Kostenlos, ohne Download, und später leicht gegen CC0-Samples tauschbar.
 - **M11 Zuschauer statt Abweisen:** Wer während eines Rennens beitritt, wird nicht mehr abgewiesen, sondern sieht über dieselben Snapshots zu und ist ab dem nächsten Start in der Aufstellung. Der Host muss dafür nichts extra rechnen.
 - **M11 Rivalen pro Sitzung:** Rivalen gelten für einen Besuch (offline) bzw. einen Raum (online) und werden nicht gespeichert – Bot-Namen wiederholen sich zwischen Sitzungen, ein dauerhafter Rivale wäre verwirrend.
+- **M12 Prozeduraler Sound statt Howler.js und Samples:** Alle Geräusche entstehen per WebAudio (Oszillatoren, gefiltertes Rauschen). Das kostet nichts, braucht keinen Download, hat kein Lizenzrisiko und der Motor lässt sich stufenlos nach Drehzahl und Gas formen. Howler.js bringt ohne Samples keinen Vorteil, deshalb entfällt die Bibliothek.
+

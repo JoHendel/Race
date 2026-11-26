@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M12 – Sound & Feinschliff starten: Audio-System (Howler.js) mit Motor-Sound (Pitch nach Drehzahl), Drift-, Boost- und Nitro-Sounds; Sounds zuerst prozedural per WebAudio erzeugen (kein Download, kein Lizenzrisiko), CC0-Samples später optional.
+**Nächster Schritt:** M12 weiter – Musik prozedural per WebAudio (Synthwave-Loop: Bass, Arpeggio, Drums aus Oszillatoren/Rauschen), im Rennen lauter, in der letzten Runde schneller/zusätzliche Stimme; eigener Musik-Regler neben dem Lautstärke-Regler. Danach Gegner-Motoren in der Nähe.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -130,3 +130,8 @@ Alle Extra-Features aus dem Konzept sind drin: Wetter und Nacht, Chaos-Modus mit
 - `ai:evaluate` lief nach jedem Schritt reproduzierbar durch; die Kennzahlen in `docs/ai-driver.md` sind unverändert gültig.
 - Verschoben: Weltbestzeit-Ghost (bräuchte einen Server), Item-Sounds (kommen mit dem Audio-System in M12).
 - Offen für den Menschen (unverändert): Pages aktivieren und Tags/Release anlegen, siehe `BLOCKERS.md`. Version `0.11.0`, Tag `v0.11.0` nur lokal.
+
+## Zwischenstand M12 (Sound & Feinschliff)
+
+- Audio: `shared/audio.ts` (Getriebe, Motorstimme, Quietschen, Entfernung, Einstellungen – getestet), `client/audio/sound.ts` (WebAudio-Synthese, Motor-Schleife, Einmal-Effekte, Hupe). Im Browser geprüft: Audio startet nach dem ersten Klick, Motorfrequenz springt beim Hochschalten, M schaltet stumm, Lautstärke bleibt nach Neuladen. Neuer e2e-Test, alle 11 grün, `ai:evaluate` unverändert.
+- Titelzeile „Early Access · weitere Strecken folgen“ war veraltet → „8 Strecken · 12 Autos · APEX-AI fährt mit“.

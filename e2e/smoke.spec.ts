@@ -32,6 +32,21 @@ test("Language toggle switches the UI between German and English", async ({ page
   await expect(page.locator("#race")).toHaveText("Rennen gegen Bots");
 });
 
+test("Sound: volume and mute are kept, audio starts after the first click", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto("./");
+  await page.getByTestId("volume").fill("30");
+  await page.getByTestId("mute").click();
+  await expect(page.getByTestId("mute")).toHaveText("🔇");
+  await page.reload();
+  await expect(page.getByTestId("volume")).toHaveValue("30");
+  await expect(page.getByTestId("mute")).toHaveText("🔇");
+  await page.keyboard.press("KeyM");
+  await expect(page.getByTestId("mute")).toHaveText("🔊");
+  expect(await page.evaluate(() => (window as unknown as { apex: { sound: { ready: boolean } } }).apex.sound.ready)).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test("Track selection cycles through all tracks and is remembered", async ({ page }) => {
   await page.goto("./?track=neon-harbor");
   const name = page.locator("[data-field=track-name]");

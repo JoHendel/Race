@@ -45,6 +45,7 @@
 - **Replay & photo mode** with free camera and slow motion, plus an automatic **highlight clip** after each race
 - **Rivals:** whoever passes you most gets marked – beat them for a bonus
 - **Spectator mode:** join mid-race, watch, and race in the next one
+- **Procedural sound:** engine, tyres, nitro and items synthesised live with WebAudio
 - **Horn and emotes** that everyone in the race sees and hears
 - **Weather & night:** rain with less grip, fog and night races – or random
 - **German and English UI** – switch with the button in the top right corner of the title screen
@@ -68,6 +69,7 @@ The connection runs directly between browsers (WebRTC). The free public PeerJS s
 | Reset car | R | Y |
 | Use item (chaos mode) | E | B |
 | Horn | H | – |
+| Mute | M | – |
 | Emotes | 1–6 | – |
 | Replay: pause / slow motion / camera / photo | Space / S / C / P | – |
 

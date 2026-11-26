@@ -33,6 +33,11 @@ import {
   isEmote,
   type FxKind,
   RivalBook,
+  distanceGain,
+  engineRpm,
+  engineVoice,
+  squealGain,
+  type ItemKind,
   RIVAL_BONUS_POINTS,
   RIVAL_BONUS_XP,
   pickHighlights,
@@ -51,6 +56,9 @@ import { Chaos } from "./chaos";
 import { SoloMode } from "./soloMode";
 import { ReplayView } from "./replayView";
 import { CarFx } from "./carFx";
+import { sound, type EngineSound, type SoundName } from "../audio/sound";
+
+const ITEM_SOUND: Record<ItemKind, SoundName> = { emp: "emp", mine: "mine", drone: "drone", shield: "shield", turbo: "turbo" };
 import { Rain, weatherEnvIntensity, weatherEnvironment, weatherFog, weatherLight, weatherPostFx } from "./weatherFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
@@ -199,6 +207,7 @@ export class RaceScene {
   private refreshTimer = 0;
   private placeTimer = 0;
   private podium: Podium | null = null;
+  private engineSound: EngineSound | null = null;
   private readonly carFx: CarFx;
   private readonly fxLimiter = new FxLimiter();
   private readonly rivals: RivalBook | null;
@@ -310,6 +319,7 @@ export class RaceScene {
           ? {
               onDriftBoost: (level) => {
                 this.hud.showToast(LEVEL_NAMES[level]!, LEVEL_COLORS[level]);
+                sound.play(`boost${Math.min(3, Math.max(1, level))}` as SoundName);
                 this.chase.kick(0.15 * level);
                 this.sparks.emit(car.mesh.position, level, 40 * level, 6);
               },
@@ -364,6 +374,10 @@ export class RaceScene {
     if (options.chaos) {
       this.chaos = new Chaos(this.scene, ui, this.track, this.role !== "client", options.seed ?? 1, this.player.id, {
         onLocal: (e) => {
+          if (e.type === "pickup") sound.play("pickup");
+          else if (e.type === "use") sound.play(ITEM_SOUND[e.item]);
+          else if (e.type === "hit") sound.play("hit");
+          else if (e.type === "blocked") sound.play("blocked");
           if (e.type === "pickup") this.hud.showToast(ITEM_NAMES[e.item], "cyan");
           else if (e.type === "hit") {
             this.raceHud.showBanner("GETROFFEN!", 1.2);
@@ -371,7 +385,10 @@ export class RaceScene {
           } else if (e.type === "blocked") this.raceHud.showBanner("ABGEWEHRT!", 1.2);
           else if (e.type === "use" && e.item === "turbo") this.chase.kick(0.25);
         },
-        onEmp: (pos) => this.chaos?.ring(pos),
+        onEmp: (pos) => {
+          this.chaos?.ring(pos);
+          sound.play("emp", distanceGain(pos.distanceTo(this.camera.position)));
+        },
       });
     }
     this.solo = options.mode && options.mode !== "race" && this.role === "offline" ? new SoloMode(options.mode, options.track, this.scene, ui, this.player.car) : null;
@@ -580,6 +597,7 @@ export class RaceScene {
     this.carFx.update(realDt);
     if (this.replayView) {
       this.replayView.update(realDt);
+      this.engineSound?.update(engineVoice(0, 0, "street"), 0, false, 0);
       return;
     }
 
@@ -609,6 +627,7 @@ export class RaceScene {
       playerControls.reset = false;
     }
     this.syncAll();
+    this.updateEngineSound(playerControls);
     if (this.phase === "racing" || this.phase === "finishing") this.recordReplay(dt);
     this.updateEffects(dt);
     if (this.podium) {
@@ -622,6 +641,29 @@ export class RaceScene {
     if (this.solo && (this.phase === "racing" || this.phase === "countdown")) this.solo.render(this.phase === "racing" ? this.player.tracker.currentLapTime(this.raceTime) : 0);
     this.hud.update(this.player.car, realDt);
     this.raceHud.update(realDt, this.hudInfo(), this.hudRacers());
+  }
+
+  /** Engine of the watched car: pitch from the simulated gearbox, squeal while sliding, nitro hiss. */
+  private updateEngineSound(input: ControlState): void {
+    this.engineSound ??= sound.engine();
+    const e = this.engineSound;
+    if (!e) return;
+    const car = this.player.car;
+    const def = carById(car.modelId);
+    const { rpm } = engineRpm(car.speed, car.stats.topSpeed);
+    const controlled = !this.spectating && !this.options.autopilot;
+    const throttle = controlled ? (this.racing ? input.throttle : input.throttle * 0.6) : Math.min(1, Math.abs(car.speed) / 10);
+    // revving on the grid: rpm follows the throttle
+    const revs = this.racing ? rpm : Math.max(rpm, throttle * 0.7);
+    let slip = 0;
+    if (!car.remote) {
+      const v = car.body.linvel();
+      const f = car.forward(this.tmp);
+      const sp = Math.hypot(v.x, v.z);
+      if (sp > 1) slip = Math.acos(THREE.MathUtils.clamp((f.x * v.x + f.z * v.z) / (Math.hypot(f.x, f.z) * sp), -1, 1));
+    }
+    const volume = this.podium || this.phase === "results" ? 0 : this.phase === "intro" ? 0.35 : 1;
+    e.update(engineVoice(revs, throttle, def.cls, car.boostTime > 0 || car.nitroActive), squealGain(slip, car.speed, car.drifting), car.nitroActive, volume);
   }
 
   /** Record every car's pose and notable moments for replay and highlight clip. */
@@ -721,8 +763,11 @@ export class RaceScene {
     const step = Math.floor(this.phaseTime);
     if (step !== this.countdownStep) {
       this.countdownStep = step;
-      if (step < 3) this.raceHud.setCountdown(String(3 - step), ["#ff2bd6", "#ff8a1f", "#ffe14d"][step]);
-      else {
+      if (step < 3) {
+        this.raceHud.setCountdown(String(3 - step), ["#ff2bd6", "#ff8a1f", "#ffe14d"][step]);
+        if (step >= 0) sound.play("beep");
+      } else {
+        sound.play("go");
         this.raceHud.setCountdown("GO!", "#39ff88");
         this.phase = "racing";
         this.phaseTime = 0;
@@ -749,6 +794,7 @@ export class RaceScene {
         r.car.boostTime = 1.0;
         r.car.nitro.charge(0.5);
         this.raceHud.showBanner("PERFEKTSTART!", 1.5);
+        sound.play("perfectStart");
         this.chase.kick(0.3);
       }
     }
@@ -875,6 +921,9 @@ export class RaceScene {
 
   private onPlayerLap(): void {
     const s = this.status(this.player);
+    if (s.finishTime !== null) sound.play("finish");
+    else if (s.lap === this.options.laps - 1) sound.play("finalLap");
+    else sound.play("lap");
     const soloBanner = this.solo?.lapDone(this.player.tracker.lapTimes.at(-1)!);
     if (soloBanner && s.finishTime === null) {
       this.raceHud.showBanner(soloBanner, 2.5);
@@ -1274,6 +1323,7 @@ export class RaceScene {
     window.removeEventListener("keydown", this.onSpectatorKey);
     this.spectatorTag?.remove();
     this.carFx.dispose();
+    this.engineSound?.stop();
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();
     this.hud.dispose();

@@ -9,6 +9,8 @@ import { Input } from "./input";
 import { Sparks } from "./sparks";
 import { TestTrack } from "./testTrack";
 import { createSky } from "./sky";
+import { engineRpm, engineVoice, squealGain } from "@apex/shared";
+import { sound, type EngineSound, type SoundName } from "../audio/sound";
 
 const STEP = 1 / 60;
 const LEVEL_NAMES = ["", "BOOST", "SUPER BOOST", "ULTRA BOOST"];
@@ -49,6 +51,7 @@ export class DriveScene {
     this.car = new Car(this.world, STARTER_CAR, {
       onDriftBoost: (level) => {
         this.hud.showToast(LEVEL_NAMES[level]!, LEVEL_COLORS[level]);
+        sound.play(`boost${Math.min(3, Math.max(1, level))}` as SoundName);
         this.chase.kick(0.15 * level);
         this.sparks.emit(this.car.mesh.position, level, 40 * level, 6);
       },
@@ -66,13 +69,22 @@ export class DriveScene {
   }
 
   dispose(): void {
+    this.engine?.stop();
     this.hud.dispose();
     this.world.free();
   }
 
+  private engine: EngineSound | null = null;
+
   update(frameDt: number): void {
     const dt = Math.min(frameDt, 0.1);
     const controls = this.input.read(dt);
+    this.engine ??= sound.engine();
+    this.engine?.update(
+      engineVoice(engineRpm(this.car.speed, this.car.stats.topSpeed).rpm, controls.throttle, "street", this.car.boostTime > 0 || this.car.nitroActive),
+      squealGain(this.car.drifting ? 0.5 : 0, this.car.speed, this.car.drifting),
+      this.car.nitroActive,
+    );
     this.accumulator += dt;
     let steps = 0;
     while (this.accumulator >= STEP && steps < 6) {

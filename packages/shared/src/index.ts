@@ -14,3 +14,4 @@ export * from "./ghost";
 export * from "./replay";
 export * from "./fx";
 export * from "./rivals";
+export * from "./audio";

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- **Sound:** engine with gear shifts and a voice per car class, tyre squeal, nitro hiss, boost, countdown, lap and finish jingles, item sounds – all synthesised in the browser, no downloads
+- Volume slider and mute switch on the title screen (M mutes anywhere)
+
 ## v0.11.0 – Extra features
 - **Spectator mode:** join a room while a race is running to watch it (switch drivers with Q/E) and race in the next one
 - **Rivals:** the driver who overtakes you most becomes your rival, marked above their car – beat them for +1 Grand Prix point and bonus XP (offline and online)

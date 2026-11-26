@@ -82,10 +82,12 @@
 - [x] ~~Weltbestzeit-Ghost~~ → verschoben (bräuchte einen Server, siehe DECISIONS.md)
 
 ## M12 – Sound & Feinschliff
-- [ ] Audio-System (Howler.js): Motor mit Drehzahl-Pitch, Drift, Boost, Nitro, UI-Klicks – CC0-Sounds (Kenney/OpenGameArt) oder prozedural per WebAudio
-- [ ] Sounds für Items (EMP, Mine, Drohne, Schild, Turbo)
+- [x] Audio-System prozedural per WebAudio (`client/audio/sound.ts`, Logik in `shared/audio.ts`): Motor mit 5-Gang-Getriebe und Drehzahl-Pitch je Fahrzeugklasse, Reifenquietschen nach Schlupf, Nitro-Zischen, Boost-Stufen, Countdown-Pieps und GO, Runde/Final Lap/Ziel, Perfektstart, UI-Klicks; startet erst nach der ersten Eingabe (Autoplay-Sperre)
+- [x] Lautstärke-Regler und Stumm-Schalter im Titelmenü, Taste M, gespeichert im Browser
+- [x] Sounds für Items (Aufnehmen, EMP mit Entfernung, Mine, Drohne, Schild, Turbo, Treffer, Abgewehrt)
 - [ ] Musik mit Wechsel in der letzten Runde (CC0 oder prozedural)
-- [ ] Hupen auf echte Samples umstellen (aktuell WebAudio-Zweiklang)
+- [x] Hupe läuft über denselben Master-Regler (bleibt prozedural, siehe DECISIONS.md)
+- [ ] Motorgeräusche der Gegner in der Nähe (leise, nach Entfernung)
 - [ ] Menü-Animationen
 - [ ] Gamepad komplett (Menüs) und Touch-Steuerung mit virtuellen Tasten, Neigung als Option
 - [ ] Performance: 60 FPS mit 10 Autos messen, Rapier lazy laden, Draw-Calls senken
