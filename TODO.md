@@ -73,7 +73,8 @@
 - [x] Chaos-Modus: 5 Boxenreihen pro Runde, EMP-Puls, Haftmine, zielsuchende Drohne, Schutzschild, Turbo-Zelle (3 Boosts), platzabhängige Verteilung; Host-autoritativ, Clients wenden Effekte am eigenen Auto an; Bots/APEX-AI nutzen Items regelbasiert; Taste E / Gamepad B
 - [ ] Sounds für Items (kommt mit dem Audio-System in M12)
 - [x] Zeitrennen mit Ghost: Positionen alle 0,1 s, Delta-kodiert (int16, Base64) pro Strecke in localStorage (~4 KB/Runde), halbtransparentes Ghost-Auto, Banner mit Abstand zur Bestzeit; allein ohne Bots/APEX-AI
-- [ ] Replay & Fotomodus, Highlight-Clip
+- [x] Replay & Fotomodus: alle Autos alle 0,1 s aufgezeichnet (Ghost-Format), Abspielen mit Verfolger-/Orbit-/freier Kamera, Zeitlupe 0,5×/0,25×, Pause, Zeitleiste, Fahrerwechsel, PNG-Foto ohne UI
+- [x] Highlight-Clip: knappste Überholung, längster Drift, größter Sprung, zusammen max. 15 s mit Zeitlupe; läuft nach Offline-Rennen automatisch, sonst per Knopf
 - [ ] Emotes im Rennen online synchronisieren, Hupe
 - [ ] Zuschauermodus, Rivalen-System
 - [x] Drift-Challenge: Punkte nach Driftwinkel und Tempo, Combo bis ×3 bei langen Drifts, Mauerkontakt im Drift verliert die Punkte, Bestwert pro Strecke

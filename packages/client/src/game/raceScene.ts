@@ -27,6 +27,9 @@ import {
   ITEM_NAMES,
   type TrackDef,
   type Weather,
+  ReplayRecorder,
+  pickHighlights,
+  type Replay,
 } from "@apex/shared";
 import { INTERPOLATION_DELAY, SnapshotBuffer, type CarState, type HostMessage, type RacerStatus } from "@apex/net";
 import { Car } from "./car";
@@ -39,6 +42,7 @@ import { loadEnvironmentMap } from "./environmentMap";
 import { POST_FX, type PostFx } from "./postFx";
 import { Chaos } from "./chaos";
 import { SoloMode } from "./soloMode";
+import { ReplayView } from "./replayView";
 import { Rain, weatherEnvIntensity, weatherEnvironment, weatherFog, weatherLight, weatherPostFx } from "./weatherFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
@@ -178,6 +182,15 @@ export class RaceScene {
   private refreshTimer = 0;
   private placeTimer = 0;
   private podium: Podium | null = null;
+  private readonly canvas: HTMLCanvasElement;
+  private readonly replayRec = new ReplayRecorder();
+  private replayClock = 0;
+  private replayData: Replay | null = null;
+  private replayView: ReplayView | null = null;
+  private highlightsShown = false;
+  private readonly replayTrack = new Map<string, { drift: number; air: number }>();
+  private replayRankTimer = 0;
+  private replayRank: string[] = [];
   private readonly sky: THREE.Group;
   /** Bloom and colour grade of this track. */
   readonly postFx: PostFx;
@@ -208,6 +221,7 @@ export class RaceScene {
     private readonly callbacks: RaceCallbacks,
   ) {
     this.role = options.role ?? "offline";
+    this.canvas = renderer.domElement;
     const pmrem = new THREE.PMREMGenerator(renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environmentIntensity = options.weather === "night" ? 0.08 : 0.25;
@@ -451,6 +465,10 @@ export class RaceScene {
     }
     this.clock += realDt;
     this.phaseTime += realDt;
+    if (this.replayView) {
+      this.replayView.update(realDt);
+      return;
+    }
 
     if (this.phase === "intro") {
       this.updateIntroCamera();
@@ -478,6 +496,7 @@ export class RaceScene {
       playerControls.reset = false;
     }
     this.syncAll();
+    if (this.phase === "racing" || this.phase === "finishing") this.recordReplay(dt);
     this.updateEffects(dt);
     if (this.podium) {
       this.podiumTime += realDt;
@@ -490,6 +509,71 @@ export class RaceScene {
     if (this.solo && (this.phase === "racing" || this.phase === "countdown")) this.solo.render(this.phase === "racing" ? this.player.tracker.currentLapTime(this.raceTime) : 0);
     this.hud.update(this.player.car, realDt);
     this.raceHud.update(realDt, this.hudInfo(), this.hudRacers());
+  }
+
+  /** Record every car's pose and notable moments for replay and highlight clip. */
+  private recordReplay(dt: number): void {
+    this.replayClock += dt;
+    const t = this.replayClock;
+    for (const r of this.racers) {
+      const p = r.car.mesh.position;
+      const f = r.car.forward(this.tmp);
+      this.replayRec.add(r.id, t, { x: p.x, y: p.y, z: p.z, yaw: Math.atan2(f.x, f.z) });
+      let st = this.replayTrack.get(r.id);
+      if (!st) this.replayTrack.set(r.id, (st = { drift: 0, air: 0 }));
+      if (r.car.drifting) st.drift += dt;
+      else if (st.drift > 0) {
+        this.replayRec.moment({ kind: "drift", t, carId: r.id, value: st.drift });
+        st.drift = 0;
+      }
+      const inAir = this.role !== "client" && !r.car.grounded;
+      if (inAir) st.air += dt;
+      else if (st.air > 0) {
+        this.replayRec.moment({ kind: "jump", t, carId: r.id, value: st.air });
+        st.air = 0;
+      }
+    }
+    this.replayRankTimer -= dt;
+    if (this.replayRankTimer > 0 || t < 3) return;
+    this.replayRankTimer = 0.25;
+    const ranked = this.ranking();
+    const ids = ranked.map((r) => r.id);
+    ranked.forEach((r, i) => {
+      const before = this.replayRank.indexOf(r.id);
+      const passed = ranked[i + 1];
+      if (before > i && passed && !this.finished(r)) {
+        const gap = r.car.mesh.position.distanceTo(passed.car.mesh.position);
+        if (gap < 15) this.replayRec.moment({ kind: "overtake", t, carId: r.id, value: 1 / (gap + 0.5) });
+      }
+    });
+    this.replayRank = ids;
+  }
+
+  /** Replay (free) or highlight clip, played over the results screen. */
+  private openReplay(highlights: boolean): void {
+    if (this.replayView) return;
+    this.replayData ??= this.replayRec.finish();
+    const segments = highlights ? pickHighlights(this.replayData) : null;
+    if (highlights && !segments!.length) return;
+    this.results.classList.remove("show");
+    if (this.podium) this.podium.group.visible = false;
+    this.ui.querySelectorAll<HTMLElement>(".race-hud, .hud, .emote-bar").forEach((el) => el.classList.add("replay-hidden"));
+    this.replayView = new ReplayView(
+      this.replayData,
+      this.racers.map((r) => ({ id: r.id, name: r.name, mesh: r.car.mesh })),
+      this.camera,
+      this.canvas,
+      this.ui,
+      this.player.id,
+      () => {
+        this.replayView = null;
+        if (this.podium) this.podium.group.visible = true;
+        this.ui.querySelectorAll<HTMLElement>(".replay-hidden").forEach((el) => el.classList.remove("replay-hidden"));
+        this.syncAll();
+        this.results.classList.add("show");
+      },
+      segments,
+    );
   }
 
   private updateEffects(dt: number): void {
@@ -809,6 +893,8 @@ export class RaceScene {
         ${cup ? `<div class="standings"></div>` : ""}
         <div class="results-actions">
           ${primary}
+          <button class="btn btn-ghost" data-action="highlights" data-testid="open-highlights">Highlights</button>
+          <button class="btn btn-ghost" data-action="replay" data-testid="open-replay">Replay</button>
           <button class="btn btn-ghost" data-action="menu">Zum Menü</button>
         </div>
       </div>`;
@@ -821,6 +907,15 @@ export class RaceScene {
     const ceremony = this.results.querySelector<HTMLButtonElement>("[data-action=ceremony]");
     if (ceremony) ceremony.onclick = () => this.startCupCeremony();
     this.results.querySelector<HTMLButtonElement>("[data-action=menu]")!.onclick = () => this.callbacks.onMenu();
+    this.results.querySelector<HTMLButtonElement>("[data-action=replay]")!.onclick = () => this.openReplay(false);
+    this.results.querySelector<HTMLButtonElement>("[data-action=highlights]")!.onclick = () => this.openReplay(true);
+    // the highlight clip runs once by itself after a normal offline race
+    if (!this.highlightsShown && this.role === "offline" && !this.options.autopilot && !this.solo && !this.cupCeremony) {
+      this.highlightsShown = true;
+      window.setTimeout(() => {
+        if (!this.disposed && this.phase === "results") this.openReplay(true);
+      }, 1500);
+    }
   }
 
   /** Tabelle neu zeichnen; wer noch fährt, steht unter Vorbehalt, nach Ablauf der Frist mit DNF. */
@@ -1008,6 +1103,7 @@ export class RaceScene {
     this.disposed = true;
     this.chaos?.dispose();
     this.solo?.dispose();
+    this.replayView?.dispose();
     window.removeEventListener("keydown", this.skipIntro);
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();

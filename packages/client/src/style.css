@@ -317,3 +317,16 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .item-slot .charges { color: #ffc94d; }
 .item-slot .key { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.3); opacity: 0.7; }
 .item-slot.full { border-color: #00e5ff; box-shadow: 0 0 16px rgba(0, 229, 255, 0.4); animation: pop 0.3s ease-out; }
+
+/* Replay & highlights */
+.replay-hidden { display: none !important; }
+.replay { position: absolute; inset: 0; pointer-events: none; font-style: italic; }
+.replay-tag { position: absolute; top: 1.2rem; left: 1.4rem; font-weight: 900; letter-spacing: 0.25em; color: var(--magenta); text-shadow: 0 0 14px var(--magenta); }
+.replay-tag::before { content: "● "; color: #ff4d6d; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.replay-caption { position: absolute; top: 18%; left: 50%; transform: translateX(-50%) scale(0.9); font-size: 2.2rem; font-weight: 900; color: #f4f6ff; text-shadow: 0 0 18px var(--cyan); opacity: 0; transition: opacity 0.3s, transform 0.3s; white-space: nowrap; }
+.replay-caption.show { opacity: 1; transform: translateX(-50%) scale(1); }
+.replay-bar { position: absolute; bottom: 2.6rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; align-items: center; pointer-events: auto; background: rgba(8, 6, 24, 0.75); padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid rgba(102, 232, 255, 0.3); font-style: normal; }
+.replay-bar input[type=range] { width: min(28vw, 320px); accent-color: var(--magenta); }
+.replay-name { min-width: 7rem; text-align: center; font-weight: 800; color: var(--cyan); }
+.replay-help { position: absolute; bottom: 0.8rem; left: 50%; transform: translateX(-50%); font-size: 0.75rem; opacity: 0.55; white-space: nowrap; font-style: normal; }

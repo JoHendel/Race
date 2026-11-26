@@ -11,6 +11,7 @@ import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } 
 import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
+import { runFrameHooks } from "./game/frameHooks";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
 import { VoteView } from "./online/vote";
@@ -566,7 +567,7 @@ window.addEventListener("keydown", (e) => {
     cup = null;
     void startOfflineRace();
   }
-  if (e.code === "Escape" && current && !session) showMenu();
+  if (e.code === "Escape" && current && !session && !document.querySelector(".replay")) showMenu();
 });
 
 const roomParam = params.get("room");
@@ -577,6 +578,7 @@ function frame(): void {
   clock.update();
   active.update(clock.getDelta());
   composer.render();
+  runFrameHooks();
   requestAnimationFrame(frame);
 }
 frame();

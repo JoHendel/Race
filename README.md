@@ -42,6 +42,7 @@
 - **Shortcuts and live track events:** a warehouse shortcut and a drawbridge that rises from lap 2 on Neon Harbor, a rockfall that opens a canyon shortcut on Sunset Canyon, a collapsing temple on Jungle Ruins
 - **Chaos mode** with power-ups: EMP pulse, sticky mine, homing drone, shield, turbo cell – the back of the field gets the stronger ones
 - **Time trial** against the ghost of your best lap and a **drift challenge** with combos
+- **Replay & photo mode** with free camera and slow motion, plus an automatic **highlight clip** after each race
 - **Weather & night:** rain with less grip, fog and night races – or random
 - **German and English UI** – switch with the button in the top right corner of the title screen
 

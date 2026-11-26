@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- **Replay & photo mode:** watch the whole race again with chase, orbit or free camera, slow motion and a timeline – and save PNG photos without the UI
+- **Highlight clip:** closest overtake, longest drift and biggest jump in up to 15 seconds, right after the race
 - **Time trial:** race alone against the see-through ghost of your best lap, stored per track in the browser
 - **Drift challenge:** score points for drift angle and speed, build a combo up to ×3 – a wall hit mid-drift loses the points
 - **Chaos mode:** item boxes with EMP pulse, sticky mine, homing drone, shield and turbo cell; the back of the field gets stronger items; works online (host decides, clients feel the hits); switch on the title screen or in the lobby

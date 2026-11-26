@@ -92,6 +92,18 @@ test("Rennen: Countdown, eine Runde, Ergebnistabelle", async ({ page }) => {
   await page.waitForFunction(() => (window as ApexWindow).apex!.race!.phase === "racing", undefined, { timeout: 20_000 });
   await expect(page.getByTestId("results")).toBeVisible({ timeout: 360_000 });
   await expect(page.getByTestId("results").locator("tbody tr")).toHaveCount(5);
+  // replay with photo export, then the highlight clip
+  await page.getByTestId("open-replay").click();
+  await expect(page.getByTestId("replay")).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.getByTestId("screenshot").click();
+  expect((await download).suggestedFilename()).toMatch(/\.png$/);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("results")).toBeVisible();
+  await page.getByTestId("open-highlights").click();
+  await expect(page.getByTestId("highlights")).toBeVisible();
+  await page.keyboard.press("Escape"); // skip
+  await expect(page.getByTestId("results")).toBeVisible();
   expect(errors).toEqual([]);
 });
 

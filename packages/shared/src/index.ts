@@ -11,3 +11,4 @@ export * from "./voting";
 export * from "./weather";
 export * from "./items";
 export * from "./ghost";
+export * from "./replay";
