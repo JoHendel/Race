@@ -24,6 +24,8 @@ export const EN: Record<string, string> = {
   "Nächste Strecke": "Next track",
   "Hafen bei Nacht, Zugbrücke ab Runde 2, Abkürzung durch die Lagerhalle": "Harbor at night, drawbridge from lap 2, shortcut through the warehouse",
   "ZUGBRÜCKE ÖFFNET SICH!": "DRAWBRIDGE OPENING!",
+  "Dschungel und Tempelruinen, Wasserfall-Durchfahrt, Hangbrücke, Tempel-Abkürzung ab Runde 2": "Jungle and temple ruins, drive through a waterfall, rope bridge, temple shortcut from lap 2",
+  "TEMPEL STÜRZT EIN – ABKÜRZUNG FREI!": "TEMPLE COLLAPSES – SHORTCUT OPEN!",
   "Wüstenschlucht im Abendlicht, großer Sprung, Steinschlag öffnet ab Runde 2 eine Abkürzung": "Desert canyon at sunset, big jump, a rockfall opens a shortcut from lap 2",
   "STEINSCHLAG – ABKÜRZUNG FREI!": "ROCKFALL – SHORTCUT OPEN!",
   "Hochhäuser und Rampen zwischen den Dächern": "Skyscrapers and ramps between the rooftops",

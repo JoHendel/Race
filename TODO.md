@@ -50,6 +50,7 @@
 - [ ] Abkürzungen für die übrigen Strecken (Skyline Loop, Glacier Rift, Grand Circuit Boxengasse) und je ein Ereignis für Skyline Loop, Glacier Rift, Grand Circuit
 - [x] Dynamisches Ereignis Zugbrücke Neon Harbor: zwei kinematische Klappen, heben sich ab Runde 2 auf 10° (Buckel-Sprung), Türme mit Warnlichtern, Banner; online aus der Rundenzahl des Führenden
 - [x] Steinschlag Sunset Canyon: Felssperre schließt die Schlucht-Abkürzung, ab Runde 2 stürzen Brocken herab, Sperre bricht zusammen (Staubwolke), Abkürzung frei (spart ca. 0,65 s); Minimap rot/orange
-- [ ] Turbo Cup: Jungle Ruins, Volcano Rush, Orbital Station (geringe Schwerkraft)
+- [x] Jungle Ruins (Turbo Cup): Achter-Layout, Wasserfall-Durchfahrt, Hangbrücke, Sprung, Tempel-Abkürzung (stürzt ab Runde 2 ein, spart ca. 0,4 s), eigene Dschungel-Kulisse mit Stufenpyramide
+- [ ] Turbo Cup: Volcano Rush (Lavaströme pro Runde), Orbital Station (geringe Schwerkraft, Looping)
 - [ ] Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand)
 - [ ] Rundenzeiten auf 45–75 s bringen (aktuell ca. 35–45 s für schnelle Fahrer)

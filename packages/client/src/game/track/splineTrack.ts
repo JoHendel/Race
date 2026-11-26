@@ -3,7 +3,9 @@ import type RAPIER from "@dimforge/rapier3d-compat";
 import { DEFAULT_ENVIRONMENT, theme, type TrackDef } from "@apex/shared";
 import { CURB_WIDTH, LEAF_THICKNESS, TrackGeometry, mulberry32, stripRibbon, stripWall, type Drawbridge, type MeshArrays, type Rockfall, type ShortcutPath } from "@apex/sim";
 
-export { mulberry32 };
+import { buildJungle, buildTemple } from "./jungle";
+
+export { mulberry32, toGeometry };
 
 const WALL_HEIGHT = 1.4;
 
@@ -30,8 +32,22 @@ export class SplineTrack extends TrackGeometry {
     for (const c of this.shortcuts) this.buildShortcut(c);
     for (const b of this.bridges) this.buildBridge(b);
     for (const r of this.rockfalls) this.buildRockfall(r);
-    if ((this.def.environment ?? DEFAULT_ENVIRONMENT).scenery === "glacier") this.buildGlacier();
+    const scenery = (this.def.environment ?? DEFAULT_ENVIRONMENT).scenery;
+    if (scenery === "glacier") this.buildGlacier();
+    else if (scenery === "jungle") buildJungle(this);
     else this.buildScenery();
+  }
+
+  /** Per-frame animations of the scenery (e.g. the waterfall). */
+  readonly animators: ((dt: number) => void)[] = [];
+
+  /** Is a lap share inside the rope bridge section of this track? */
+  inRopeBridge(i: number): boolean {
+    const rb = this.def.environment?.ropeBridge;
+    if (!rb) return false;
+    const n = this.samples.length;
+    const t = (((i % n) + n) % n) / n;
+    return t >= rb[0] && t < rb[1];
   }
 
   private readonly bridgeVisuals: { bridge: Drawbridge; leaves: THREE.Object3D[]; lights: THREE.MeshBasicMaterial[] }[] = [];
@@ -131,8 +147,12 @@ export class SplineTrack extends TrackGeometry {
   /** Rock barrier and falling boulders of a rockfall event. */
   private buildRockfall(r: Rockfall): void {
     const mat = new THREE.MeshStandardMaterial({ color: 0x6e3a20, roughness: 0.95, envMapIntensity: 0.15 });
+    const temple = r.shortcut.def.kind === "temple";
+    if (temple) mat.color.setHex(0x7d7a68);
     const meshes = r.boulders.map((b) => {
-      const m = new THREE.Mesh(new THREE.DodecahedronGeometry(b.radius, 1), mat);
+      // temple: collapsed stone blocks instead of round boulders
+      const geo = temple ? new THREE.BoxGeometry(b.radius * 1.5, b.radius * 1.2, b.radius * 1.5) : new THREE.DodecahedronGeometry(b.radius, 1);
+      const m = new THREE.Mesh(geo, mat);
       this.group.add(m);
       return m;
     });
@@ -147,6 +167,7 @@ export class SplineTrack extends TrackGeometry {
 
   /** Move the bridge meshes to the physics pose; blink the warning lights while a bridge is open. */
   syncBridges(dt: number): void {
+    for (const a of this.animators) a(dt);
     for (const v of this.rockVisuals) {
       v.rockfall.boulders.forEach((b, i) => {
         const m = v.meshes[i]!;
@@ -179,7 +200,7 @@ export class SplineTrack extends TrackGeometry {
     }
   }
 
-  private nearShortcut(p: THREE.Vector3, margin: number): boolean {
+  nearShortcut(p: THREE.Vector3, margin: number): boolean {
     return this.shortcuts.some((c) => c.samples.some((s) => Math.hypot(s.pos.x - p.x, s.pos.z - p.z) < c.halfWidth + margin));
   }
 
@@ -205,6 +226,10 @@ export class SplineTrack extends TrackGeometry {
 
     if (c.def.kind === "canyon") {
       this.buildCanyon(c, off);
+      return;
+    }
+    if (c.def.kind === "temple") {
+      buildTemple(this, c, off);
       return;
     }
 
@@ -271,7 +296,7 @@ export class SplineTrack extends TrackGeometry {
   }
 
   /** Ribbon over part of the lap (sample indices a..b, wrapping around the start). */
-  private partialRibbon(a: number, b: number, inner: number, outer: number, y: number): THREE.BufferGeometry {
+  partialRibbon(a: number, b: number, inner: number, outer: number, y: number): THREE.BufferGeometry {
     const n = this.samples.length;
     const pos: number[] = [];
     const uv: number[] = [];
@@ -476,7 +501,9 @@ export class SplineTrack extends TrackGeometry {
       [1, this.def.accent],
       [-1, this.def.accent2],
     ] as const) {
-      const mask = this.wallMask(side);
+      const base = this.wallMask(side);
+      // On the rope bridge the ropes are the visible railing; the (invisible) collider wall stays.
+      const mask = this.def.environment?.ropeBridge ? this.samples.map((_, i) => (base ? base[i]! : true) && !this.inRopeBridge(i) && !this.inRopeBridge(i + 1)) : base;
       const geo = toGeometry(this.wall(side * off, WALL_HEIGHT, mask));
       this.group.add(new THREE.Mesh(geo, wallMat));
       // Kollision höher als sichtbar, damit niemand rausfliegt.

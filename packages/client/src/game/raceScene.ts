@@ -486,7 +486,12 @@ export class RaceScene {
       const leaderLaps = Math.max(...this.racers.map((r) => this.status(r).lap));
       // Shown a moment later so it does not collide with the lap banner of the leader.
       for (const ev of this.track.updateEvents(leaderLaps, STEP)) {
-        this.eventBanner = ev.event.kind === "rockfall" ? "STEINSCHLAG – ABKÜRZUNG FREI!" : "ZUGBRÜCKE ÖFFNET SICH!";
+        this.eventBanner =
+          ev.event.kind === "drawbridge"
+            ? "ZUGBRÜCKE ÖFFNET SICH!"
+            : "shortcut" in ev && ev.shortcut.def.kind === "temple"
+              ? "TEMPEL STÜRZT EIN – ABKÜRZUNG FREI!"
+              : "STEINSCHLAG – ABKÜRZUNG FREI!";
         this.bridgeBannerIn = 1.8;
       }
     }

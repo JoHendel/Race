@@ -39,7 +39,7 @@ export interface TrackShortcut {
   via: [number, number][];
   width: number;
   /** What the shortcut runs through (visual only). */
-  kind: "warehouse" | "canyon";
+  kind: "warehouse" | "canyon" | "temple";
 }
 
 /**
@@ -97,7 +97,11 @@ export function withoutShortcuts(def: TrackDef): TrackDef {
 }
 
 export interface TrackEnvironment {
-  scenery: "harbor" | "glacier";
+  scenery: "harbor" | "glacier" | "jungle";
+  /** Lap share where the track runs through a waterfall (visual only). */
+  waterfall?: number;
+  /** Lap shares of a rope bridge section: wooden deck, rope railings, pillars (visual only). */
+  ropeBridge?: [number, number];
   sky: { top: number; mid: number; horizon: number };
   fog: number;
   sun: number | null;
@@ -269,7 +273,45 @@ export const GLACIER_RIFT: TrackDef = {
   blurb: "Gletscher mit Eisflächen (weniger Grip) und Polarlichtern",
 };
 
-export const TRACKS: TrackDef[] = [NEON_HARBOR, SUNSET_CANYON, SKYLINE_LOOP, GLACIER_RIFT, GRAND_CIRCUIT];
+export const JUNGLE_RUINS: TrackDef = {
+  id: "jungle-ruins",
+  name: "Jungle Ruins",
+  cup: "turbo",
+  width: 15,
+  accent: 0x39ff88,
+  accent2: 0xffc94d,
+  points: [
+    [0, 0, 0],
+    [0, 0, 130],
+    [-25, 2, 200],
+    [-95, 6, 225],
+    [-160, 10, 195],
+    [-185, 12, 120],
+    [-150, 12, 55],
+    [-90, 8, 40],
+    [-60, 4, -20],
+    [-100, 2, -90],
+    [-60, 1, -160],
+    [30, 0, -190],
+    [110, 0, -150],
+    [120, 0, -70],
+    [70, 0, -30],
+  ],
+  ramps: [{ at: 0.93, length: 14, height: 2.6 }],
+  shortcuts: [{ from: 0.75, to: 0.87, via: [[72, -152], [100, -116]], width: 10, kind: "temple" }],
+  events: [{ kind: "rockfall", shortcut: 0, fromLap: 2 }],
+  environment: {
+    scenery: "jungle",
+    sky: { top: 0x04120c, mid: 0x0f3a26, horizon: 0xff9a3d },
+    fog: 0x0d2619,
+    sun: 0xffc94d,
+    waterfall: 0.11,
+    ropeBridge: [0.31, 0.41],
+  },
+  blurb: "Dschungel und Tempelruinen, Wasserfall-Durchfahrt, Hangbrücke, Tempel-Abkürzung ab Runde 2",
+};
+
+export const TRACKS: TrackDef[] = [NEON_HARBOR, SUNSET_CANYON, SKYLINE_LOOP, GLACIER_RIFT, GRAND_CIRCUIT, JUNGLE_RUINS];
 
 export function trackById(id: string): TrackDef | undefined {
   return TRACKS.find((t) => t.id === id);
