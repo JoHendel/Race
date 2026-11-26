@@ -16,3 +16,4 @@ export * from "./fx";
 export * from "./rivals";
 export * from "./audio";
 export * from "./music";
+export * from "./touch";

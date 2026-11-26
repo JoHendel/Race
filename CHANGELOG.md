@@ -5,6 +5,8 @@
 - Volume slider and mute switch on the title screen (M mutes anywhere)
 - **Music:** a synthwave soundtrack generated live – calm in the menu, driving in the race, faster with a lead line on the final lap; own music slider
 - You now hear the engines of the cars right around you
+- **Phones:** on-screen thumb stick and buttons (gas, brake, drift, nitro, item), optional tilt steering, compact layout for landscape screens
+- **Gamepad in menus:** move with the d-pad or stick, A to press, B to go back
 
 ## v0.11.0 – Extra features
 - **Spectator mode:** join a room while a race is running to watch it (switch drivers with Q/E) and race in the next one

@@ -89,6 +89,8 @@
 - [x] Hupe läuft über denselben Master-Regler (bleibt prozedural, siehe DECISIONS.md)
 - [x] Motorgeräusche der drei nächsten Gegner (leise, nach Entfernung bis 60 m)
 - [ ] Menü-Animationen
-- [ ] Gamepad komplett (Menüs) und Touch-Steuerung mit virtuellen Tasten, Neigung als Option
+- [x] Gamepad in Menüs: Fokus per Steuerkreuz/Stick mit räumlicher Navigation (`shared/touch.ts`), A drückt, B zurück, Regler mit links/rechts; im Fahren aus
+- [x] Touch-Steuerung: Daumen-Stick links, Gas/Bremse/Drift/Nitro/Item rechts, Reset, Neigungssteuerung zum Einschalten (iOS fragt nach Erlaubnis); kompakter Titel und HUD auf kurzen Bildschirmen, Tippen überspringt das Intro
+- [ ] Touch: Lobby, Garage und Replay auf dem Handy durchgehen (Layout)
 - [ ] Performance: 60 FPS mit 10 Autos messen, Rapier lazy laden, Draw-Calls senken
 - [ ] Barrierefreiheit: Farbenblind-Modus, Untertitel für Sounds, Tastenbelegung

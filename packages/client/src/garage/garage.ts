@@ -112,6 +112,7 @@ export class Garage {
     this.scene.add(new THREE.HemisphereLight(0x8899ff, 0x110011, 0.4));
 
     this.root.className = "garage";
+    this.root.dataset.testid = "garage-screen";
     ui.appendChild(this.root);
     this.rebuildModel();
     this.render();

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { devices, expect, test, type Page } from "@playwright/test";
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -45,6 +45,73 @@ test("Sound: volume and mute are kept, audio starts after the first click", asyn
   await expect(page.getByTestId("mute")).toHaveText("🔊");
   expect(await page.evaluate(() => (window as unknown as { apex: { sound: { ready: boolean } } }).apex.sound.ready)).toBe(true);
   expect(errors).toEqual([]);
+});
+
+test("Gamepad drives the menus: d-pad moves the focus, A presses, B goes back", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.addInitScript(() => {
+    const pad = { connected: true, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
+    (window as unknown as { __pad: typeof pad }).__pad = pad;
+    navigator.getGamepads = () => [pad as unknown as Gamepad];
+  });
+  await page.goto("./");
+  const press = async (i: number) => {
+    await page.evaluate((i) => ((window as unknown as { __pad: { buttons: { pressed: boolean }[] } }).__pad.buttons[i]!.pressed = true), i);
+    await page.waitForTimeout(120);
+    await page.evaluate((i) => ((window as unknown as { __pad: { buttons: { pressed: boolean }[] } }).__pad.buttons[i]!.pressed = false), i);
+    await page.waitForTimeout(120);
+  };
+  await press(15); // right: first focus
+  await expect(page.locator(".pad-focus")).toHaveCount(1);
+  // walk to the garage button and open it with A
+  // steer the focus towards the garage button
+  for (let i = 0; i < 12 && (await page.locator(".pad-focus").getAttribute("id")) !== "garage"; i++) {
+    const dir = await page.evaluate(() => {
+      const c = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      };
+      const a = c(document.querySelector(".pad-focus")!);
+      const g = c(document.querySelector("#garage")!);
+      if (Math.abs(g.y - a.y) > 20) return g.y > a.y ? 13 : 12;
+      return g.x > a.x ? 15 : 14;
+    });
+    await press(dir);
+  }
+  await expect(page.locator(".pad-focus")).toHaveAttribute("id", "garage");
+  await press(0);
+  await expect(page.getByTestId("garage-screen")).toBeVisible();
+  await press(1); // B: back to the title
+  await expect(page.locator("#title")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("Phone: touch controls drive the car", async ({ browser }) => {
+  test.setTimeout(240_000);
+  const ctx = await browser.newContext({ ...devices["Pixel 7 landscape"] });
+  const page = await ctx.newPage();
+  const errors = collectErrors(page);
+  await page.goto("./?laps=1&bots=3");
+  await page.tap("#race");
+  await expect(page.getByTestId("touch-controls")).toBeVisible({ timeout: 60_000 });
+  await page.waitForFunction(() => (window as ApexWindow).apex?.race?.phase === "racing", undefined, { timeout: 120_000 });
+  const fire = (sel: string, type: string, dx: number, id: number) =>
+    page.evaluate(
+      ([sel, type, dx, id]) => {
+        const el = document.querySelector(sel as string)!;
+        const r = el.getBoundingClientRect();
+        el.dispatchEvent(new PointerEvent(type as string, { bubbles: true, pointerId: id as number, pointerType: "touch", clientX: r.left + r.width / 2 + (dx as number), clientY: r.top + r.height / 2 }));
+      },
+      [sel, type, dx, id],
+    );
+  await fire("[data-testid=touch-gas]", "pointerdown", 0, 2);
+  await fire("[data-testid=touch-stick]", "pointerdown", 0, 3);
+  await fire("[data-testid=touch-stick]", "pointermove", 40, 3);
+  type R = { apex: { race: { player: { car: { speed: number } }; touch: { state: { steer: number } } } } };
+  await expect.poll(() => page.evaluate(() => (window as unknown as R).apex.race.player.car.speed), { timeout: 60_000 }).toBeGreaterThan(3);
+  expect(await page.evaluate(() => (window as unknown as R).apex.race.touch.state.steer)).toBeGreaterThan(0.2);
+  expect(errors).toEqual([]);
+  await ctx.close();
 });
 
 test("Track selection cycles through all tracks and is remembered", async ({ page }) => {

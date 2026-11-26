@@ -346,3 +346,55 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .spectator-tag b { color: var(--magenta); letter-spacing: 0.2em; }
 .spectator-tag span { font-size: 0.8rem; opacity: 0.7; }
 .spectator-tag em { color: var(--cyan); font-weight: 800; font-style: italic; }
+
+/* Touch controls (phones) */
+.touch { position: absolute; inset: 0; pointer-events: none; z-index: 5; user-select: none; -webkit-user-select: none; touch-action: none; }
+.touch button { -webkit-tap-highlight-color: transparent; touch-action: none; font: inherit; }
+.t-stick { position: absolute; left: max(1.2rem, env(safe-area-inset-left)); bottom: 1.4rem; width: 9.5rem; height: 9.5rem; border-radius: 50%; background: radial-gradient(circle, rgba(0, 229, 255, 0.12), rgba(10, 12, 30, 0.45)); border: 2px solid rgba(0, 229, 255, 0.45); pointer-events: auto; touch-action: none; }
+.t-knob { position: absolute; left: 50%; top: 50%; width: 3.8rem; height: 3.8rem; margin: -1.9rem 0 0 -1.9rem; border-radius: 50%; background: rgba(0, 229, 255, 0.55); box-shadow: 0 0 18px rgba(0, 229, 255, 0.6); transition: transform 0.05s; }
+.tilt-on .t-stick { opacity: 0.45; }
+.t-buttons { position: absolute; right: max(1.2rem, env(safe-area-inset-right)); bottom: 1.2rem; display: grid; grid-template-columns: repeat(3, auto); grid-template-areas: "nitro item ." "drift brake gas"; gap: 0.6rem; align-items: end; pointer-events: none; }
+.t-btn { pointer-events: auto; width: 4.2rem; height: 4.2rem; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); background: rgba(10, 12, 30, 0.55); color: #f4f6ff; font-weight: 900; font-style: italic; font-size: 0.8rem; letter-spacing: 0.05em; }
+.t-btn.on { transform: scale(0.94); filter: brightness(1.5); }
+.t-gas { grid-area: gas; width: 5.6rem; height: 5.6rem; border-color: rgba(57, 255, 136, 0.8); background: rgba(57, 255, 136, 0.22); font-size: 1rem; }
+.t-brake { grid-area: brake; border-color: rgba(255, 77, 109, 0.7); }
+.t-drift { grid-area: drift; border-color: rgba(255, 138, 31, 0.8); }
+.t-nitro { grid-area: nitro; border-color: rgba(255, 42, 170, 0.85); background: rgba(255, 42, 170, 0.18); }
+.t-item { grid-area: item; border-color: rgba(0, 229, 255, 0.8); }
+.t-small { position: absolute; top: 4.6rem; pointer-events: auto; width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(10, 12, 30, 0.55); color: #f4f6ff; font-size: 1.1rem; }
+.t-reset { right: max(1rem, env(safe-area-inset-right)); }
+.t-tilt { right: calc(max(1rem, env(safe-area-inset-right)) + 3.2rem); }
+.tilt-on .t-tilt { border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+body.touch-mode .hud-help { display: none; }
+
+/* Gamepad focus in menus */
+.pad-focus { outline: 3px solid #ffd34d !important; outline-offset: 3px; box-shadow: 0 0 22px rgba(255, 211, 77, 0.6) !important; }
+
+/* Short screens (phones in landscape): compact title screen */
+@media (max-height: 560px) {
+  #title { justify-content: flex-start; gap: 0.3rem; padding: 0.6rem 0.6rem 1rem; overflow-y: auto; pointer-events: auto; }
+  .logo { font-size: clamp(2rem, 11vh, 3.4rem); margin-right: 9rem; }
+  .tagline { font-size: 0.85rem; }
+  .menu { gap: 0.5rem; }
+  .menu .btn { margin-top: 0.3rem; padding: 0.5rem 1.1rem; font-size: 0.8rem; }
+  .track-pick { margin-top: 0.5rem; padding: 0.35rem 0.6rem; }
+  .sound-ctl { top: 0.6rem; right: 4.2rem; }
+  .sound-ctl input { width: 56px; }
+  .lang-toggle { top: 0.6rem; right: 0.8rem; }
+  .status { display: none; }
+}
+
+/* Touch race HUD: keep the corners free for the thumbs */
+body.touch-mode .hud-speed { right: auto; left: 50%; bottom: 0.4rem; transform: translateX(-50%); }
+body.touch-mode .hud-speed .value { font-size: 2.6rem; }
+body.touch-mode .hud-nitro { right: auto; left: 50%; bottom: 3.9rem; width: 180px; transform: translateX(-50%); }
+body.touch-mode .rh-map { width: 120px; height: 120px; right: 0.8rem; top: 0.8rem; }
+body.touch-mode .t-small { top: 9rem; }
+body.touch-mode .rh-place .n { font-size: 3.2rem; }
+body.touch-mode .rh-lap { top: 4.6rem; }
+body.touch-mode .rh-times { top: 6.2rem; }
+@media (max-height: 560px) {
+  .results-card { max-height: 94vh; overflow-y: auto; padding: 0.9rem 1.1rem; }
+  .results-card td { padding: 0.2rem 0.4rem; }
+  .results-card h2 { margin-bottom: 0.4rem; font-size: 1.1rem; }
+}

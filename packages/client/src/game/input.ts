@@ -1,4 +1,5 @@
 import type { ControlState } from "@apex/sim";
+import { activeTouch } from "./touchControls";
 
 export type { ControlState };
 
@@ -54,12 +55,26 @@ export class Input {
       item ||= pad.buttons[1]?.pressed ?? false;
     }
 
+    const touch = activeTouch();
+    let touchSteer: number | null = null;
+    if (touch) {
+      throttle = Math.max(throttle, touch.throttle);
+      brake = Math.max(brake, touch.brake);
+      drift ||= touch.drift;
+      nitro ||= touch.nitro;
+      reset ||= touch.reset;
+      item ||= touch.item;
+      if (touch.steer !== 0) touchSteer = touch.steer;
+    }
+
     // Tastatur-Lenkung weich einblenden, damit das Auto nicht zuckt.
     const rate = steerTarget === 0 ? 8 : 5;
     this.smoothSteer += (steerTarget - this.smoothSteer) * Math.min(1, rate * dt);
     if (Math.abs(this.smoothSteer) < 0.01 && steerTarget === 0) this.smoothSteer = 0;
 
-    const state: ControlState = { throttle, brake, steer: this.smoothSteer, drift, nitro, reset, item };
+    // analogue touch steering is used directly
+    const steer = touchSteer ?? this.smoothSteer;
+    const state: ControlState = { throttle, brake, steer, drift, nitro, reset, item };
     return this.override ? { ...state, ...this.override } : state;
   }
 }

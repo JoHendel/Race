@@ -56,6 +56,7 @@ import { Chaos } from "./chaos";
 import { SoloMode } from "./soloMode";
 import { ReplayView } from "./replayView";
 import { CarFx } from "./carFx";
+import { TouchControls, wantsTouch } from "./touchControls";
 import { sound, type EngineSound, type SoundName } from "../audio/sound";
 
 const ITEM_SOUND: Record<ItemKind, SoundName> = { emp: "emp", mine: "mine", drone: "drone", shield: "shield", turbo: "turbo" };
@@ -208,6 +209,7 @@ export class RaceScene {
   private placeTimer = 0;
   private podium: Podium | null = null;
   private engineSound: EngineSound | null = null;
+  private readonly touch: TouchControls | null;
   /** Quiet engines for the nearest opponents. */
   private readonly nearEngines: (EngineSound | null)[] = [null, null, null];
   private readonly carFx: CarFx;
@@ -396,7 +398,10 @@ export class RaceScene {
     this.solo = options.mode && options.mode !== "race" && this.role === "offline" ? new SoloMode(options.mode, options.track, this.scene, ui, this.player.car) : null;
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
+    // phones: a tap on the picture skips the intro flight
+    if (wantsTouch()) window.addEventListener("pointerdown", this.skipIntro);
     this.carFx = new CarFx(this.scene, this.camera);
+    this.touch = TouchControls.maybeCreate(ui, { item: Boolean(options.chaos) });
     sound.song(this.options.laps === 1 ? "final" : "race");
     this.rivals = this.role === "client" || this.solo ? null : (options.rivals ?? new RivalBook());
     if (this.spectating) this.setupSpectator();
@@ -514,8 +519,9 @@ export class RaceScene {
     return grid;
   }
 
-  private readonly skipIntro = (e: KeyboardEvent): void => {
-    if (this.role !== "client" && this.phase === "intro" && (e.code === "Enter" || e.code === "Space")) this.startCountdown();
+  private readonly skipIntro = (e: KeyboardEvent | PointerEvent): void => {
+    const skip = e instanceof KeyboardEvent ? e.code === "Enter" || e.code === "Space" : !(e.target as HTMLElement | null)?.closest?.("button, .touch");
+    if (this.role !== "client" && this.phase === "intro" && skip) this.startCountdown();
   };
 
   private startCountdown(): void {
@@ -1347,11 +1353,13 @@ export class RaceScene {
     this.solo?.dispose();
     this.replayView?.dispose();
     window.removeEventListener("keydown", this.skipIntro);
+    window.removeEventListener("pointerdown", this.skipIntro);
     window.removeEventListener("keydown", this.onFxKey);
     window.removeEventListener("keydown", this.onSpectatorKey);
     this.spectatorTag?.remove();
     this.carFx.dispose();
     this.engineSound?.stop();
+    this.touch?.dispose();
     for (const e of this.nearEngines) e?.stop();
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();

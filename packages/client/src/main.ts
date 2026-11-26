@@ -13,6 +13,8 @@ import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
 import { runFrameHooks } from "./game/frameHooks";
 import { initSound, sound } from "./audio/sound";
+import { initGamepadNav } from "./gamepadNav";
+import { wantsTouch } from "./game/touchControls";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
 import { VoteView } from "./online/vote";
@@ -599,6 +601,12 @@ async function beginOnlineRace(
 
 initSound();
 sound.song("menu");
+if (wantsTouch()) document.body.classList.add("touch-mode");
+initGamepadNav(() => {
+  if (active instanceof DriveScene) return true;
+  if (!(active instanceof RaceScene)) return false;
+  return ["intro", "countdown", "racing", "finishing"].includes(active.phase);
+});
 expose({});
 bindMenu();
 window.addEventListener("keydown", (e) => {

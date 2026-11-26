@@ -11,6 +11,7 @@ import { TestTrack } from "./testTrack";
 import { createSky } from "./sky";
 import { engineRpm, engineVoice, squealGain } from "@apex/shared";
 import { sound, type EngineSound, type SoundName } from "../audio/sound";
+import { TouchControls } from "./touchControls";
 
 const STEP = 1 / 60;
 const LEVEL_NAMES = ["", "BOOST", "SUPER BOOST", "ULTRA BOOST"];
@@ -48,6 +49,7 @@ export class DriveScene {
     this.scene.add(this.track.group);
 
     this.hud = new Hud(uiRoot);
+    this.touch = TouchControls.maybeCreate(uiRoot);
     this.car = new Car(this.world, STARTER_CAR, {
       onDriftBoost: (level) => {
         this.hud.showToast(LEVEL_NAMES[level]!, LEVEL_COLORS[level]);
@@ -68,7 +70,10 @@ export class DriveScene {
     this.camera.updateProjectionMatrix();
   }
 
+  private readonly touch: TouchControls | null;
+
   dispose(): void {
+    this.touch?.dispose();
     this.engine?.stop();
     this.hud.dispose();
     this.world.free();

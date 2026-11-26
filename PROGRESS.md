@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M12 weiter – Gamepad in den Menüs (Fokus mit Steuerkreuz, A bestätigt, B zurück) und Touch-Steuerung auf dem Handy (virtuelle Tasten Gas/Bremse/Drift/Nitro, Lenken per Wischen oder Neigung als Option); im Browser mit Mobil-Viewport und Touch-Emulation prüfen.
+**Nächster Schritt:** M12 weiter – Performance: FPS-Anzeige (`?fps`), Draw-Calls/Dreiecke pro Strecke messen (renderer.info), Instancing/Zusammenfassen von Streckendeko wo es viele gleiche Objekte gibt, Rapier lazy laden (Rennszene dynamisch importieren); vorher/nachher-Zahlen in PROGRESS.md.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -135,4 +135,5 @@ Alle Extra-Features aus dem Konzept sind drin: Wetter und Nacht, Chaos-Modus mit
 
 - Audio: `shared/audio.ts` (Getriebe, Motorstimme, Quietschen, Entfernung, Einstellungen – getestet), `client/audio/sound.ts` (WebAudio-Synthese, Motor-Schleife, Einmal-Effekte, Hupe). Im Browser geprüft: Audio startet nach dem ersten Klick, Motorfrequenz springt beim Hochschalten, M schaltet stumm, Lautstärke bleibt nach Neuladen. Neuer e2e-Test, alle 11 grün, `ai:evaluate` unverändert.
 - Musik: `shared/music.ts` (Sequencer, getestet), `Music` in `client/audio/sound.ts` (Lookahead-Planung auf der Audio-Uhr, Wechsel am Taktanfang). Im Browser: Menü-Song läuft nach dem ersten Klick (Spitzenpegel ~0,19, kein Übersteuern), im Rennen „race“, ab der letzten Runde „final“, Podest wieder „menu“. Gegner-Motoren: 3 nächste Autos. Architektur-Doku um Audio ergänzt.
+- Gamepad & Touch: `shared/touch.ts` (Stick, Neigung, räumliche Navigation, Tasten-Wiederholung – getestet), `client/gamepadNav.ts`, `client/game/touchControls.ts`. Im Browser mit „Pixel 7 landscape“-Emulation: Titel passt auf 863×360, Daumen-Stick und Gas fahren das Auto, HUD weicht den Daumen aus. Zwei neue e2e-Tests (Gamepad-Menü, Handy), alle 13 grün.
 - Titelzeile „Early Access · weitere Strecken folgen“ war veraltet → „8 Strecken · 12 Autos · APEX-AI fährt mit“.

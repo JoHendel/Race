@@ -70,6 +70,9 @@ The connection runs directly between browsers (WebRTC). The free public PeerJS s
 | Use item (chaos mode) | E | B |
 | Horn | H | – |
 | Mute | M | – |
+| Menus | Mouse / Tab | D-pad or stick, A = press, B = back |
+
+On phones and tablets, on-screen controls appear automatically: a thumb stick on the left, gas, brake, drift, nitro and item buttons on the right, and an optional tilt steering switch (📱).
 | Emotes | 1–6 | – |
 | Replay: pause / slow motion / camera / photo | Space / S / C / P | – |
 
