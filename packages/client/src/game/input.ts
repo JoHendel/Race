@@ -1,18 +1,13 @@
 import type { ControlState } from "@apex/sim";
 import { activeTouch } from "./touchControls";
+import { a11y } from "../a11ySettings";
+import { KEY_ACTIONS } from "@apex/shared";
+
+/** Current key bindings (changeable in the settings, see a11ySettings). */
+const KEYS = () => a11y().keys;
 
 export type { ControlState };
 
-const KEYS = {
-  throttle: ["KeyW", "ArrowUp"],
-  brake: ["KeyS", "ArrowDown"],
-  left: ["KeyA", "ArrowLeft"],
-  right: ["KeyD", "ArrowRight"],
-  drift: ["Space"],
-  nitro: ["ShiftLeft", "ShiftRight"],
-  reset: ["KeyR"],
-  item: ["KeyE"],
-};
 
 /** Liest Tastatur und Gamepad und liefert einen gemeinsamen Steuerzustand. */
 export class Input {
@@ -23,7 +18,8 @@ export class Input {
 
   constructor(target: Window = window) {
     target.addEventListener("keydown", (e) => {
-      if (Object.values(KEYS).some((k) => k.includes(e.code))) e.preventDefault();
+      const keys = KEYS();
+      if (KEY_ACTIONS.some((a) => keys[a].includes(e.code))) e.preventDefault();
       this.pressed.add(e.code);
     });
     target.addEventListener("keyup", (e) => this.pressed.delete(e.code));
@@ -35,13 +31,14 @@ export class Input {
   }
 
   read(dt: number): ControlState {
-    let throttle = this.any(KEYS.throttle) ? 1 : 0;
-    let brake = this.any(KEYS.brake) ? 1 : 0;
-    let steerTarget = (this.any(KEYS.right) ? 1 : 0) - (this.any(KEYS.left) ? 1 : 0);
-    let drift = this.any(KEYS.drift);
-    let nitro = this.any(KEYS.nitro);
-    let reset = this.any(KEYS.reset);
-    let item = this.any(KEYS.item);
+    const bound = KEYS();
+    let throttle = this.any(bound.throttle) ? 1 : 0;
+    let brake = this.any(bound.brake) ? 1 : 0;
+    let steerTarget = (this.any(bound.right) ? 1 : 0) - (this.any(bound.left) ? 1 : 0);
+    let drift = this.any(bound.drift);
+    let nitro = this.any(bound.nitro);
+    let reset = this.any(bound.reset);
+    let item = this.any(bound.item);
 
     const pad = navigator.getGamepads?.().find((g) => g && g.connected);
     if (pad) {

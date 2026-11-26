@@ -17,3 +17,4 @@ export * from "./rivals";
 export * from "./audio";
 export * from "./music";
 export * from "./touch";
+export * from "./a11y";

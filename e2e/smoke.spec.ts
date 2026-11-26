@@ -114,6 +114,33 @@ test("Phone: touch controls drive the car", async ({ browser }) => {
   await ctx.close();
 });
 
+test("Settings: key bindings, colour-blind mode and captions are kept", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto("./");
+  await page.getByTestId("open-settings").click();
+  await page.locator("[data-field=colorblind]").check();
+  await page.locator("[data-field=captions]").check();
+  await page.getByTestId("key-drift").click();
+  await page.keyboard.press("KeyJ");
+  await expect(page.getByTestId("key-drift")).toHaveText("J");
+  // a reserved key is refused, Escape only cancels
+  await page.getByTestId("key-horn").click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("settings")).toBeVisible();
+  await expect(page.getByTestId("key-horn")).toHaveText("H");
+  await page.reload();
+  await page.getByTestId("open-settings").click();
+  await expect(page.getByTestId("key-drift")).toHaveText("J");
+  await expect(page.locator("[data-field=colorblind]")).toBeChecked();
+  await expect(page.locator("body")).toHaveClass(/colorblind/);
+  // captions appear for game sounds
+  await page.evaluate(() => (window as unknown as { apex: { sound: { play: (n: string) => void } } }).apex.sound.play("hit"));
+  await expect(page.getByTestId("captions")).toContainText(/Getroffen|Hit/);
+  await page.getByTestId("settings-back").click();
+  await expect(page.locator("#title")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test("Track selection cycles through all tracks and is remembered", async ({ page }) => {
   await page.goto("./?track=neon-harbor");
   const name = page.locator("[data-field=track-name]");

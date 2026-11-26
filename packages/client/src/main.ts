@@ -12,6 +12,9 @@ import { runFrameHooks } from "./game/frameHooks";
 import { initSound, sound } from "./audio/sound";
 import { initGamepadNav } from "./gamepadNav";
 import { PerfStats } from "./perfStats";
+import { initA11y } from "./a11ySettings";
+import { initCaptions } from "./captions";
+import { showSettings } from "./settingsPanel";
 import { wantsTouch } from "./game/touchControls";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
@@ -411,6 +414,10 @@ function bindMenu(): void {
     void startOfflineRace("drift");
   };
   document.querySelector<HTMLButtonElement>("#garage")!.onclick = () => startGarage();
+  document.querySelector<HTMLButtonElement>("#settings")!.onclick = () => {
+    clearScreen();
+    showSettings(ui!, showMenu);
+  };
   document.querySelector<HTMLButtonElement>("#online")!.onclick = () => showOnlineMenu();
 }
 
@@ -621,6 +628,8 @@ async function beginOnlineRace(
 // ---------- Start ----------
 
 initSound();
+initA11y();
+initCaptions();
 sound.song("menu");
 if (wantsTouch()) document.body.classList.add("touch-mode");
 initGamepadNav(() => {

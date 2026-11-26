@@ -1,3 +1,6 @@
+import { keyLabel, type KeyAction } from "@apex/shared";
+import { a11y } from "../a11ySettings";
+import { escapeHtml } from "./grid";
 import { cssColor, driftLevel } from "@apex/shared";
 import type { Car } from "./car";
 
@@ -20,7 +23,7 @@ export class Hud {
       <div class="hud-nitro"><div class="label">NITRO</div><div class="bar"><div class="fill"></div></div></div>
       <div class="hud-drift"></div>
       <div class="hud-toast"></div>
-      <div class="hud-help">W/S Gas/Bremse · A/D Lenken · Leertaste Drift · Shift Nitro · R Zurücksetzen · H Hupe · 1–6 Emotes</div>
+      <div class="hud-help">${helpText()}</div>
     `;
     parent.appendChild(this.root);
     this.speed = this.root.querySelector(".hud-speed .value")!;
@@ -56,4 +59,20 @@ export class Hud {
   dispose(): void {
     this.root.remove();
   }
+}
+
+/** Control hint built from the current key bindings. */
+function helpText(): string {
+  const k = a11y().keys;
+  const l = (a: KeyAction): string => escapeHtml(keyLabel(k[a][0] ?? "–"));
+  const parts: [string, string][] = [
+    [`${l("throttle")}/${l("brake")}`, "Gas/Bremse"],
+    [`${l("left")}/${l("right")}`, "Lenken"],
+    [l("drift"), "Drift"],
+    [l("nitro"), "Nitro"],
+    [l("reset"), "Zurücksetzen"],
+    [l("horn"), "Hupe"],
+    ["1–6", "Emotes"],
+  ];
+  return parts.map(([key, what]) => `<b>${key}</b> <span>${what}</span>`).join(" · ");
 }

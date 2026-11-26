@@ -45,6 +45,7 @@
 - **Replay & photo mode** with free camera and slow motion, plus an automatic **highlight clip** after each race
 - **Rivals:** whoever passes you most gets marked – beat them for a bonus
 - **Spectator mode:** join mid-race, watch, and race in the next one
+- **Accessibility:** colour-blind mode, sound captions, free key bindings
 - **Procedural sound and music:** engines, tyres, nitro, items and a synthwave soundtrack that speeds up on the final lap – all synthesised live with WebAudio
 - **Horn and emotes** that everyone in the race sees and hears
 - **Weather & night:** rain with less grip, fog and night races – or random
@@ -71,6 +72,8 @@ The connection runs directly between browsers (WebRTC). The free public PeerJS s
 | Horn | H | – |
 | Mute | M | – |
 | Menus | Mouse / Tab | D-pad or stick, A = press, B = back |
+
+All driving keys can be changed in **Settings**.
 
 On phones and tablets, on-screen controls appear automatically: a thumb stick on the left, gas, brake, drift, nitro and item buttons on the right, and an optional tilt steering switch (📱).
 | Emotes | 1–6 | – |

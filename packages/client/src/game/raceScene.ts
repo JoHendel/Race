@@ -33,6 +33,7 @@ import {
   isEmote,
   type FxKind,
   RivalBook,
+  racerColor,
   distanceGain,
   engineRpm,
   engineVoice,
@@ -56,6 +57,8 @@ import { Chaos } from "./chaos";
 import { SoloMode } from "./soloMode";
 import { ReplayView } from "./replayView";
 import { CarFx } from "./carFx";
+import { showCaption } from "../captions";
+import { a11y, isKey } from "../a11ySettings";
 import { TouchControls, wantsTouch } from "./touchControls";
 import { sound, type EngineSound, type SoundName } from "../audio/sound";
 
@@ -279,7 +282,10 @@ export class RaceScene {
     const localId = options.localId ?? "player";
     const grid = options.grid ?? RaceScene.offlineGrid(options);
     const rnd = mulberry32(options.seed ?? 42);
-    grid.slice(0, 10).forEach((entry, slot) => {
+    const colorblind = a11y().colorblind;
+    grid.slice(0, 10).forEach((gridEntry, slot) => {
+      // colour-blind mode: every racer gets a colour from an easy-to-tell-apart palette
+      const entry = colorblind ? { ...gridEntry, color: racerColor(gridEntry.color, slot, true) } : gridEntry;
       const isLocal = entry.id === localId;
       const simulatedBot = !entry.human && this.role !== "client";
       const remote = !isLocal && !simulatedBot;
@@ -413,7 +419,7 @@ export class RaceScene {
   private readonly onFxKey = (e: KeyboardEvent): void => {
     if (this.replayView || this.phase === "intro" || e.repeat) return;
     if (e.target instanceof HTMLInputElement) return;
-    if (e.code === "KeyH") this.localFx("horn");
+    if (isKey("horn", e.code)) this.localFx("horn");
     const n = /^Digit([1-6])$/.exec(e.code);
     if (n) this.localFx("emote", EMOTES[Number(n[1]) - 1]);
   };
@@ -430,7 +436,10 @@ export class RaceScene {
   showFx(id: string, kind: FxKind, value?: string): void {
     const r = this.racers.find((x) => x.id === id);
     if (!r) return;
-    if (kind === "horn") this.carFx.horn(r.car.mesh, r.car.modelId);
+    if (kind === "horn") {
+      this.carFx.horn(r.car.mesh, r.car.modelId);
+      if (r !== this.player) showCaption(`📯 ${r.name} hupt`);
+    }
     else if (isEmote(value)) {
       if (this.podium && r.onPodium) this.podium.showEmote(r.car, value);
       else this.carFx.emote(r.car.mesh, value);

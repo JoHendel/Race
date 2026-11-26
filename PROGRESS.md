@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M12 weiter – Barrierefreiheit: Farbenblind-Modus (Palette ohne Rot/Grün-Unterscheidung für Minimap, Ampel, Items, Ideallinie), Untertitel für wichtige Sounds (Hupe, EMP, Treffer, Final Lap), freie Tastenbelegung im Menü (gespeichert); Logik in shared testbar.
+**Nächster Schritt:** M13 – Release v1.0: Trailer aus Spielszenen (Headless-Browser nimmt Frames auf, ffmpeg schneidet 30–45 s mit Titel/Strecken/Online/Podest), Trailer-GIF und Screenshots für die README, README mit allen Medien, Changelog v1.0.0, Abschlussbericht; Tag `v1.0.0` nur lokal.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -16,8 +16,8 @@
 | M9 – Alle Strecken | ✅ fertig |
 | M10 – Grafik & Assets | ✅ fertig |
 | M11 – Extra-Features | ✅ fertig (`v0.11.0` lokal) |
-| M12 – Sound & Feinschliff | ⏳ als Nächstes |
-| M13 – Release v1.0 | offen |
+| M12 – Sound & Feinschliff | ✅ fertig (`v0.12.0` lokal) |
+| M13 – Release v1.0 | ⏳ als Nächstes |
 ## Berichte
 
 ### M0 – Fundament
@@ -152,3 +152,16 @@ Alle Extra-Features aus dem Konzept sind drin: Wetter und Nacht, Chaos-Modus mit
   `mergeStatic` backt statische Meshes gleichen Materials zusammen (Skyline: 199 → 12, Jungle: 431 → 17); bewegte/blendende Objekte sind mit `userData.noMerge` markiert. Bildvergleich mit `?nomerge` aus gleicher Kamera: mittlere Pixelabweichung 0,04/255. Dreiecke steigen leicht, weil zusammengefasste Meshes nicht mehr einzeln weggeschnitten werden – bei Draw-Call-gebundener Last der bessere Tausch. Rapier, Rennszene und Testgelände liegen jetzt in einem nachgeladenen Chunk: der erste Download sinkt von ca. 1,9 MB auf ca. 0,25 MB (gzip), Titel, Lobby und Garage brauchen die Physik nicht (`@apex/sim/pure`, `game/grid.ts`).
 - Handy-Layout: Lobby/Garage scrollen, Replay-Leiste bricht um, Touch-Tasten werden in Ergebnis, Podest und Replay ausgeblendet.
 - Titelzeile „Early Access · weitere Strecken folgen“ war veraltet → „8 Strecken · 12 Autos · APEX-AI fährt mit“.
+- Barrierefreiheit: `shared/a11y.ts` (Belegung, Farbpalette, Untertitel-Texte – getestet), `client/a11ySettings.ts`, `client/settingsPanel.ts`, `client/captions.ts`. Im Browser: Drift auf J umgelegt und gefahren, Esc bricht nur ab, Farbenblind-Palette im Rennen aktiv, Untertitel erscheinen. Neuer e2e-Test.
+- Menü-Animationen per CSS mit eigenem `translate`/`scale`, damit die Schräglage der Knöpfe bleibt.
+
+## Abschlussbericht M12 – Sound & Feinschliff
+
+Das Spiel klingt, lässt sich mit Gamepad und auf dem Handy bedienen, startet schneller und ist zugänglicher.
+
+- **Sound & Musik:** alles prozedural per WebAudio (keine Dateien, keine Lizenzfragen): Motor mit Getriebe pro Fahrzeugklasse, Reifen, Nitro, Boosts, Items, Countdown und Runden-Jingles, drei nahe Gegner-Motoren, Synthwave-Musik mit Wechsel in der letzten Runde. Lautstärke-, Musik- und Stummregler.
+- **Eingabe:** Gamepad-Navigation in allen Menüs, Touch-Steuerung mit Daumen-Stick, Tasten und optionaler Neigung, angepasstes Layout für kurze Bildschirme.
+- **Performance:** `?fps`-Anzeige, Draw-Calls je nach Strecke um 13–59 % gesenkt, Physik und Rennszene nachgeladen (erster Download ca. 1,9 → 0,25 MB gzip).
+- **Barrierefreiheit:** Farbenblind-Modus, Untertitel, freie Tastenbelegung, reduzierte Bewegung respektiert.
+- **Tests:** 116 Unit-Tests, 14 Playwright-Tests grün (neu in M12: Ton, Gamepad, Handy, Einstellungen). `ai:evaluate` unverändert reproduzierbar.
+- **Offen für den Menschen:** echte FPS auf einem Laptop prüfen (`?fps`), Sound anhören, Pages einschalten – siehe `BLOCKERS.md`. Version `0.12.0`, Tag `v0.12.0` nur lokal.

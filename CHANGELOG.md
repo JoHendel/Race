@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v0.12.0 – Sound & polish
+- **Accessibility:** colour-blind mode, captions for important sounds, free key bindings – all in the new Settings menu
+- Menu animations (switched off when the system asks for reduced motion)
 - **Sound:** engine with gear shifts and a voice per car class, tyre squeal, nitro hiss, boost, countdown, lap and finish jingles, item sounds – all synthesised in the browser, no downloads
 - Volume slider and mute switch on the title screen (M mutes anywhere)
 - **Music:** a synthwave soundtrack generated live – calm in the menu, driving in the race, faster with a lead line on the final lap; own music slider

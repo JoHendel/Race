@@ -48,6 +48,12 @@ class Sound {
   private wantedSong: SongId | null = null;
   settings: AudioSettings;
   private readonly listeners = new Set<(s: AudioSettings) => void>();
+  private readonly playListeners = new Set<(name: SoundName) => void>();
+
+  /** Called for every one-shot sound (also while muted or before audio is unlocked) – for captions. */
+  onPlay(fn: (name: SoundName) => void): void {
+    this.playListeners.add(fn);
+  }
 
   constructor() {
     let stored: string | null = null;
@@ -159,6 +165,7 @@ class Sound {
 
   /** One-shot effect; `gain` scales it (e.g. by distance). */
   play(name: SoundName, gain = 1): void {
+    if (gain >= 0.05) for (const l of this.playListeners) l(name);
     if (!this.ready || gain < 0.01) return;
     const k = gain;
     switch (name) {
