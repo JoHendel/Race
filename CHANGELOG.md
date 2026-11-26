@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Own scenery for Sunset Canyon (desert with layered mesas and cacti), Skyline Loop (neon skyscrapers with lit windows) and Grand Circuit (grandstands with crowds, pit building, flags)
+
 ## v0.9.0 – All tracks
 - **Track vote** in the online lobby: three random tracks, everyone votes, a wheel decides ties
 - New track **Glacier Rift**: ice patches with less grip, an ice cave and northern lights – the Neon Cup now has four tracks

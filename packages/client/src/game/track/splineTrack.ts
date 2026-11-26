@@ -6,6 +6,7 @@ import { CURB_WIDTH, LEAF_THICKNESS, TrackGeometry, mulberry32, stripRibbon, str
 import { buildJungle, buildTemple } from "./jungle";
 import { buildLavaTube, buildVolcano } from "./volcano";
 import { buildGlassTube, buildOrbital } from "./orbital";
+import { buildCircuit, buildCity, buildDesert } from "./scenery";
 
 export { mulberry32, toGeometry };
 
@@ -39,6 +40,9 @@ export class SplineTrack extends TrackGeometry {
     else if (scenery === "jungle") buildJungle(this);
     else if (scenery === "volcano") buildVolcano(this);
     else if (scenery === "orbital") buildOrbital(this);
+    else if (scenery === "desert") buildDesert(this);
+    else if (scenery === "city") buildCity(this);
+    else if (scenery === "circuit") buildCircuit(this);
     else this.buildScenery();
   }
 

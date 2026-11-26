@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M10 starten – zuerst eigene Kulissen für Sunset Canyon (Wüste: Sandboden, Tafelberge, Kakteen), Skyline Loop (Hochhäuser mit Leuchtreklame) und Grand Circuit (Tribünen, Boxengasse) als Module wie `track/jungle.ts`; danach CC0-Assets prüfen (TODO.md M10).
+**Nächster Schritt:** M10 weiter – CC0-Assets prüfen: Lizenz und Größe von Kenney Car Kit / Racing Kit und Poly-Haven-HDRIs (nur CC0, Download über pip/npm nicht möglich → über WebFetch der Lizenzseite prüfen; Dateien nur einbinden, wenn sie aus dem Netz der Umgebung erreichbar sind, sonst als Blocker mit Anleitung).
 
 | Meilenstein | Status |
 | --- | --- |
@@ -94,3 +94,8 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - KI-Training nutzt `forTraining()`; `ai:evaluate` blieb bei jedem Schritt bit-genau gleich.
 - Offen (nach M10/M12 verschoben): Abkürzungen/Ereignisse für Skyline Loop, Glacier Rift, Grand Circuit; Rundenzeiten unter dem Zielbereich 45–75 s; eigene Kulissen für Sunset Canyon, Skyline Loop, Grand Circuit.
 - 66 Unit-Tests, 7 E2E-Tests grün. Tag `v0.9.0` lokal.
+
+## Zwischenstand M10 (Grafik & Assets)
+
+- Jede Strecke hat jetzt eine eigene Kulisse (Wüste, Stadt, Rennstrecke neu). Nur Optik, keine Collider – `ai:evaluate` bit-genau gleich.
+- Hinweis Leistung: Im Headless-Browser (Software-Rendering) ca. 5–6 FPS, nicht aussagekräftig; echte Messung auf einem Mittelklasse-Laptop steht aus (M12).

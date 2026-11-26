@@ -116,7 +116,7 @@ export function withoutShortcuts(def: TrackDef): TrackDef {
 }
 
 export interface TrackEnvironment {
-  scenery: "harbor" | "glacier" | "jungle" | "volcano" | "orbital";
+  scenery: "harbor" | "glacier" | "jungle" | "volcano" | "orbital" | "desert" | "city" | "circuit";
   /** Lap share where the track runs through a waterfall (visual only). */
   waterfall?: number;
   /** Lap shares of a rope bridge section: wooden deck, rope railings, pillars (visual only). */
@@ -199,6 +199,12 @@ export const SUNSET_CANYON: TrackDef = {
   ramps: [{ at: 0.36, length: 16, height: 3 }],
   shortcuts: [{ from: 0.515, to: 0.7, via: [[292, -40], [287, -112]], width: 10, kind: "canyon" }],
   events: [{ kind: "rockfall", shortcut: 0, fromLap: 2 }],
+  environment: {
+    scenery: "desert",
+    sky: { top: 0x1c0b2e, mid: 0x7a2a45, horizon: 0xff9a3d },
+    fog: 0x5a2a30,
+    sun: 0xff8a1f,
+  },
   blurb: "Wüstenschlucht im Abendlicht, großer Sprung, Steinschlag öffnet ab Runde 2 eine Abkürzung",
 };
 
@@ -224,6 +230,12 @@ export const SKYLINE_LOOP: TrackDef = {
     [15, 0, -90],
   ],
   ramps: [{ at: 0.62, length: 12, height: 2 }],
+  environment: {
+    scenery: "city",
+    sky: { top: 0x03030f, mid: 0x1a0b3a, horizon: 0x9b5cff },
+    fog: 0x120828,
+    sun: null,
+  },
   blurb: "Hochhäuser und Rampen zwischen den Dächern",
 };
 
@@ -251,6 +263,12 @@ export const GRAND_CIRCUIT: TrackDef = {
     [35, 0, -60],
   ],
   ramps: [{ at: 0.46, length: 12, height: 1.8 }],
+  environment: {
+    scenery: "circuit",
+    sky: { top: 0x0a1a3a, mid: 0x2a4a7a, horizon: 0xffb36b },
+    fog: 0x2a3550,
+    sun: 0xffc94d,
+  },
   blurb: "Klassische Rennstrecke, lange Geraden für den Windschatten",
 };
 

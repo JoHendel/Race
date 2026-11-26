@@ -62,6 +62,6 @@
 - [ ] Kenney Car Kit / Quaternius Cars (CC0) prüfen: als GLB einbinden oder bei den prozeduralen Karosserien bleiben (Ladegröße < 15 MB, Lizenz in assets/CREDITS.md)
 - [ ] Poly-Haven-HDRI pro Strecke (CC0) für Reflexionen statt RoomEnvironment, komprimiert
 - [ ] Texturen (Asphalt, Fels, Eis, Sand) von ambientCG/Poly Haven als WebP
-- [ ] Kulisse für Skyline Loop (Hochhäuser), Sunset Canyon (Wüste) und Grand Circuit (Tribünen, Boxengasse) – bisher Hafen-Kulisse
+- [x] Kulissen: Sunset Canyon (Wüste, Tafelberge, Kakteen), Skyline Loop (Hochhäuser mit Fenstern und Leuchtbändern), Grand Circuit (Tribünen mit Publikum, Boxengebäude, Fahnen, Bäume) – `track/scenery.ts`
 - [ ] Neon-Post-Processing feinjustieren (Bloom pro Strecke, Farbkorrektur, leichte Bewegungsunschärfe)
 - [ ] Bundle-Größe: Three.js/Rapier aufteilen (dynamic import), Ladebildschirm
