@@ -35,3 +35,14 @@ describe("computeAwards", () => {
     expect(computeAwards([{ id: "a", name: "A", bestLap: null, driftTime: 0, overtakes: 0, worstPlace: 1, finalPlace: 1 }])).toEqual([]);
   });
 });
+
+describe("cup bonus points", () => {
+  it("adds extra points such as the rival bonus", () => {
+    const s = new CupStandings(2);
+    s.add([
+      { id: "me", name: "Me", color: 0, place: 2, fastestLap: false, bonus: 1 },
+      { id: "x", name: "X", color: 0, place: 1, fastestLap: false },
+    ]);
+    expect(s.table().find((r) => r.id === "me")!.points).toBe(13);
+  });
+});

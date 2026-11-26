@@ -256,6 +256,10 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .swatch.on { border-color: var(--white); box-shadow: 0 0 8px var(--white); }
 .g-flash { margin-right: auto; color: var(--orange); font-size: 0.85rem; align-self: center; }
 .g-flash.pop { animation: fadeIn 0.3s; }
+.rival-badge { display: inline-block; margin-left: 0.4rem; padding: 0 0.35rem; border-radius: 4px; background: #ff4d6d; color: #10061c; font-size: 0.7rem; font-weight: 900; font-style: italic; vertical-align: middle; }
+.rival-result { margin-top: 0.6rem; font-weight: 700; color: #ff8aa0; }
+.rival-result:empty { display: none; }
+.rival-result b { color: #ffd34d; }
 .solo-result { margin-top: 0.8rem; font-weight: 700; color: var(--cyan); }
 .solo-result em { color: #ffd34d; font-style: normal; margin-left: 0.4rem; }
 .drift-score { position: absolute; top: 5.5rem; left: 50%; transform: translateX(-50%); text-align: center; font-style: italic; font-weight: 800; color: #f4f6ff; text-shadow: 0 0 12px var(--magenta); pointer-events: none; }

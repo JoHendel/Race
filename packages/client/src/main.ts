@@ -6,7 +6,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { DEFAULT_POST_FX, GradeShader, type PostFx } from "./game/postFx";
-import { CupStandings, DEFAULT_LAPS, NEON_HARBOR, TRACKS, WEATHER_CHOICES, WEATHER_NAMES, clampLaps, isWeatherChoice, resolveWeather, type TrackDef, type WeatherChoice } from "@apex/shared";
+import { CupStandings, DEFAULT_LAPS, RivalBook, NEON_HARBOR, TRACKS, WEATHER_CHOICES, WEATHER_NAMES, clampLaps, isWeatherChoice, resolveWeather, type TrackDef, type WeatherChoice } from "@apex/shared";
 import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } from "@apex/net";
 import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
@@ -256,6 +256,8 @@ function bindTrackPicker(): void {
   show();
 }
 
+/** Rivals are kept over all offline races of this visit. */
+const offlineRivals = new RivalBook();
 let cup: { round: number; total: number; standings: CupStandings; tracks: TrackDef[] } | null = null;
 
 function startGrandPrix(): void {
@@ -279,6 +281,7 @@ async function startOfflineRace(mode: RaceMode = "race"): Promise<void> {
       weather: resolveWeather(selectedWeather, Math.random),
       chaos: mode === "race" && chaosMode,
       mode,
+      rivals: offlineRivals,
       laps: clampLaps(Number(params.get("laps") ?? (mode === "timetrial" ? 5 : DEFAULT_LAPS))),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
       skill: "normal",
@@ -539,6 +542,7 @@ async function beginOnlineRace(
       // the host resolves "random" before the start, so this is the same for everyone
       weather: resolveWeather(weather, Math.random),
       chaos: Boolean(chaos),
+      rivals: s instanceof HostSession ? s.rivals : undefined,
       autopilot: params.has("autopilot"),
     },
     {

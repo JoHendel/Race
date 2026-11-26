@@ -32,6 +32,9 @@ import {
   FxLimiter,
   isEmote,
   type FxKind,
+  RivalBook,
+  RIVAL_BONUS_POINTS,
+  RIVAL_BONUS_XP,
   pickHighlights,
   type Replay,
 } from "@apex/shared";
@@ -142,6 +145,8 @@ export interface RaceOptions {
   weather?: Weather;
   /** Chaos mode: item boxes and power-ups. */
   chaos?: boolean;
+  /** Rival bookkeeping kept across the races of a session (offline/host). */
+  rivals?: RivalBook;
   /** Game mode: normal race, time trial against the own ghost, or drift challenge (both alone). */
   mode?: RaceMode;
 }
@@ -191,6 +196,8 @@ export class RaceScene {
   private podium: Podium | null = null;
   private readonly carFx: CarFx;
   private readonly fxLimiter = new FxLimiter();
+  private readonly rivals: RivalBook | null;
+  private rivalBeaten = false;
   private readonly canvas: HTMLCanvasElement;
   private readonly replayRec = new ReplayRecorder();
   private replayClock = 0;
@@ -362,6 +369,8 @@ export class RaceScene {
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
     this.carFx = new CarFx(this.scene, this.camera);
+    this.rivals = this.role === "client" || this.solo ? null : (options.rivals ?? new RivalBook());
+    this.carFx.setRival(this.rivalRacer?.car.mesh ?? null);
     window.addEventListener("keydown", this.onFxKey);
   }
 
@@ -389,6 +398,20 @@ export class RaceScene {
     else if (isEmote(value)) {
       if (this.podium && r.onPodium) this.podium.showEmote(r.car, value);
       else this.carFx.emote(r.car.mesh, value);
+    }
+  }
+
+  private get rivalRacer(): Racer | null {
+    const id = this.rivals?.rival();
+    return (id && this.racers.find((r) => r.id === id && r !== this.player)) || null;
+  }
+
+  /** Someone just overtook the local player. */
+  private notePassedPlayer(passer: Racer): void {
+    if (!this.rivals || passer === this.player) return;
+    if (this.rivals.add(passer.id)) {
+      this.carFx.setRival(passer.car.mesh);
+      this.raceHud.showBanner(`NEUER RIVALE: ${passer.name.toUpperCase()}`, 2.5);
     }
   }
 
@@ -839,6 +862,7 @@ export class RaceScene {
       if (this.raceTime > 3 && !this.finished(r) && place < r.lastPlace) {
         r.overtakes += r.lastPlace - place;
         this.botBanter(r, ranked[i + 1]);
+        if (ranked[i + 1] === this.player) this.notePassedPlayer(r);
       }
       if (this.raceTime > 3) r.worstPlace = Math.max(r.worstPlace, place);
       r.lastPlace = place;
@@ -866,12 +890,21 @@ export class RaceScene {
   /** Alle im Ziel oder Frist abgelaufen: Wertung festschreiben und Siegertreppe zeigen. */
   private onResultsFinal(): void {
     const cup = this.options.cup;
+    const order = this.ranking().map((r) => r.id);
+    this.rivalBeaten = Boolean(this.rivals?.beaten(order, this.player.id) && this.rivalRacer);
     if (cup && !this.cupRecorded) {
       this.cupRecorded = true;
       const ranked = this.ranking();
       const fastest = Math.min(...this.racers.map((r) => this.status(r).bestLap ?? Infinity));
       cup.standings.add(
-        ranked.map((r, i) => ({ id: r.id, name: r.name, color: r.color, place: i + 1, fastestLap: this.status(r).bestLap === fastest })),
+        ranked.map((r, i) => ({
+          id: r.id,
+          name: r.name,
+          color: r.color,
+          place: i + 1,
+          fastestLap: this.status(r).bestLap === fastest,
+          bonus: r === this.player && this.rivalBeaten ? RIVAL_BONUS_POINTS : 0,
+        })),
       );
     }
     this.grantReward();
@@ -885,6 +918,7 @@ export class RaceScene {
     const place = this.playerPlace;
     const s = this.status(this.player);
     const reward = raceReward(place, this.racers.length, s.finishTime !== null, s.drift ?? this.player.driftTime, s.overtakes ?? this.player.overtakes);
+    if (this.rivalBeaten) reward.xp += RIVAL_BONUS_XP;
     const cup = this.options.cup;
     const cupWin = Boolean(cup && cup.standings.finished && cup.standings.table()[0]?.id === this.player.id);
     this.rewardSummary = this.callbacks.onReward(reward, { place, cupWin });
@@ -941,6 +975,7 @@ export class RaceScene {
           <tbody></tbody>
         </table>
         ${this.solo ? `<div class="solo-result" data-testid="solo-result">${this.solo.summary()}</div>` : ""}
+        <div class="rival-result" data-testid="rival-result"></div>
         <div class="awards" data-testid="awards"></div>
         <div class="reward"></div>
         ${cup ? `<div class="standings"></div>` : ""}
@@ -981,17 +1016,24 @@ export class RaceScene {
       .map((r, i) => {
         const s = this.status(r);
         const isFastest = s.bestLap !== null && s.bestLap === fastest;
-        const pts = pointsForPlace(i + 1, isFastest);
+        const pts = pointsForPlace(i + 1, isFastest) + (r === this.player && this.rivalBeaten ? RIVAL_BONUS_POINTS : 0);
+        const rivalTag = r === this.rivalRacer ? ' <span class="rival-badge">RIVALE</span>' : "";
         const time = s.finishTime !== null ? formatTime(s.finishTime) : this.resultsFinal ? "DNF" : "fährt …";
         return `<tr class="${r === this.player ? "me" : ""}">
           <td>${i + 1}</td>
-          <td><span class="dot" style="background:#${r.color.toString(16).padStart(6, "0")}"></span>${escapeHtml(r.name)}${r.id === APEX_AI_ID ? ' <span class="ai-badge" title="Neural network driver">KI</span>' : ""}</td>
+          <td><span class="dot" style="background:#${r.color.toString(16).padStart(6, "0")}"></span>${escapeHtml(r.name)}${r.id === APEX_AI_ID ? ' <span class="ai-badge" title="Neural network driver">KI</span>' : ""}${rivalTag}</td>
           <td>${time}</td>
           <td>${formatTime(s.bestLap)}${isFastest ? " ⚡" : ""}</td>
           <td>${pts}</td>
         </tr>`;
       })
       .join("");
+    const rivalNote = this.results.querySelector(".rival-result");
+    const rival = this.rivalRacer;
+    if (rivalNote && this.resultsFinal && rival)
+      rivalNote.innerHTML = this.rivalBeaten
+        ? `Rivale ${escapeHtml(rival.name)} besiegt! <b>+${RIVAL_BONUS_POINTS} Punkt · +${RIVAL_BONUS_XP} XP</b>`
+        : `Dein Rivale ${escapeHtml(rival.name)} war schneller – Revanche?`;
     const awards = this.results.querySelector(".awards");
     if (awards) {
       awards.innerHTML = this.resultsFinal

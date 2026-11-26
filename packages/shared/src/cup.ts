@@ -6,6 +6,8 @@ export interface RaceResultEntry {
   color: number;
   place: number;
   fastestLap: boolean;
+  /** Extra points (e.g. for beating the rival). */
+  bonus?: number;
 }
 
 export interface StandingRow {
@@ -28,7 +30,7 @@ export class CupStandings {
     this.races++;
     for (const r of results) {
       const row = this.rows.get(r.id) ?? { id: r.id, name: r.name, color: r.color, points: 0, wins: 0, lastPlace: r.place };
-      row.points += pointsForPlace(r.place, r.fastestLap);
+      row.points += pointsForPlace(r.place, r.fastestLap) + (r.bonus ?? 0);
       if (r.place === 1) row.wins++;
       row.lastPlace = r.place;
       row.name = r.name;

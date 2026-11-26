@@ -76,6 +76,8 @@
 - [x] Replay & Fotomodus: alle Autos alle 0,1 s aufgezeichnet (Ghost-Format), Abspielen mit Verfolger-/Orbit-/freier Kamera, Zeitlupe 0,5×/0,25×, Pause, Zeitleiste, Fahrerwechsel, PNG-Foto ohne UI
 - [x] Highlight-Clip: knappste Überholung, längster Drift, größter Sprung, zusammen max. 15 s mit Zeitlupe; läuft nach Offline-Rennen automatisch, sonst per Knopf
 - [x] Emotes (Tasten 1–6, auch auf dem Podest) und Hupe (H, eigener Zweiklang pro Automodell per WebAudio, leiser mit Abstand) für alle sichtbar/hörbar; online über `fx`-Nachricht, Host prüft und begrenzt; Bots hupen/winken manchmal beim knappen Überholen
-- [ ] Zuschauermodus, Rivalen-System
+- [x] Rivalen-System: wer dich am öftesten überholt hat (ab 2×, über alle Rennen der Sitzung), wird Rivale – Markierung über dem Auto, Banner, Abzeichen in der Tabelle; Rivale geschlagen = +1 GP-Punkt und +60 XP (offline und Host; Clients noch ohne)
+- [ ] Zuschauermodus (wer während eines Rennens beitritt, schaut zu und fährt im nächsten Rennen mit)
+- [ ] Rivalen auch für Online-Clients (Host schickt pro Spieler den Rivalen)
 - [x] Drift-Challenge: Punkte nach Driftwinkel und Tempo, Combo bis ×3 bei langen Drifts, Mauerkontakt im Drift verliert die Punkte, Bestwert pro Strecke
 - [ ] Weltbestzeit-Ghost (bräuchte Server/Gist – vorerst nur eigene Bestzeit)

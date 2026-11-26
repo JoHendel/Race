@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M11 weiter – Emotes im Rennen online synchronisieren (Nachricht über net, Anzeige über dem Auto bei allen) und Hupe (Taste H, eigener Ton pro Auto über WebAudio-Oszillator, bis echte CC0-Sounds in M12 kommen); danach Zuschauermodus und Rivalen.
+**Nächster Schritt:** M11 weiter – Zuschauermodus: wer einer Lobby beitritt, während ein Rennen läuft, bekommt die Snapshots, sieht das Rennen mit Kamera auf wechselnde Fahrer (Q/E wie im Replay) und ist im nächsten Rennen dabei; danach Rivalen für Online-Clients und M11 abschließen.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -117,3 +117,5 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Chaos-Modus: `shared/items.ts` (Verteilung), `sim/items.ts` (ItemSystem, deterministisch, eigener Zufallsstrom), `client/game/chaos.ts` (Optik, HUD, Online-Abgleich über `snap.chaos`, Nachricht `useItem`). Headless: alle im Ziel, reproduzierbar. Im Browser: alle 5 Items in einer Runde benutzt.
 - Zeitrennen & Drift-Challenge: Logik in `shared/ghost.ts` (Aufzeichnung, Kodierung, Interpolation, Drift-Punkte, getestet), Spielseite in `client/game/soloMode.ts`. Im Browser geprüft: Ghost gespeichert (3,9 KB), zweiter Lauf zeigt Ghost und Bestzeit im HUD; Drift-Punkte mit Combo und CRASH bei Mauerkontakt. Neuer e2e-Test. `ai:evaluate` bit-genau gleich.
 - Replay & Highlights: `shared/replay.ts` (ReplayRecorder, replayPose, pickHighlights, getestet), `client/game/replayView.ts`, Foto über `frameHooks.ts` direkt nach dem Zeichnen. Im Browser geprüft (Sunset Canyon: 7 Autos, 43 s, 31 Überholungen, 11 Sprünge erkannt), e2e-Test erweitert (Replay, Foto-Download, Highlights überspringen).
+- Hupe & Emotes: `shared/fx.ts` (Emote-Liste, Hupe pro Automodell, FxLimiter), `client/game/carFx.ts` (Sprites, WebAudio), Nachricht `fx` in beide Richtungen. Online-e2e prüft Emote Client→Host und Hupe Host→Client.
+- Rivalen: `shared/rivals.ts` (RivalBook, getestet), Bonuspunkt über `bonus` in `CupStandings`. Im Browser: Rivale nach 2 Überholungen, Markierung, Ergebnis „You beat your rival … +1 point · +60 XP“. Alle 9 e2e-Tests grün.

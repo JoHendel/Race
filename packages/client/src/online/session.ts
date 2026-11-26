@@ -10,7 +10,7 @@ import {
   type LobbySettings,
   type SignalingProvider,
 } from "@apex/net";
-import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, TRACKS, VOTE_SECONDS, clampLaps, isEmote, isWeatherChoice, FxLimiter, type FxKind, pickCandidates, resolveWeather, tallyVotes, trackById } from "@apex/shared";
+import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, TRACKS, VOTE_SECONDS, clampLaps, isEmote, isWeatherChoice, FxLimiter, RivalBook, type FxKind, pickCandidates, resolveWeather, tallyVotes, trackById } from "@apex/shared";
 import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry, type RaceScene } from "../game/raceScene";
 import { currentCar } from "../save";
 
@@ -35,6 +35,8 @@ export const VOTE_RESULT_SECONDS = { plain: 2, wheel: 4 };
 /** Host einer Online-Runde: verwaltet Lobby, Startaufstellung und sendet Snapshots. */
 export class HostSession {
   private readonly fxLimiter = new FxLimiter(0.5);
+  /** The host's rivals over the races in this room. */
+  readonly rivals = new RivalBook();
 
   /** Relay a horn/emote (from the host, a bot or a client) to every client. */
   sendFx(id: string, kind: FxKind, value?: string): void {
