@@ -134,10 +134,10 @@ async function startDrive(): Promise<void> {
   busy = false;
 }
 
-/** Grand Prix: 4 Rennen eines Cups. Solange der Cup weniger Strecken hat, wiederholen sie sich. */
+/** Grand Prix: the 4 races of the cup the selected track belongs to (Neon Cup or Turbo Cup). */
 function cupTracks(): TrackDef[] {
-  const neon = TRACKS.filter((t) => t.cup === "neon");
-  return Array.from({ length: 4 }, (_, i) => neon[i % neon.length]!);
+  const tracks = TRACKS.filter((t) => t.cup === selectedTrack.cup);
+  return Array.from({ length: 4 }, (_, i) => tracks[i % tracks.length]!);
 }
 
 const TRACK_KEY = "apexrush.track";
@@ -159,6 +159,7 @@ function bindTrackPicker(): void {
   if (!root) return;
   const show = () => {
     root.querySelector("[data-field=track-name]")!.textContent = selectedTrack.name;
+    root.querySelector("[data-field=track-cup]")!.textContent = selectedTrack.cup === "neon" ? "Neon Cup" : "Turbo Cup";
     root.querySelector("[data-field=track-blurb]")!.textContent = selectedTrack.blurb ?? "";
   };
   root.querySelectorAll<HTMLButtonElement>("[data-dir]").forEach((b) => {

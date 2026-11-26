@@ -52,7 +52,8 @@
 - [x] Steinschlag Sunset Canyon: Felssperre schließt die Schlucht-Abkürzung, ab Runde 2 stürzen Brocken herab, Sperre bricht zusammen (Staubwolke), Abkürzung frei (spart ca. 0,65 s); Minimap rot/orange
 - [x] Jungle Ruins (Turbo Cup): Achter-Layout, Wasserfall-Durchfahrt, Hangbrücke, Sprung, Tempel-Abkürzung (stürzt ab Runde 2 ein, spart ca. 0,4 s), eigene Dschungel-Kulisse mit Stufenpyramide
 - [x] Volcano Rush (Turbo Cup): Spirale um den Vulkan, 3 Lavafelder auf je einer Fahrbahnhälfte (starke Bremswirkung), wechseln jede Runde die Seite; Lavatunnel-Abkürzung (ca. 0,9 s), Sprung; Bots weichen aus und driften nicht neben Lava
-- [ ] Turbo Cup: Orbital Station (geringe Schwerkraft, Looping)
+- [x] Orbital Station (Turbo Cup): Dreieck mit zwei langen Sprüngen, Schwerkraft 4,2 m/s² (am Boden normaler Anpressdruck), Glasröhren-Abkürzung, Raumstations-Kulisse; Looping bewusst weggelassen (DECISIONS.md)
+- [x] Grand Prix spielt den Cup der gewählten Strecke (Neon Cup / Turbo Cup), Cup-Name in der Streckenwahl
 - [ ] APEX-AI kennt Lava/Eis nicht (kein Merkmal) – Kandidat für ein v3-Training mit Untergrund-Merkmal
 - [ ] Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand)
 - [ ] Rundenzeiten auf 45–75 s bringen (aktuell ca. 35–45 s für schnelle Fahrer)

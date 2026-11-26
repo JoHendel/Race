@@ -43,6 +43,16 @@ test("Track selection cycles through all tracks and is remembered", async ({ pag
   await expect(name).toHaveText(picked!);
 });
 
+test("Grand Prix plays the cup of the selected track", async ({ page }) => {
+  await page.goto("./?track=jungle-ruins&laps=1&bots=1");
+  await expect(page.locator("[data-field=track-cup]")).toHaveText("Turbo Cup");
+  await page.getByTestId("grand-prix").click();
+  await page.waitForFunction(() => Boolean((window as ApexWindow).apex?.race));
+  const track = await page.evaluate(() => (window as unknown as { apex: { race: { track: { def: { id: string; cup: string } } } } }).apex.race.track.def);
+  expect(track.cup).toBe("turbo");
+  expect(track.id).toBe("grand-circuit");
+});
+
 test("Testgelände: das Auto fährt los", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("./");

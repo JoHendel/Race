@@ -15,6 +15,8 @@ export interface TrackDef {
   surfaces?: TrackSurface[];
   /** Official shortcuts: leave the track at `from`, rejoin at `to` (lap shares). */
   shortcuts?: TrackShortcut[];
+  /** Gravity in m/s² (default 9.81). Low gravity means longer jumps; on the ground the car is pressed down normally. */
+  gravity?: number;
   /** Dynamic events that change the track during the race. */
   events?: TrackEvent[];
   /** Look of the surroundings (sky, fog, scenery). Default: neon night harbor. */
@@ -39,7 +41,7 @@ export interface TrackShortcut {
   via: [number, number][];
   width: number;
   /** What the shortcut runs through (visual only). */
-  kind: "warehouse" | "canyon" | "temple" | "lavatube";
+  kind: "warehouse" | "canyon" | "temple" | "lavatube" | "glasstube";
 }
 
 /**
@@ -114,7 +116,7 @@ export function withoutShortcuts(def: TrackDef): TrackDef {
 }
 
 export interface TrackEnvironment {
-  scenery: "harbor" | "glacier" | "jungle" | "volcano";
+  scenery: "harbor" | "glacier" | "jungle" | "volcano" | "orbital";
   /** Lap share where the track runs through a waterfall (visual only). */
   waterfall?: number;
   /** Lap shares of a rope bridge section: wooden deck, rope railings, pillars (visual only). */
@@ -363,7 +365,51 @@ export const VOLCANO_RUSH: TrackDef = {
   blurb: "Vulkaninsel, Lavaströme wechseln jede Runde die Seite, Lavatunnel als Abkürzung",
 };
 
-export const TRACKS: TrackDef[] = [NEON_HARBOR, SUNSET_CANYON, SKYLINE_LOOP, GLACIER_RIFT, GRAND_CIRCUIT, JUNGLE_RUINS, VOLCANO_RUSH];
+export const ORBITAL_STATION: TrackDef = {
+  id: "orbital-station",
+  name: "Orbital Station",
+  cup: "turbo",
+  width: 16,
+  accent: 0x00e5ff,
+  accent2: 0xf4f6ff,
+  gravity: 4.2,
+  points: [
+    [0, 0, 0],
+    [0, 2, 110],
+    [2, 4, 210],
+    [30, 6, 248],
+    [78, 7, 240],
+    [100, 7, 190],
+    [150, 6, 105],
+    [205, 5, 15],
+    [245, 3, -35],
+    [250, 2, -95],
+    [200, 0, -125],
+    [110, 0, -110],
+    [35, 0, -60],
+  ],
+  // flat ramps: with low gravity even a small kick gives a long jump that still lands on the straight
+  ramps: [
+    { at: 0.07, length: 16, height: 1.6 },
+    { at: 0.41, length: 16, height: 1.6 },
+  ],
+  shortcuts: [{ from: 0.6, to: 0.78, via: [[218, -58], [196, -96]], width: 10, kind: "glasstube" }],
+  environment: {
+    scenery: "orbital",
+    sky: { top: 0x000005, mid: 0x050818, horizon: 0x1b2a6b },
+    fog: 0x02030c,
+    // a pale, dim sun – a bright one would wash out the view through bloom
+    sun: 0x4a5a8a,
+  },
+  blurb: "Raumstation mit geringer Schwerkraft, lange Sprünge, Abkürzung durch die Glasröhre",
+};
+
+/** Default gravity of a track in m/s². */
+export function trackGravity(def: TrackDef): number {
+  return def.gravity ?? 9.81;
+}
+
+export const TRACKS: TrackDef[] = [NEON_HARBOR, SUNSET_CANYON, SKYLINE_LOOP, GLACIER_RIFT, GRAND_CIRCUIT, JUNGLE_RUINS, VOLCANO_RUSH, ORBITAL_STATION];
 
 export function trackById(id: string): TrackDef | undefined {
   return TRACKS.find((t) => t.id === id);

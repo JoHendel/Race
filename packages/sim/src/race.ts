@@ -1,5 +1,5 @@
 import RAPIER from "@dimforge/rapier3d-compat";
-import { LapTracker, carById, statsFor, stockTuning, type TrackDef, type Tuning } from "@apex/shared";
+import { LapTracker, carById, statsFor, stockTuning, trackGravity, type TrackDef, type Tuning } from "@apex/shared";
 import { BotDriver, type BotSkill } from "./bot";
 import { IDLE_CONTROLS, type ControlState } from "./controls";
 import { mulberry32 } from "./random";
@@ -75,13 +75,14 @@ export class HeadlessRace {
     readonly laps: number,
     seed = 1,
   ) {
-    this.world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+    this.world = new RAPIER.World({ x: 0, y: -trackGravity(def), z: 0 });
     this.world.timestep = SIM_STEP;
     this.track = new TrackGeometry(this.world, def);
     const rnd = mulberry32(seed);
     specs.slice(0, 10).forEach((spec, slot) => {
       const carDef = carById(spec.carId ?? "volt-hatch");
       const car = new VehiclePhysics(this.world, statsFor(carDef, spec.tuning ?? stockTuning()), {}, wheelLayout(carDef));
+      car.groundPress = Math.max(0, 9.81 - trackGravity(def));
       const { pos, yaw } = this.track.gridSlot(slot);
       car.setResetPose(pos, yaw);
       car.reset();

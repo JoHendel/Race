@@ -104,6 +104,9 @@ export class VehiclePhysics {
 
   }
 
+  /** Extra downward acceleration (m/s²) while on the ground – set on low-gravity tracks. */
+  groundPress = 0;
+
   /** Current surface grip factor (1 = asphalt, < 1 = ice). */
   surfaceGrip = 1;
 
@@ -277,6 +280,8 @@ export class VehiclePhysics {
     // Abtrieb hält das Auto bei hohem Tempo am Boden.
     if (this.grounded) {
       this.body.applyImpulse({ x: 0, y: -absSpeed * 18 * dt * (mass / 1000), z: 0 }, true);
+      // Low-gravity tracks: the "magnetic" road presses the car down like normal gravity, so grip stays the same.
+      if (this.groundPress > 0) this.body.applyImpulse({ x: 0, y: -this.groundPress * mass * dt, z: 0 }, true);
     }
 
     // Auto-Reset: liegt das Auto auf dem Dach oder steckt fest, nach 2 s zurücksetzen.

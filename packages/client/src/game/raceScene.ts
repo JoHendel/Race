@@ -22,6 +22,7 @@ import {
   rankRacers,
   theme,
   DEFAULT_ENVIRONMENT,
+  trackGravity,
   type TrackDef,
 } from "@apex/shared";
 import { INTERPOLATION_DELAY, SnapshotBuffer, type CarState, type HostMessage, type RacerStatus } from "@apex/net";
@@ -193,7 +194,7 @@ export class RaceScene {
     sun.position.set(60, 120, 40);
     this.scene.add(sun);
 
-    this.world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+    this.world = new RAPIER.World({ x: 0, y: -trackGravity(options.track), z: 0 });
     this.world.timestep = STEP;
     this.track = new SplineTrack(this.world, options.track);
     this.scene.add(this.track.group);
@@ -229,6 +230,7 @@ export class RaceScene {
           : {},
         { def, looks },
       );
+      car.groundPress = Math.max(0, 9.81 - trackGravity(options.track));
       const { pos, yaw } = this.track.gridSlot(slot);
       car.setResetPose(pos, yaw);
       car.reset();
