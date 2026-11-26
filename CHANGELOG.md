@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## v0.10.0 – Graphics
+- README gallery with all 8 tracks
 - Procedural surface detail (asphalt grain, rock, cracked ice, sand dunes), bloom and colour grade per track
 - Loading screen that shows instantly; libraries split into cacheable chunks
 - Track-specific reflections from CC0 environment maps (Poly Haven, via @pmndrs/assets), loaded on demand

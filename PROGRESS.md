@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M10 abschließen – README-Screenshots aller 8 Strecken neu aufnehmen (Headless-Browser, `docs/media/`), Galerie in der README, dann M10-Abschlussbericht und M11 (Extra-Features: zuerst Wetter & Nacht) starten.
+**Nächster Schritt:** M11 starten – Wetter & Nacht: `Weather` ("clear" | "rain" | "fog" | "night") in `packages/shared`, Regen senkt Grip (Faktor wie Eis, für alle Fahrer gleich), Regen-Partikel + nasse Fahrbahn im Client, Nebel über Fog-Distanz, Nacht mit Scheinwerfer-SpotLights; Auswahl im Titelmenü und in der Lobby (Host), online in `LobbySettings`.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -14,8 +14,8 @@
 | M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | ✅ fertig |
 | M8 – Abgabe-Release (spätestens 18.12.2026) | ✅ fertig (Pages/Release brauchen den Menschen, siehe BLOCKERS.md) |
 | M9 – Alle Strecken | ✅ fertig |
-| M10 – Grafik & Assets | ⏳ als Nächstes |
-| M11 – Extra-Features | offen |
+| M10 – Grafik & Assets | ✅ fertig |
+| M11 – Extra-Features | ⏳ als Nächstes |
 | M12 – Sound & Feinschliff | offen |
 | M13 – Release v1.0 | offen |
 ## Berichte
@@ -101,3 +101,12 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Hinweis Leistung: Im Headless-Browser (Software-Rendering) ca. 5–6 FPS, nicht aussagekräftig; echte Messung auf einem Mittelklasse-Laptop steht aus (M12).
 - Reflexionen pro Strecke aus CC0-HDRIs (Poly Haven über npm `@pmndrs/assets`), per dynamischem Import nachgeladen. Kenney/Quaternius/Poly-Haven-Webseiten sind aus der Umgebung nicht erreichbar.
 - Prozedurale Normal-Maps (Asphalt, Fels, Eis, Sand), Bloom und Farbkorrektur pro Strecke, Ladebildschirm, Bibliotheken in eigenen Chunks. Erster Ladevorgang ca. 1,9 MB gzip (Ziel < 15 MB erfüllt).
+
+## Abschlussbericht M10 – Grafik & Assets
+
+- Eigene Kulisse für jede der 8 Strecken (Hafen, Wüste, Stadt, Gletscher, Rennstrecke, Dschungel, Vulkan, Raumstation).
+- Reflexionen aus CC0-HDRIs (Poly Haven via npm `@pmndrs/assets`), pro Strecke nachgeladen. Orbital Station auf die dunkle Nachtkarte umgestellt (Studio-Karte überbelichtete alles).
+- Prozedurale Normal-Maps, Bloom und Farbkorrektur pro Strecke, Ladebildschirm, Bibliotheks-Chunks. Erster Ladevorgang ca. 1,9 MB gzip.
+- README-Galerie mit allen 8 Strecken (englische UI).
+- Nicht umgesetzt: externe Automodelle (Kenney/Quaternius nicht erreichbar; optional per Upload, BLOCKERS.md), Higgsfield-Bilder (warten auf Login), Rapier lazy laden (M12).
+- `ai:evaluate` bit-genau gleich. Version 0.10.0, Tag `v0.10.0` lokal.

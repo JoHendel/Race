@@ -13,7 +13,8 @@ const HDRI: Record<TrackEnvironment["scenery"], () => Promise<{ default: string 
   glacier: () => import("@pmndrs/assets/hdri/dawn.exr"),
   jungle: () => import("@pmndrs/assets/hdri/forest.exr"),
   volcano: () => import("@pmndrs/assets/hdri/sunset.exr"),
-  orbital: () => import("@pmndrs/assets/hdri/studio.exr"),
+  // dark map: the bright studio HDRI washed the whole station out
+  orbital: () => import("@pmndrs/assets/hdri/night.exr"),
   circuit: () => import("@pmndrs/assets/hdri/park.exr"),
 };
 

@@ -10,13 +10,25 @@
 
 </div>
 
-> 🚧 **Work in progress.** Playable today: online races with up to 10 players, Grand Prix and single races against bots, a garage with 12 cars, and a test ground. Every commit on `main` is deployed automatically.
+> 🚧 **Work in progress.** Playable today: 8 tracks in 2 cups, online races with up to 10 players, Grand Prix and single races against bots and the APEX-AI driver, a garage with 12 cars, and a test ground. Every commit on `main` is deployed automatically.
 
 | Racing against the field | Podium ceremony |
 | --- | --- |
 | ![Race](docs/media/race.png) | ![Podium](docs/media/podium.png) |
 | **Results & Grand Prix standings** | **Garage & tuning** |
 | ![Results](docs/media/results.png) | ![Garage](docs/media/garage.png) |
+
+## Tracks
+
+| Neon Cup | | | |
+| --- | --- | --- | --- |
+| ![Neon Harbor](docs/media/track-neon-harbor.png) | ![Sunset Canyon](docs/media/track-sunset-canyon.png) | ![Skyline Loop](docs/media/track-skyline-loop.png) | ![Glacier Rift](docs/media/track-glacier-rift.png) |
+| **Neon Harbor** – drawbridge from lap 2, warehouse shortcut | **Sunset Canyon** – rockfall opens a canyon shortcut | **Skyline Loop** – neon skyscrapers | **Glacier Rift** – ice patches, ice cave, northern lights |
+
+| Turbo Cup | | | |
+| --- | --- | --- | --- |
+| ![Grand Circuit](docs/media/track-grand-circuit.png) | ![Jungle Ruins](docs/media/track-jungle-ruins.png) | ![Volcano Rush](docs/media/track-volcano-rush.png) | ![Orbital Station](docs/media/track-orbital-station.png) |
+| **Grand Circuit** – grandstands and pit lane | **Jungle Ruins** – waterfall, rope bridge, temple shortcut | **Volcano Rush** – lava flows switch sides every lap | **Orbital Station** – low gravity, long jumps |
 
 ## Features
 

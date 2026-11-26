@@ -67,3 +67,12 @@
 - [ ] Leichte Bewegungsunschärfe bei hohem Tempo / Nitro (M12)
 - [x] Ladebildschirm (inline im HTML, sofort sichtbar), Bibliotheken als eigene Chunks (three 168 KB, peerjs 23 KB, Spiel 63 KB, Rapier 1,7 MB gzip)
 - [ ] Rapier erst beim ersten Rennen laden (dynamic import der Rennszene) – braucht Umbau der Importe in main.ts/session.ts
+
+## M11 – Extra-Features
+- [ ] Wetter & Tageszeit: Regen (weniger Grip, Regen-Shader, nasse Spiegelungen), Nebel, Nacht mit Scheinwerfern; pro Rennen wählbar oder zufällig (Titelmenü, Lobby)
+- [ ] Chaos-Modus mit Item-Boxen und Power-ups (EMP, Haftmine, Drohne, Schild, Turbo-Zelle), platzabhängige Verteilung
+- [ ] Ghosts (Bestzeit lokal), Zeitrennen-Modus
+- [ ] Replay & Fotomodus, Highlight-Clip
+- [ ] Emotes im Rennen online synchronisieren, Hupe
+- [ ] Zuschauermodus, Rivalen-System
+- [ ] Drift-Challenge-Modus
