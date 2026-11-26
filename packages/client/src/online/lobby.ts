@@ -1,5 +1,5 @@
 import type { LobbyPlayer, LobbySettings } from "@apex/net";
-import { MAX_LAPS, MIN_LAPS, TRACKS, carById } from "@apex/shared";
+import { MAX_LAPS, MIN_LAPS, TRACKS, WEATHER_CHOICES, WEATHER_NAMES, carById } from "@apex/shared";
 import { escapeHtml } from "../game/raceScene";
 
 export interface LobbyHandlers {
@@ -91,10 +91,15 @@ export class LobbyView {
           <select data-field="track" data-testid="lobby-track" ${settings.vote ? "disabled" : ""}>${TRACKS.map((t) => `<option value="${t.id}" ${t.id === settings.trackId ? "selected" : ""}>${t.name}</option>`).join("")}</select>
         </label>
         <label class="field inline"><input type="checkbox" data-field="vote" data-testid="lobby-vote" ${settings.vote ? "checked" : ""}/> Streckenwahl per Abstimmung</label>
+        <label class="field inline">Wetter
+          <select data-field="weather" data-testid="lobby-weather">${WEATHER_CHOICES.map((w) => `<option value="${w}" ${w === (settings.weather ?? "clear") ? "selected" : ""}>${WEATHER_NAMES[w]}</option>`).join("")}</select>
+        </label>
         <label class="field inline">Runden
           <input type="number" data-field="laps" min="${MIN_LAPS}" max="${MAX_LAPS}" value="${settings.laps}" />
         </label>
         <label class="field inline"><input type="checkbox" data-field="bots" ${settings.fillWithBots ? "checked" : ""}/> Mit Bots auffüllen</label>`;
+      const weatherSel = s.querySelector<HTMLSelectElement>("[data-field=weather]")!;
+      weatherSel.onchange = () => this.h.onSettings({ weather: weatherSel.value as LobbySettings["weather"] });
       const voteBox = s.querySelector<HTMLInputElement>("[data-field=vote]")!;
       voteBox.onchange = () => this.h.onSettings({ vote: voteBox.checked });
       const trackSel = s.querySelector<HTMLSelectElement>("[data-field=track]")!;

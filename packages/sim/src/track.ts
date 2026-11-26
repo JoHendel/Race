@@ -49,10 +49,13 @@ export class TrackGeometry {
   readonly curve: THREE.CatmullRomCurve3;
   readonly samples: TrackSample[] = [];
 
-  /** Grip factor of the surface at a sample index (1 = asphalt, lower = ice). */
+  /** Grip factor of the whole track from the weather (rain < 1). Used by the physics and by the bots. */
+  weatherGrip = 1;
+
+  /** Grip factor of the surface at a sample index (1 = dry asphalt, lower = ice or rain). */
   gripAt(index: number): number {
     const n = this.samples.length;
-    return surfaceGripAt(this.def, (((index % n) + n) % n) / n);
+    return surfaceGripAt(this.def, (((index % n) + n) % n) / n) * this.weatherGrip;
   }
   readonly length: number;
   readonly halfWidth: number;

@@ -23,6 +23,8 @@ export interface LobbySettings {
   fillWithBots: boolean;
   /** Choose the track by vote instead of the host's pick. */
   vote?: boolean;
+  /** Weather choice; in the start message it is already resolved (never "random"). */
+  weather?: "clear" | "rain" | "fog" | "night" | "random";
 }
 
 /** Zustand eines Autos: Position, Rotation (Quaternion), Tempo, Effekte. */

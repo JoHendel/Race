@@ -53,6 +53,17 @@ test("Grand Prix plays the cup of the selected track", async ({ page }) => {
   expect(track.id).toBe("grand-circuit");
 });
 
+test("Weather choice is used for the race and remembered", async ({ page }) => {
+  await page.goto("./?laps=1&bots=1");
+  await page.getByTestId("weather-fog").click();
+  await expect(page.getByTestId("weather-fog")).toHaveClass(/on/);
+  await page.goto("./?laps=1&bots=1");
+  await expect(page.getByTestId("weather-fog")).toHaveClass(/on/);
+  await page.locator("#race").click();
+  await page.waitForFunction(() => Boolean((window as ApexWindow).apex?.race));
+  expect(await page.evaluate(() => (window as unknown as { apex: { race: { weather: string } } }).apex.race.weather)).toBe("fog");
+});
+
 test("Testgelände: das Auto fährt los", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("./");

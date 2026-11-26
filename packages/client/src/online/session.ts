@@ -10,7 +10,7 @@ import {
   type LobbySettings,
   type SignalingProvider,
 } from "@apex/net";
-import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, TRACKS, VOTE_SECONDS, clampLaps, pickCandidates, tallyVotes, trackById } from "@apex/shared";
+import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, TRACKS, VOTE_SECONDS, clampLaps, isWeatherChoice, pickCandidates, resolveWeather, tallyVotes, trackById } from "@apex/shared";
 import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry, type RaceScene } from "../game/raceScene";
 import { currentCar } from "../save";
 
@@ -139,7 +139,8 @@ export class HostSession {
 
   updateSettings(patch: Partial<LobbySettings>): void {
     const trackId = patch.trackId && trackById(patch.trackId) ? patch.trackId : this.settings.trackId;
-    this.settings = { ...this.settings, ...patch, trackId, laps: clampLaps(patch.laps ?? this.settings.laps) };
+    const weather = patch.weather !== undefined && isWeatherChoice(patch.weather) ? patch.weather : this.settings.weather;
+    this.settings = { ...this.settings, ...patch, trackId, weather, laps: clampLaps(patch.laps ?? this.settings.laps) };
     this.emitLobby();
   }
 
@@ -162,7 +163,9 @@ export class HostSession {
         b++;
       }
     }
-    const msg: StartMessage = { t: "start", seed: Math.floor(Math.random() * 1e9), settings: this.settings, grid };
+    // resolve a random weather once, so every player gets the same
+    const settings = { ...this.settings, weather: resolveWeather(this.settings.weather, Math.random) };
+    const msg: StartMessage = { t: "start", seed: Math.floor(Math.random() * 1e9), settings, grid };
     this.lastStart = msg;
     this.transport?.broadcast(msg);
     for (const p of this.players) if (!p.isHost) p.ready = false;

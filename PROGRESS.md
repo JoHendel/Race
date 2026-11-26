@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M11 starten – Wetter & Nacht: `Weather` ("clear" | "rain" | "fog" | "night") in `packages/shared`, Regen senkt Grip (Faktor wie Eis, für alle Fahrer gleich), Regen-Partikel + nasse Fahrbahn im Client, Nebel über Fog-Distanz, Nacht mit Scheinwerfer-SpotLights; Auswahl im Titelmenü und in der Lobby (Host), online in `LobbySettings`.
+**Nächster Schritt:** M11 weiter – Chaos-Modus: Item-Boxen auf der Strecke (Daten in TrackGeometry aus Abständen erzeugt), Power-ups EMP/Haftmine/Drohne/Schild/Turbo-Zelle als Logik in `packages/sim` (Host-autoritativ, Tests zuerst), platzabhängige Verteilung in `packages/shared`, Schalter in der Lobby und im Titelmenü.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -110,3 +110,7 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - README-Galerie mit allen 8 Strecken (englische UI).
 - Nicht umgesetzt: externe Automodelle (Kenney/Quaternius nicht erreichbar; optional per Upload, BLOCKERS.md), Higgsfield-Bilder (warten auf Login), Rapier lazy laden (M12).
 - `ai:evaluate` bit-genau gleich. Version 0.10.0, Tag `v0.10.0` lokal.
+
+## Zwischenstand M11 (Extra-Features)
+
+- Wetter: `packages/shared/src/weather.ts`, Grip über `TrackGeometry.weatherGrip` (Physik und Bots), Optik in `game/weatherFx.ts`. Nacht zuerst zu hell (HDRI-Tageslicht) → Umgebungsstärke und Himmel pro Wetter. `ai:evaluate` bit-genau gleich.

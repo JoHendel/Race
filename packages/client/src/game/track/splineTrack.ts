@@ -47,6 +47,19 @@ export class SplineTrack extends TrackGeometry {
     else this.buildScenery();
   }
 
+  /** Material of the main road (changed for wet weather). */
+  roadMaterial: THREE.MeshStandardMaterial | null = null;
+
+  /** Wet road: smoother and more reflective, slightly darker. */
+  setWet(): void {
+    const m = this.roadMaterial;
+    if (!m) return;
+    m.roughness = 0.22;
+    m.metalness = 0.35;
+    m.envMapIntensity = 0.7;
+    m.color.setHex(0xb8c0d0);
+  }
+
   /** Per-frame animations of the scenery (e.g. the waterfall). */
   readonly animators: ((dt: number) => void)[] = [];
 
@@ -466,6 +479,7 @@ export class SplineTrack extends TrackGeometry {
     asphalt.repeat.set(6, 3); // road UVs: u spans the full width, v runs 8 m per unit – keep the grain roughly square
     asphalt.needsUpdate = true;
     const mat = new THREE.MeshStandardMaterial({ map: tex, normalMap: asphalt, normalScale: new THREE.Vector2(0.18, 0.18), roughness: 0.75, metalness: 0.15, envMapIntensity: 0.12, side: THREE.DoubleSide });
+    this.roadMaterial = mat;
     this.group.add(new THREE.Mesh(geo, mat));
     // Seitenstreifen (befahrbar, aber langsamer gibt es erst mit Untergrund-Typen in M6)
     for (const side of [1, -1]) {

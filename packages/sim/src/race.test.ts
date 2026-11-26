@@ -29,4 +29,16 @@ describe("HeadlessRace", () => {
     expect(normal.racers[0]!.car.groundPress).toBe(0);
     normal.dispose();
   });
+
+  it("rain lowers the grip of the whole track and the bots drive slower", () => {
+    const dry = new HeadlessRace(NEON_HARBOR, [{ id: "a", skill: "hard" }], 1, 3);
+    const wet = new HeadlessRace(NEON_HARBOR, [{ id: "a", skill: "hard" }], 1, 3, "rain");
+    expect(wet.track.gripAt(10)).toBeLessThan(dry.track.gripAt(10));
+    const tDry = dry.run(200)[0]!;
+    const tWet = wet.run(200)[0]!;
+    dry.dispose();
+    wet.dispose();
+    expect(tDry.finished && tWet.finished).toBe(true);
+    expect(tWet.bestLap!).toBeGreaterThan(tDry.bestLap!);
+  }, 60_000);
 });

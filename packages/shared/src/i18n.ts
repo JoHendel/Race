@@ -79,6 +79,12 @@ export const EN: Record<string, string> = {
   Du: "You",
   "Dein Name": "Your name",
   "Lädt …": "Loading …",
+  Klar: "Clear",
+  Regen: "Rain",
+  Nebel: "Fog",
+  Nacht: "Night",
+  Zufall: "Random",
+  Wetter: "Weather",
 
   // Race
   "FALSCHE RICHTUNG": "WRONG WAY",

@@ -296,3 +296,8 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 @media (max-width: 720px) { .vote-cards { grid-template-columns: 1fr; } }
 .panel.vote { background: rgba(3, 4, 10, 0.78); backdrop-filter: blur(3px); }
 .vote .panel-card { background: rgba(10, 12, 28, 0.97); }
+
+.weather-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem; margin: 0.6rem auto 0; pointer-events: auto; }
+.weather-pick small { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; margin-right: 0.3rem; }
+.weather-pick .chip { font: 700 0.78rem/1 system-ui, sans-serif; padding: 0.4rem 0.7rem; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(5, 6, 15, 0.7); color: #e8ecff; cursor: pointer; }
+.weather-pick .chip.on { border-color: #00e5ff; box-shadow: 0 0 10px rgba(0, 229, 255, 0.45); color: #00e5ff; }

@@ -6,7 +6,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { DEFAULT_POST_FX, GradeShader, type PostFx } from "./game/postFx";
-import { CupStandings, DEFAULT_LAPS, NEON_HARBOR, TRACKS, clampLaps, type TrackDef } from "@apex/shared";
+import { CupStandings, DEFAULT_LAPS, NEON_HARBOR, TRACKS, WEATHER_CHOICES, WEATHER_NAMES, clampLaps, isWeatherChoice, resolveWeather, type TrackDef, type WeatherChoice } from "@apex/shared";
 import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } from "@apex/net";
 import { TitleScene } from "./titleScene";
 import { DriveScene } from "./game/driveScene";
@@ -173,6 +173,40 @@ function readTrackChoice(): TrackDef {
 }
 let selectedTrack = readTrackChoice();
 
+const WEATHER_KEY = "apexrush.weather";
+function readWeatherChoice(): WeatherChoice {
+  let v: string | null = params.get("weather");
+  if (!v) {
+    try {
+      v = localStorage.getItem(WEATHER_KEY);
+    } catch {
+      v = null;
+    }
+  }
+  return isWeatherChoice(v) ? v : "clear";
+}
+let selectedWeather: WeatherChoice = readWeatherChoice();
+
+function bindWeatherPicker(): void {
+  const root = document.querySelector<HTMLElement>("[data-testid=weather-pick]");
+  if (!root) return;
+  const render = () => {
+    root.innerHTML = `<small>Wetter</small>${WEATHER_CHOICES.map((w) => `<button type="button" class="chip ${w === selectedWeather ? "on" : ""}" data-weather="${w}" data-testid="weather-${w}">${WEATHER_NAMES[w]}</button>`).join("")}`;
+    root.querySelectorAll<HTMLButtonElement>("[data-weather]").forEach((b) => {
+      b.onclick = () => {
+        selectedWeather = b.dataset.weather as WeatherChoice;
+        try {
+          localStorage.setItem(WEATHER_KEY, selectedWeather);
+        } catch {
+          // not remembered without storage
+        }
+        render();
+      };
+    });
+  };
+  render();
+}
+
 function bindTrackPicker(): void {
   const root = document.querySelector<HTMLElement>("[data-testid=track-pick]");
   if (!root) return;
@@ -216,6 +250,7 @@ async function startOfflineRace(): Promise<void> {
       cup: cup ?? undefined,
       playerCar: currentCar(),
       track: cup ? cup.tracks[cup.round - 1]! : selectedTrack,
+      weather: resolveWeather(selectedWeather, Math.random),
       laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
       skill: "normal",
@@ -267,6 +302,7 @@ function showMenu(): void {
 
 function bindMenu(): void {
   bindTrackPicker();
+  bindWeatherPicker();
   const langBtn = document.querySelector<HTMLButtonElement>("#lang")!;
   // The button shows the language you switch TO.
   const label = () => (langBtn.textContent = currentLang() === "de" ? "EN" : "DE");
@@ -359,7 +395,7 @@ async function joinGame(code: string, error: HTMLElement): Promise<void> {
     onVoteResult: showVoteResult,
     onStart: (start) => {
       closeVote();
-      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed);
+      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed, start.settings.weather);
     },
     onToLobby: () => showLobby(),
     onClosed: (reason) => {
@@ -405,7 +441,7 @@ function closeVote(): void {
 function startHostRace(s: HostSession): void {
   closeVote();
   const start = s.start();
-  void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed);
+  void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed, start.settings.weather);
 }
 
 function showLobby(): void {
@@ -442,6 +478,7 @@ async function beginOnlineRace(
   laps: number,
   grid: { id: string; name: string; color: number; human: boolean; ai?: boolean }[],
   seed: number,
+  weather?: WeatherChoice,
 ): Promise<void> {
   const s = session;
   if (!s) return;
@@ -461,6 +498,8 @@ async function beginOnlineRace(
       localId: s.clientId,
       grid,
       seed,
+      // the host resolves "random" before the start, so this is the same for everyone
+      weather: resolveWeather(weather, Math.random),
       autopilot: params.has("autopilot"),
     },
     {

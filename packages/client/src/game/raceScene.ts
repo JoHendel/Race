@@ -23,7 +23,9 @@ import {
   theme,
   DEFAULT_ENVIRONMENT,
   trackGravity,
+  weatherGrip,
   type TrackDef,
+  type Weather,
 } from "@apex/shared";
 import { INTERPOLATION_DELAY, SnapshotBuffer, type CarState, type HostMessage, type RacerStatus } from "@apex/net";
 import { Car } from "./car";
@@ -34,6 +36,7 @@ import { Sparks } from "./sparks";
 import { createSky } from "./sky";
 import { loadEnvironmentMap } from "./environmentMap";
 import { POST_FX, type PostFx } from "./postFx";
+import { Rain, weatherEnvIntensity, weatherEnvironment, weatherFog, weatherLight, weatherPostFx } from "./weatherFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
 import { SplineTrack, mulberry32 } from "./track/splineTrack";
@@ -123,6 +126,8 @@ export interface RaceOptions {
   seed?: number;
   /** Grand Prix: aktuelle Runde, Anzahl Rennen und Gesamtwertung (wird nach dem Rennen ergänzt). */
   cup?: { round: number; total: number; standings: CupStandings };
+  /** Weather of this race (already resolved, never "random"). */
+  weather?: Weather;
 }
 
 export interface RaceCallbacks {
@@ -166,6 +171,9 @@ export class RaceScene {
   /** Bloom and colour grade of this track. */
   readonly postFx: PostFx;
   private bridgeBannerIn = 0;
+  private rain: Rain | null = null;
+  readonly weather: Weather;
+  private headlight: THREE.SpotLight | null = null;
   private eventBanner = "";
   private podiumTime = 0;
   private cupRecorded = false;
@@ -187,32 +195,43 @@ export class RaceScene {
     this.role = options.role ?? "offline";
     const pmrem = new THREE.PMREMGenerator(renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    this.scene.environmentIntensity = 0.25;
+    this.scene.environmentIntensity = options.weather === "night" ? 0.08 : 0.25;
     this.scene.background = new THREE.Color(theme.background);
-    const env = options.track.environment ?? DEFAULT_ENVIRONMENT;
-    this.postFx = POST_FX[env.scenery];
+    const weather = options.weather ?? "clear";
+    const baseEnv = options.track.environment ?? DEFAULT_ENVIRONMENT;
+    const env = weatherEnvironment(baseEnv, weather);
+    this.postFx = weatherPostFx(POST_FX[env.scenery], weather);
     // Track-specific reflections (CC0 HDRI), loaded in the background; the room environment is the fallback.
     loadEnvironmentMap(renderer, env.scenery)
       .then((tex) => {
         if (this.disposed) tex.dispose();
         else {
           this.scene.environment = tex;
-          // real HDRIs are darker than the generated room environment
-          this.scene.environmentIntensity = 0.6;
+          // real HDRIs are darker than the generated room environment; at night much less
+          this.scene.environmentIntensity = weatherEnvIntensity(this.weather);
         }
       })
       .catch(() => undefined);
-    this.scene.fog = new THREE.Fog(env.fog, 120, 520);
+    const [fogNear, fogFar] = weatherFog(weather);
+    this.scene.fog = new THREE.Fog(env.fog, fogNear, fogFar);
     this.sky = createSky(env);
     this.scene.add(this.sky);
-    this.scene.add(new THREE.HemisphereLight(0x8899ff, 0x220022, 0.55));
-    const sun = new THREE.DirectionalLight(0xffd6f0, 0.9);
+    const light = weatherLight(weather);
+    this.scene.add(new THREE.HemisphereLight(0x8899ff, 0x220022, 0.55 * light));
+    const sun = new THREE.DirectionalLight(0xffd6f0, 0.9 * light);
     sun.position.set(60, 120, 40);
     this.scene.add(sun);
 
     this.world = new RAPIER.World({ x: 0, y: -trackGravity(options.track), z: 0 });
     this.world.timestep = STEP;
     this.track = new SplineTrack(this.world, options.track);
+    this.track.weatherGrip = weatherGrip(weather);
+    if (weather === "rain") {
+      this.track.setWet();
+      this.rain = new Rain();
+      this.scene.add(this.rain.object);
+    }
+    this.weather = weather;
     this.scene.add(this.track.group);
 
     this.hud = new Hud(ui);
@@ -276,6 +295,14 @@ export class RaceScene {
       });
     });
     this.player = this.racers.find((r) => r.id === localId) ?? this.racers[0]!;
+    if (this.weather === "night") {
+      // Headlights: one spot light on the player's car (cheap), pointing a bit down the road
+      const spot = new THREE.SpotLight(0xfff0d0, 260, 90, 0.55, 0.45, 1.4);
+      spot.position.set(0, 1.1, 1.6);
+      spot.target.position.set(0, -0.5, 25);
+      this.player.car.mesh.add(spot, spot.target);
+      this.headlight = spot;
+    }
     for (const r of this.racers) r.tracker.update(r.index / this.track.samples.length, 0);
 
     this.scene.add(this.sparks.points);
@@ -361,6 +388,7 @@ export class RaceScene {
     const realDt = Math.min(frameDt, 0.1);
     (this.sky.userData.update as ((dt: number) => void) | undefined)?.(realDt);
     this.track.syncBridges(realDt);
+    this.rain?.update(realDt, this.camera);
     if (this.bridgeBannerIn > 0) {
       this.bridgeBannerIn -= realDt;
       if (this.bridgeBannerIn <= 0) this.raceHud.showBanner(this.eventBanner, 3);

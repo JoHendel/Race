@@ -69,7 +69,7 @@
 - [ ] Rapier erst beim ersten Rennen laden (dynamic import der Rennszene) – braucht Umbau der Importe in main.ts/session.ts
 
 ## M11 – Extra-Features
-- [ ] Wetter & Tageszeit: Regen (weniger Grip, Regen-Shader, nasse Spiegelungen), Nebel, Nacht mit Scheinwerfern; pro Rennen wählbar oder zufällig (Titelmenü, Lobby)
+- [x] Wetter & Tageszeit: Regen (Grip 0,8 für alle, Regenstreifen, nasse Fahrbahn), Nebel (Sicht 150 m), Nacht (dunkler Himmel, Scheinwerfer); Auswahl im Titelmenü und in der Lobby, „Zufall“ entscheidet der Host einmal
 - [ ] Chaos-Modus mit Item-Boxen und Power-ups (EMP, Haftmine, Drohne, Schild, Turbo-Zelle), platzabhängige Verteilung
 - [ ] Ghosts (Bestzeit lokal), Zeitrennen-Modus
 - [ ] Replay & Fotomodus, Highlight-Clip
