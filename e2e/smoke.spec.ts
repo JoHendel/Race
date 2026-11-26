@@ -95,6 +95,23 @@ test("Rennen: Countdown, eine Runde, Ergebnistabelle", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("Time trial saves a ghost; drift challenge shows its score", async ({ page }) => {
+  test.setTimeout(400_000);
+  const errors = collectErrors(page);
+  await page.goto("./?laps=1&autopilot&track=grand-circuit");
+  await page.getByTestId("timetrial").click();
+  await page.waitForFunction(() => Boolean((window as ApexWindow).apex?.race));
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("solo-result")).toContainText("Ghost", { timeout: 360_000 });
+  await expect(page.getByTestId("results").locator("tbody tr")).toHaveCount(1);
+  expect(await page.evaluate(() => localStorage.getItem("apexrush.ghost.grand-circuit")?.length ?? 0)).toBeGreaterThan(100);
+  await page.locator("[data-action=menu]").click();
+  await page.getByTestId("drift").click();
+  await page.waitForFunction(() => (window as ApexWindow).apex?.race?.phase !== "results");
+  await expect(page.getByTestId("drift-score")).toBeVisible({ timeout: 20_000 });
+  expect(errors).toEqual([]);
+});
+
 test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ browser }) => {
   test.setTimeout(420_000);
   const ctx = await browser.newContext();

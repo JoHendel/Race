@@ -19,7 +19,7 @@ import { currentLang, initI18n, setLang } from "./i18n";
 import { Garage } from "./garage/garage";
 import { currentCar, loadSave, storeSave } from "./save";
 import { applyReward, levelFromXp, type RaceReward } from "@apex/shared";
-import type { RewardSummary } from "./game/raceScene";
+import type { RaceMode, RewardSummary } from "./game/raceScene";
 
 interface ActiveScene {
   scene: THREE.Scene;
@@ -263,7 +263,7 @@ function startGrandPrix(): void {
   void startOfflineRace();
 }
 
-async function startOfflineRace(): Promise<void> {
+async function startOfflineRace(mode: RaceMode = "race"): Promise<void> {
   if (busy) return;
   busy = true;
   await RAPIER.init();
@@ -276,15 +276,16 @@ async function startOfflineRace(): Promise<void> {
       playerCar: currentCar(),
       track: cup ? cup.tracks[cup.round - 1]! : selectedTrack,
       weather: resolveWeather(selectedWeather, Math.random),
-      chaos: chaosMode,
-      laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
+      chaos: mode === "race" && chaosMode,
+      mode,
+      laps: clampLaps(Number(params.get("laps") ?? (mode === "timetrial" ? 5 : DEFAULT_LAPS))),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
       skill: "normal",
       playerName: "Du",
       autopilot: params.has("autopilot"),
     },
     {
-      onRestart: () => void startOfflineRace(),
+      onRestart: () => void startOfflineRace(mode),
       onMenu: showMenu,
       onReward: (reward, info) => grantReward(reward, info),
       onNext: () => {
@@ -344,6 +345,14 @@ function bindMenu(): void {
     void startOfflineRace();
   };
   document.querySelector<HTMLButtonElement>("#cup")!.onclick = () => startGrandPrix();
+  document.querySelector<HTMLButtonElement>("#timetrial")!.onclick = () => {
+    cup = null;
+    void startOfflineRace("timetrial");
+  };
+  document.querySelector<HTMLButtonElement>("#drift")!.onclick = () => {
+    cup = null;
+    void startOfflineRace("drift");
+  };
   document.querySelector<HTMLButtonElement>("#garage")!.onclick = () => startGarage();
   document.querySelector<HTMLButtonElement>("#online")!.onclick = () => showOnlineMenu();
 }

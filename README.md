@@ -41,6 +41,7 @@
 - **8 tracks in 2 cups** – Neon Cup: Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift (slippery ice); Turbo Cup: Grand Circuit, Jungle Ruins (waterfall, rope bridge), Volcano Rush (shifting lava), Orbital Station (low gravity). Pick one on the title screen, in the lobby, or let everyone vote online (with a wheel for ties); the Grand Prix plays the cup of the selected track
 - **Shortcuts and live track events:** a warehouse shortcut and a drawbridge that rises from lap 2 on Neon Harbor, a rockfall that opens a canyon shortcut on Sunset Canyon, a collapsing temple on Jungle Ruins
 - **Chaos mode** with power-ups: EMP pulse, sticky mine, homing drone, shield, turbo cell – the back of the field gets the stronger ones
+- **Time trial** against the ghost of your best lap and a **drift challenge** with combos
 - **Weather & night:** rain with less grip, fog and night races – or random
 - **German and English UI** – switch with the button in the top right corner of the title screen
 

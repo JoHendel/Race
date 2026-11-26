@@ -38,6 +38,7 @@ import { createSky } from "./sky";
 import { loadEnvironmentMap } from "./environmentMap";
 import { POST_FX, type PostFx } from "./postFx";
 import { Chaos } from "./chaos";
+import { SoloMode } from "./soloMode";
 import { Rain, weatherEnvIntensity, weatherEnvironment, weatherFog, weatherLight, weatherPostFx } from "./weatherFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
@@ -132,7 +133,11 @@ export interface RaceOptions {
   weather?: Weather;
   /** Chaos mode: item boxes and power-ups. */
   chaos?: boolean;
+  /** Game mode: normal race, time trial against the own ghost, or drift challenge (both alone). */
+  mode?: RaceMode;
 }
+
+export type RaceMode = "race" | "timetrial" | "drift";
 
 export interface RaceCallbacks {
   onRestart: () => void;
@@ -178,6 +183,7 @@ export class RaceScene {
   readonly postFx: PostFx;
   private bridgeBannerIn = 0;
   private chaos: Chaos | null = null;
+  private readonly solo: SoloMode | null;
   private prevItemKey = false;
   private readonly pendingUses = new Set<string>();
   private rain: Rain | null = null;
@@ -329,6 +335,7 @@ export class RaceScene {
         onEmp: (pos) => this.chaos?.ring(pos),
       });
     }
+    this.solo = options.mode && options.mode !== "race" && this.role === "offline" ? new SoloMode(options.mode, options.track, this.scene, ui, this.player.car) : null;
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
   }
@@ -343,6 +350,8 @@ export class RaceScene {
 
   /** Offline-Aufstellung: Spieler startet im hinteren Mittelfeld, der Rest sind Bots. */
   static offlineGrid(options: RaceOptions): GridEntry[] {
+    // time trial and drift challenge: alone on the track
+    if (options.mode && options.mode !== "race") return [{ id: "player", name: options.playerName, color: theme.cyan, human: true }];
     const total = Math.min(10, 2 + options.bots);
     const playerSlot = Math.min(total - 1, Math.floor(total * 0.6));
     const aiSlot = Math.floor(total * 0.3);
@@ -478,6 +487,7 @@ export class RaceScene {
     }
     this.chase.update(this.player.car, realDt);
     this.chaos?.render(realDt, this.racers.map((r) => ({ id: r.id, pos: r.car.mesh.position })));
+    if (this.solo && (this.phase === "racing" || this.phase === "countdown")) this.solo.render(this.phase === "racing" ? this.player.tracker.currentLapTime(this.raceTime) : 0);
     this.hud.update(this.player.car, realDt);
     this.raceHud.update(realDt, this.hudInfo(), this.hudRacers());
   }
@@ -596,6 +606,7 @@ export class RaceScene {
     }
     if (this.chaos && this.racing) this.stepChaos(playerControls);
     this.world.step();
+    if (this.solo && this.phase === "racing" && !this.finished(this.player)) this.solo.step(this.player.tracker.currentLapTime(this.raceTime), STEP);
     if (this.racing && this.role !== "client") this.updateRaceStats();
 
     // Reset-Position des Spielers folgt der Strecke
@@ -667,6 +678,11 @@ export class RaceScene {
 
   private onPlayerLap(): void {
     const s = this.status(this.player);
+    const soloBanner = this.solo?.lapDone(this.player.tracker.lapTimes.at(-1)!);
+    if (soloBanner && s.finishTime === null) {
+      this.raceHud.showBanner(soloBanner, 2.5);
+      return;
+    }
     if (s.finishTime !== null) {
       this.raceHud.setCountdown("ZIEL!", "#f4f6ff");
       this.raceHud.showBanner(`PLATZ ${this.playerPlace}`, 3);
@@ -728,7 +744,7 @@ export class RaceScene {
   private rewardSummary: RewardSummary | null = null;
 
   private grantReward(): void {
-    if (this.rewardSummary || !this.callbacks.onReward || this.options.autopilot) return;
+    if (this.rewardSummary || !this.callbacks.onReward || this.options.autopilot || this.solo) return;
     const place = this.playerPlace;
     const s = this.status(this.player);
     const reward = raceReward(place, this.racers.length, s.finishTime !== null, s.drift ?? this.player.driftTime, s.overtakes ?? this.player.overtakes);
@@ -787,6 +803,7 @@ export class RaceScene {
           <thead><tr><th>#</th><th>Fahrer</th><th>Zeit</th><th>Beste Runde</th><th>Punkte</th></tr></thead>
           <tbody></tbody>
         </table>
+        ${this.solo ? `<div class="solo-result" data-testid="solo-result">${this.solo.summary()}</div>` : ""}
         <div class="awards" data-testid="awards"></div>
         <div class="reward"></div>
         ${cup ? `<div class="standings"></div>` : ""}
@@ -880,7 +897,7 @@ export class RaceScene {
       lap: s.lap,
       laps: this.options.laps,
       lapTime: this.racing && s.finishTime === null ? lapTime : 0,
-      best: s.bestLap,
+      best: this.solo?.bestLapTime ?? s.bestLap,
       wrongWay: this.player.wrongWayTime > 1,
     };
   }
@@ -990,6 +1007,7 @@ export class RaceScene {
   dispose(): void {
     this.disposed = true;
     this.chaos?.dispose();
+    this.solo?.dispose();
     window.removeEventListener("keydown", this.skipIntro);
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();

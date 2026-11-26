@@ -256,6 +256,14 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .swatch.on { border-color: var(--white); box-shadow: 0 0 8px var(--white); }
 .g-flash { margin-right: auto; color: var(--orange); font-size: 0.85rem; align-self: center; }
 .g-flash.pop { animation: fadeIn 0.3s; }
+.solo-result { margin-top: 0.8rem; font-weight: 700; color: var(--cyan); }
+.solo-result em { color: #ffd34d; font-style: normal; margin-left: 0.4rem; }
+.drift-score { position: absolute; top: 5.5rem; left: 50%; transform: translateX(-50%); text-align: center; font-style: italic; font-weight: 800; color: #f4f6ff; text-shadow: 0 0 12px var(--magenta); pointer-events: none; }
+.drift-score small { display: block; font-size: 0.75rem; letter-spacing: 0.2em; color: var(--magenta); }
+.drift-score span { font-size: 2.2rem; }
+.drift-score b { color: #ffd34d; margin-left: 0.6rem; font-size: 1.3rem; }
+.drift-score b.lost { color: #ff4d6d; }
+.drift-score i { color: var(--cyan); margin-left: 0.3rem; }
 .reward { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.8rem; font-weight: 700; color: #ffd34d; }
 .reward .hl { color: var(--cyan); }
 .players .car { font-size: 0.75rem; opacity: 0.6; margin-left: 0.4rem; }

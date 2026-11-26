@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M11 weiter – Zeitrennen mit Ghost: Bestzeit pro Strecke lokal speichern (Positionen alle 0,1 s, komprimiert in localStorage), Ghost als halbtransparentes Auto, Modus „Zeitrennen“ im Titelmenü (allein, ohne Bots/APEX-AI); danach Drift-Challenge.
+**Nächster Schritt:** M11 weiter – Replay & Fotomodus: Positionen aller Autos während des Rennens aufzeichnen (Ghost-Format wiederverwenden), nach dem Rennen abspielen mit freier Kamera, Zeitlupe und Screenshot-Export (PNG); danach Highlight-Clip.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -115,3 +115,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 
 - Wetter: `packages/shared/src/weather.ts`, Grip über `TrackGeometry.weatherGrip` (Physik und Bots), Optik in `game/weatherFx.ts`. Nacht zuerst zu hell (HDRI-Tageslicht) → Umgebungsstärke und Himmel pro Wetter. `ai:evaluate` bit-genau gleich.
 - Chaos-Modus: `shared/items.ts` (Verteilung), `sim/items.ts` (ItemSystem, deterministisch, eigener Zufallsstrom), `client/game/chaos.ts` (Optik, HUD, Online-Abgleich über `snap.chaos`, Nachricht `useItem`). Headless: alle im Ziel, reproduzierbar. Im Browser: alle 5 Items in einer Runde benutzt.
+- Zeitrennen & Drift-Challenge: Logik in `shared/ghost.ts` (Aufzeichnung, Kodierung, Interpolation, Drift-Punkte, getestet), Spielseite in `client/game/soloMode.ts`. Im Browser geprüft: Ghost gespeichert (3,9 KB), zweiter Lauf zeigt Ghost und Bestzeit im HUD; Drift-Punkte mit Combo und CRASH bei Mauerkontakt. Neuer e2e-Test. `ai:evaluate` bit-genau gleich.

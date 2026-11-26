@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- **Time trial:** race alone against the see-through ghost of your best lap, stored per track in the browser
+- **Drift challenge:** score points for drift angle and speed, build a combo up to ×3 – a wall hit mid-drift loses the points
 - **Chaos mode:** item boxes with EMP pulse, sticky mine, homing drone, shield and turbo cell; the back of the field gets stronger items; works online (host decides, clients feel the hits); switch on the title screen or in the lobby
 - **Weather & night:** rain (less grip for everyone, rain streaks, wet road), fog and night with headlights – choose on the title screen or in the lobby, or let chance decide
 

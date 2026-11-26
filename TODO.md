@@ -72,8 +72,9 @@
 - [x] Wetter & Tageszeit: Regen (Grip 0,8 für alle, Regenstreifen, nasse Fahrbahn), Nebel (Sicht 150 m), Nacht (dunkler Himmel, Scheinwerfer); Auswahl im Titelmenü und in der Lobby, „Zufall“ entscheidet der Host einmal
 - [x] Chaos-Modus: 5 Boxenreihen pro Runde, EMP-Puls, Haftmine, zielsuchende Drohne, Schutzschild, Turbo-Zelle (3 Boosts), platzabhängige Verteilung; Host-autoritativ, Clients wenden Effekte am eigenen Auto an; Bots/APEX-AI nutzen Items regelbasiert; Taste E / Gamepad B
 - [ ] Sounds für Items (kommt mit dem Audio-System in M12)
-- [ ] Ghosts (Bestzeit lokal), Zeitrennen-Modus
+- [x] Zeitrennen mit Ghost: Positionen alle 0,1 s, Delta-kodiert (int16, Base64) pro Strecke in localStorage (~4 KB/Runde), halbtransparentes Ghost-Auto, Banner mit Abstand zur Bestzeit; allein ohne Bots/APEX-AI
 - [ ] Replay & Fotomodus, Highlight-Clip
 - [ ] Emotes im Rennen online synchronisieren, Hupe
 - [ ] Zuschauermodus, Rivalen-System
-- [ ] Drift-Challenge-Modus
+- [x] Drift-Challenge: Punkte nach Driftwinkel und Tempo, Combo bis ×3 bei langen Drifts, Mauerkontakt im Drift verliert die Punkte, Bestwert pro Strecke
+- [ ] Weltbestzeit-Ghost (bräuchte Server/Gist – vorerst nur eigene Bestzeit)
