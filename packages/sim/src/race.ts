@@ -1,5 +1,6 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import { LapTracker, carById, statsFor, stockTuning, trackGravity, weatherGrip, type TrackDef, type Tuning, type Weather } from "@apex/shared";
+import { ItemSystem, type ItemEvent, type ItemRacer } from "./items";
 import { BotDriver, type BotSkill } from "./bot";
 import { IDLE_CONTROLS, type ControlState } from "./controls";
 import { mulberry32 } from "./random";
@@ -68,6 +69,10 @@ export class HeadlessRace {
   steps = 0;
   /** Called after every physics step (used to record telemetry). */
   onStep?: (race: HeadlessRace) => void;
+  /** Chaos mode item system (null in normal races). */
+  items: ItemSystem | null = null;
+  /** Item events of the race (for tests and statistics). */
+  readonly itemEvents: ItemEvent[] = [];
 
   constructor(
     def: TrackDef,
@@ -75,11 +80,14 @@ export class HeadlessRace {
     readonly laps: number,
     seed = 1,
     weather: Weather = "clear",
+    chaos = false,
   ) {
     this.world = new RAPIER.World({ x: 0, y: -trackGravity(def), z: 0 });
     this.world.timestep = SIM_STEP;
     this.track = new TrackGeometry(this.world, def);
     this.track.weatherGrip = weatherGrip(weather);
+    // separate random stream, so chaos mode does not change anything else in the race
+    if (chaos) this.items = new ItemSystem(this.track, mulberry32(seed ^ 0x5eed));
     const rnd = mulberry32(seed);
     specs.slice(0, 10).forEach((spec, slot) => {
       const carDef = carById(spec.carId ?? "volt-hatch");
@@ -129,6 +137,7 @@ export class HeadlessRace {
       if (this.track.lava) r.car.applyDrag(this.track.lavaDrag(r.index, this.track.lateralOffset(r.car.position, r.index)), SIM_STEP);
       r.car.update(c, SIM_STEP);
     }
+    if (this.items) this.stepItems();
     if (this.track.hasEvents) this.track.updateEvents(Math.max(...this.racers.map((r) => r.tracker.lap)), SIM_STEP);
     this.world.step();
     this.time += SIM_STEP;
@@ -156,6 +165,14 @@ export class HeadlessRace {
       if (fwd.x * t.x + fwd.z * t.z < -0.3 && Math.abs(r.car.speed) > 3) r.wrongWaySteps++;
     }
     this.onStep?.(this);
+  }
+
+  private stepItems(): void {
+    const items = this.items!;
+    const order = [...this.racers].sort((a, b) => b.tracker.progress - a.tracker.progress);
+    const list: ItemRacer[] = this.racers.map((r) => ({ id: r.id, car: r.car, index: r.index, place: order.indexOf(r) + 1, progress: r.tracker.progress }));
+    this.itemEvents.push(...items.update(list, SIM_STEP));
+    for (const r of list) if (!this.racers.find((x) => x.id === r.id)!.tracker.finished && items.wantsToUse(r, list)) this.itemEvents.push(...items.use(r, list));
   }
 
   /** Runs until everyone has finished or the time limit is reached. */

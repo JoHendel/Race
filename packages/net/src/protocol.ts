@@ -21,6 +21,8 @@ export interface LobbySettings {
   trackId: string;
   laps: number;
   fillWithBots: boolean;
+  /** Chaos mode with item boxes and power-ups. */
+  chaos?: boolean;
   /** Choose the track by vote instead of the host's pick. */
   vote?: boolean;
   /** Weather choice; in the start message it is already resolved (never "random"). */
@@ -48,11 +50,20 @@ export interface RacerStatus {
   worst?: number;
 }
 
+/** Chaos mode state in a snapshot: unavailable boxes, mines, drones, held items, effect timers. */
+export interface ChaosNet {
+  b: number[];
+  m: [number, number, number][];
+  d: [number, number, number][];
+  h: Record<string, [string, number]>;
+  fx: Record<string, [number, number, number, number]>;
+}
+
 export type HostMessage =
   | { t: "welcome"; clientId: string; players: LobbyPlayer[]; settings: LobbySettings }
   | { t: "lobby"; players: LobbyPlayer[]; settings: LobbySettings }
   | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean; ai?: boolean; car?: VehicleChoice }[] }
-  | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[] }
+  | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[]; chaos?: ChaosNet }
   | { t: "toLobby" }
   | { t: "kick"; reason: string }
   /** Track vote: candidates, seconds left, current votes (clientId → trackId). Sent at the start and on every new vote. */
@@ -65,7 +76,8 @@ export type ClientMessage =
   | { t: "name"; name: string }
   | { t: "vehicle"; car: VehicleChoice }
   | { t: "car"; state: CarState }
-  | { t: "vote"; trackId: string };
+  | { t: "vote"; trackId: string }
+  | { t: "useItem" };
 
 export const SNAPSHOT_RATE = 30;
 export const RECONNECT_WINDOW = 30;

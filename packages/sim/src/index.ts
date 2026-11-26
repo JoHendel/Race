@@ -7,3 +7,4 @@ export * from "./race";
 export * from "./drawbridge";
 export * from "./rockfall";
 export * from "./lava";
+export * from "./items";

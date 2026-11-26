@@ -91,6 +91,7 @@ export class LobbyView {
           <select data-field="track" data-testid="lobby-track" ${settings.vote ? "disabled" : ""}>${TRACKS.map((t) => `<option value="${t.id}" ${t.id === settings.trackId ? "selected" : ""}>${t.name}</option>`).join("")}</select>
         </label>
         <label class="field inline"><input type="checkbox" data-field="vote" data-testid="lobby-vote" ${settings.vote ? "checked" : ""}/> Streckenwahl per Abstimmung</label>
+        <label class="field inline"><input type="checkbox" data-field="chaos" data-testid="lobby-chaos" ${settings.chaos ? "checked" : ""}/> Chaos-Modus</label>
         <label class="field inline">Wetter
           <select data-field="weather" data-testid="lobby-weather">${WEATHER_CHOICES.map((w) => `<option value="${w}" ${w === (settings.weather ?? "clear") ? "selected" : ""}>${WEATHER_NAMES[w]}</option>`).join("")}</select>
         </label>
@@ -98,6 +99,8 @@ export class LobbyView {
           <input type="number" data-field="laps" min="${MIN_LAPS}" max="${MAX_LAPS}" value="${settings.laps}" />
         </label>
         <label class="field inline"><input type="checkbox" data-field="bots" ${settings.fillWithBots ? "checked" : ""}/> Mit Bots auffüllen</label>`;
+      const chaosBox = s.querySelector<HTMLInputElement>("[data-field=chaos]")!;
+      chaosBox.onchange = () => this.h.onSettings({ chaos: chaosBox.checked });
       const weatherSel = s.querySelector<HTMLSelectElement>("[data-field=weather]")!;
       weatherSel.onchange = () => this.h.onSettings({ weather: weatherSel.value as LobbySettings["weather"] });
       const voteBox = s.querySelector<HTMLInputElement>("[data-field=vote]")!;
@@ -112,7 +115,7 @@ export class LobbyView {
       start.disabled = !canStart;
       start.title = canStart ? "" : "Warte, bis alle bereit sind";
     } else {
-      s.innerHTML = `<div class="summary">${settings.vote ? "Abstimmung" : (track?.name ?? settings.trackId)} · ${settings.laps} Runden${settings.fillWithBots ? " · mit Bots" : ""}</div>`;
+      s.innerHTML = `<div class="summary">${settings.vote ? "Abstimmung" : (track?.name ?? settings.trackId)} · ${settings.laps} Runden${settings.fillWithBots ? " · mit Bots" : ""}</div>${settings.chaos ? `<div class="summary">Chaos-Modus</div>` : ""}`;
     }
   }
 

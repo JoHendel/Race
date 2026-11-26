@@ -187,6 +187,31 @@ function readWeatherChoice(): WeatherChoice {
 }
 let selectedWeather: WeatherChoice = readWeatherChoice();
 
+const CHAOS_KEY = "apexrush.chaos";
+function readChaos(): boolean {
+  if (params.has("chaos")) return params.get("chaos") !== "0";
+  try {
+    return localStorage.getItem(CHAOS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+let chaosMode = readChaos();
+
+function bindChaosToggle(): void {
+  const box = document.querySelector<HTMLInputElement>("[data-testid=chaos-toggle]");
+  if (!box) return;
+  box.checked = chaosMode;
+  box.onchange = () => {
+    chaosMode = box.checked;
+    try {
+      localStorage.setItem(CHAOS_KEY, chaosMode ? "1" : "0");
+    } catch {
+      // not remembered without storage
+    }
+  };
+}
+
 function bindWeatherPicker(): void {
   const root = document.querySelector<HTMLElement>("[data-testid=weather-pick]");
   if (!root) return;
@@ -251,6 +276,7 @@ async function startOfflineRace(): Promise<void> {
       playerCar: currentCar(),
       track: cup ? cup.tracks[cup.round - 1]! : selectedTrack,
       weather: resolveWeather(selectedWeather, Math.random),
+      chaos: chaosMode,
       laps: clampLaps(Number(params.get("laps") ?? DEFAULT_LAPS)),
       bots: Math.min(9, Math.max(0, Number(params.get("bots") ?? 9))),
       skill: "normal",
@@ -303,6 +329,7 @@ function showMenu(): void {
 function bindMenu(): void {
   bindTrackPicker();
   bindWeatherPicker();
+  bindChaosToggle();
   const langBtn = document.querySelector<HTMLButtonElement>("#lang")!;
   // The button shows the language you switch TO.
   const label = () => (langBtn.textContent = currentLang() === "de" ? "EN" : "DE");
@@ -395,7 +422,7 @@ async function joinGame(code: string, error: HTMLElement): Promise<void> {
     onVoteResult: showVoteResult,
     onStart: (start) => {
       closeVote();
-      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed, start.settings.weather);
+      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed, start.settings.weather, start.settings.chaos);
     },
     onToLobby: () => showLobby(),
     onClosed: (reason) => {
@@ -441,7 +468,7 @@ function closeVote(): void {
 function startHostRace(s: HostSession): void {
   closeVote();
   const start = s.start();
-  void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed, start.settings.weather);
+  void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed, start.settings.weather, start.settings.chaos);
 }
 
 function showLobby(): void {
@@ -479,6 +506,7 @@ async function beginOnlineRace(
   grid: { id: string; name: string; color: number; human: boolean; ai?: boolean }[],
   seed: number,
   weather?: WeatherChoice,
+  chaos?: boolean,
 ): Promise<void> {
   const s = session;
   if (!s) return;
@@ -500,6 +528,7 @@ async function beginOnlineRace(
       seed,
       // the host resolves "random" before the start, so this is the same for everyone
       weather: resolveWeather(weather, Math.random),
+      chaos: Boolean(chaos),
       autopilot: params.has("autopilot"),
     },
     {
@@ -511,6 +540,7 @@ async function beginOnlineRace(
       },
       onMenu: showMenu,
       onReward: (reward, info) => grantReward(reward, info),
+      onUseItem: () => (s instanceof ClientSession ? s.useItem() : undefined),
     },
   );
   s.race = race;

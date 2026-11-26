@@ -10,6 +10,7 @@ const KEYS = {
   drift: ["Space"],
   nitro: ["ShiftLeft", "ShiftRight"],
   reset: ["KeyR"],
+  item: ["KeyE"],
 };
 
 /** Liest Tastatur und Gamepad und liefert einen gemeinsamen Steuerzustand. */
@@ -39,6 +40,7 @@ export class Input {
     let drift = this.any(KEYS.drift);
     let nitro = this.any(KEYS.nitro);
     let reset = this.any(KEYS.reset);
+    let item = this.any(KEYS.item);
 
     const pad = navigator.getGamepads?.().find((g) => g && g.connected);
     if (pad) {
@@ -49,6 +51,7 @@ export class Input {
       drift ||= pad.buttons[0]?.pressed ?? false;
       nitro ||= pad.buttons[2]?.pressed ?? false;
       reset ||= pad.buttons[3]?.pressed ?? false;
+      item ||= pad.buttons[1]?.pressed ?? false;
     }
 
     // Tastatur-Lenkung weich einblenden, damit das Auto nicht zuckt.
@@ -56,7 +59,7 @@ export class Input {
     this.smoothSteer += (steerTarget - this.smoothSteer) * Math.min(1, rate * dt);
     if (Math.abs(this.smoothSteer) < 0.01 && steerTarget === 0) this.smoothSteer = 0;
 
-    const state: ControlState = { throttle, brake, steer: this.smoothSteer, drift, nitro, reset };
+    const state: ControlState = { throttle, brake, steer: this.smoothSteer, drift, nitro, reset, item };
     return this.override ? { ...state, ...this.override } : state;
   }
 }

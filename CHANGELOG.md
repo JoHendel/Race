@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- **Chaos mode:** item boxes with EMP pulse, sticky mine, homing drone, shield and turbo cell; the back of the field gets stronger items; works online (host decides, clients feel the hits); switch on the title screen or in the lobby
 - **Weather & night:** rain (less grip for everyone, rain streaks, wet road), fog and night with headlights – choose on the title screen or in the lobby, or let chance decide
 
 ## v0.10.0 – Graphics

@@ -6,6 +6,8 @@ export interface ControlState {
   drift: boolean;
   nitro: boolean;
   reset: boolean;
+  /** Use the held item (chaos mode). Optional, so recorded AI data is unaffected. */
+  item?: boolean;
 }
 
 export const IDLE_CONTROLS: ControlState = { throttle: 0, brake: 0, steer: 0, drift: false, nitro: false, reset: false };

@@ -158,6 +158,7 @@ test("Online track vote: both players vote, the race starts on the chosen track"
   await client.getByTestId("ready").click();
   await expect(host.getByTestId("players").locator("li")).toHaveCount(2);
   await host.getByTestId("lobby-vote").check();
+  await host.getByTestId("lobby-chaos").check();
   await expect(host.getByTestId("start-race")).toBeEnabled();
   await host.getByTestId("start-race").click();
 
@@ -176,6 +177,9 @@ test("Online track vote: both players vote, the race starts on the chosen track"
     page.waitForFunction(() => (window as unknown as { apex?: { race?: { track: { def: { id: string } } } } }).apex?.race?.track.def.id, undefined, { timeout: 120_000 }).then((h) => h.jsonValue());
   expect(await trackOf(host)).toBe(choice);
   expect(await trackOf(client)).toBe(choice);
+  // chaos mode reached the client: item slot in the HUD and chaos state in the snapshots
+  await expect(client.getByTestId("item-slot")).toBeVisible();
+  await client.waitForFunction(() => Boolean((window as unknown as { apex: { race: { chaos: { net: unknown } } } }).apex.race.chaos?.net), undefined, { timeout: 120_000 });
   expect([...hostErrors, ...clientErrors]).toEqual([]);
   await ctx.close();
 });

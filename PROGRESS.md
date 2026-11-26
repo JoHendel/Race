@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M11 weiter – Chaos-Modus: Item-Boxen auf der Strecke (Daten in TrackGeometry aus Abständen erzeugt), Power-ups EMP/Haftmine/Drohne/Schild/Turbo-Zelle als Logik in `packages/sim` (Host-autoritativ, Tests zuerst), platzabhängige Verteilung in `packages/shared`, Schalter in der Lobby und im Titelmenü.
+**Nächster Schritt:** M11 weiter – Zeitrennen mit Ghost: Bestzeit pro Strecke lokal speichern (Positionen alle 0,1 s, komprimiert in localStorage), Ghost als halbtransparentes Auto, Modus „Zeitrennen“ im Titelmenü (allein, ohne Bots/APEX-AI); danach Drift-Challenge.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -114,3 +114,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 ## Zwischenstand M11 (Extra-Features)
 
 - Wetter: `packages/shared/src/weather.ts`, Grip über `TrackGeometry.weatherGrip` (Physik und Bots), Optik in `game/weatherFx.ts`. Nacht zuerst zu hell (HDRI-Tageslicht) → Umgebungsstärke und Himmel pro Wetter. `ai:evaluate` bit-genau gleich.
+- Chaos-Modus: `shared/items.ts` (Verteilung), `sim/items.ts` (ItemSystem, deterministisch, eigener Zufallsstrom), `client/game/chaos.ts` (Optik, HUD, Online-Abgleich über `snap.chaos`, Nachricht `useItem`). Headless: alle im Ziel, reproduzierbar. Im Browser: alle 5 Items in einer Runde benutzt.

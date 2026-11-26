@@ -110,6 +110,19 @@ export class VehiclePhysics {
   /** Current surface grip factor (1 = asphalt, < 1 = ice). */
   surfaceGrip = 1;
 
+  /** Extra push forward for `time` seconds (item boosts); keeps the stronger of two boosts. */
+  addBoost(time: number, force: number): void {
+    if (force >= this.boostForce || this.boostTime <= 0) this.boostForce = force;
+    this.boostTime = Math.max(this.boostTime, time);
+  }
+
+  /** Spin the car around its vertical axis (hit by a mine or drone). */
+  spin(rate: number): void {
+    if (this.remote) return;
+    const av = this.body.angvel();
+    this.body.setAngvel({ x: av.x, y: rate, z: av.z }, true);
+  }
+
   /** Slow the car down (lava): exponential drag with `rate` per second on the horizontal velocity. */
   applyDrag(rate: number, dt: number): void {
     if (rate <= 0 || this.remote) return;

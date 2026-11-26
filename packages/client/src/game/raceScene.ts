@@ -24,6 +24,7 @@ import {
   DEFAULT_ENVIRONMENT,
   trackGravity,
   weatherGrip,
+  ITEM_NAMES,
   type TrackDef,
   type Weather,
 } from "@apex/shared";
@@ -36,6 +37,7 @@ import { Sparks } from "./sparks";
 import { createSky } from "./sky";
 import { loadEnvironmentMap } from "./environmentMap";
 import { POST_FX, type PostFx } from "./postFx";
+import { Chaos } from "./chaos";
 import { Rain, weatherEnvIntensity, weatherEnvironment, weatherFog, weatherLight, weatherPostFx } from "./weatherFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
@@ -128,6 +130,8 @@ export interface RaceOptions {
   cup?: { round: number; total: number; standings: CupStandings };
   /** Weather of this race (already resolved, never "random"). */
   weather?: Weather;
+  /** Chaos mode: item boxes and power-ups. */
+  chaos?: boolean;
 }
 
 export interface RaceCallbacks {
@@ -136,6 +140,8 @@ export interface RaceCallbacks {
   onNext?: () => void;
   /** Wird einmal aufgerufen, wenn das Ergebnis feststeht; liefert die Belohnung für die Anzeige. */
   onReward?: (reward: RaceReward, info: { place: number; cupWin: boolean }) => RewardSummary;
+  /** Online client: the player wants to use the held item (sent to the host). */
+  onUseItem?: () => void;
 }
 
 /** Ein komplettes Rennen: Intro, Countdown, Runden, Zieleinlauf, Ergebnis – offline, als Host oder als Client. */
@@ -171,6 +177,9 @@ export class RaceScene {
   /** Bloom and colour grade of this track. */
   readonly postFx: PostFx;
   private bridgeBannerIn = 0;
+  private chaos: Chaos | null = null;
+  private prevItemKey = false;
+  private readonly pendingUses = new Set<string>();
   private rain: Rain | null = null;
   readonly weather: Weather;
   private headlight: THREE.SpotLight | null = null;
@@ -307,6 +316,19 @@ export class RaceScene {
 
     this.scene.add(this.sparks.points);
     this.chase = new ChaseCamera(this.camera);
+    if (options.chaos) {
+      this.chaos = new Chaos(this.scene, ui, this.track, this.role !== "client", options.seed ?? 1, this.player.id, {
+        onLocal: (e) => {
+          if (e.type === "pickup") this.hud.showToast(ITEM_NAMES[e.item], "cyan");
+          else if (e.type === "hit") {
+            this.raceHud.showBanner("GETROFFEN!", 1.2);
+            this.chase.kick(0.7);
+          } else if (e.type === "blocked") this.raceHud.showBanner("ABGEWEHRT!", 1.2);
+          else if (e.type === "use" && e.item === "turbo") this.chase.kick(0.25);
+        },
+        onEmp: (pos) => this.chaos?.ring(pos),
+      });
+    }
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
   }
@@ -375,6 +397,31 @@ export class RaceScene {
     return this.ranking().indexOf(this.player) + 1;
   }
 
+  /** Chaos mode step: host/offline runs the item system, clients apply their own effects. */
+  private stepChaos(playerControls: ControlState): void {
+    const chaos = this.chaos!;
+    const pressed = Boolean(playerControls.item) && !this.prevItemKey && !this.finished(this.player);
+    this.prevItemKey = Boolean(playerControls.item);
+    if (this.role === "client") {
+      chaos.stepClient(this.player.car, STEP);
+      if (pressed) this.callbacks.onUseItem?.();
+      return;
+    }
+    const order = this.ranking();
+    const list = this.racers.map((r) => ({ id: r.id, car: r.car, index: r.index, place: order.indexOf(r) + 1, progress: this.status(r).progress }));
+    const uses = new Set(this.pendingUses);
+    this.pendingUses.clear();
+    if (pressed) uses.add(this.player.id);
+    // bots and APEX-AI (and the player on autopilot) use their items by simple rules
+    const auto = new Set(this.racers.filter((r) => !this.finished(r) && (!r.human || (r === this.player && this.options.autopilot))).map((r) => r.id));
+    chaos.step(list, uses, auto, STEP);
+  }
+
+  /** Host: an online client wants to use its item. */
+  useItemRemote(id: string): void {
+    this.pendingUses.add(id);
+  }
+
   private ranking(): Racer[] {
     const ranked = rankRacers(this.racers.map((r) => ({ ...this.status(r), id: r.id })));
     return ranked.map((s) => this.racers.find((x) => x.id === s.id)!);
@@ -430,6 +477,7 @@ export class RaceScene {
       return;
     }
     this.chase.update(this.player.car, realDt);
+    this.chaos?.render(realDt, this.racers.map((r) => ({ id: r.id, pos: r.car.mesh.position })));
     this.hud.update(this.player.car, realDt);
     this.raceHud.update(realDt, this.hudInfo(), this.hudRacers());
   }
@@ -546,6 +594,7 @@ export class RaceScene {
         this.bridgeBannerIn = 1.8;
       }
     }
+    if (this.chaos && this.racing) this.stepChaos(playerControls);
     this.world.step();
     if (this.racing && this.role !== "client") this.updateRaceStats();
 
@@ -885,6 +934,7 @@ export class RaceScene {
       final: this.resultsFinal,
       cars: this.racers.map((r) => r.car.snapshot(r.id)),
       racers: this.racers.map((r) => this.status(r)),
+      chaos: this.chaos?.netState(),
     };
   }
 
@@ -911,6 +961,7 @@ export class RaceScene {
       const r = this.racers.find((x) => x.id === s.id);
       if (r) r.netStatus = s;
     }
+    this.chaos?.applyNet(snap.chaos);
     this.raceTime = snap.raceTime;
     const phase = snap.phase as Phase;
     if (phase !== this.phase) {
@@ -938,6 +989,7 @@ export class RaceScene {
 
   dispose(): void {
     this.disposed = true;
+    this.chaos?.dispose();
     window.removeEventListener("keydown", this.skipIntro);
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();

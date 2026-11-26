@@ -101,6 +101,9 @@ export class HostSession {
     else if (msg.t === "vote") {
       this.castVote(p.clientId, msg.trackId);
       return;
+    } else if (msg.t === "useItem") {
+      this.race?.useItemRemote(p.clientId);
+      return;
     }
     else if (msg.t === "car") {
       this.race?.applyRemoteCar(p.clientId, msg.state);
@@ -290,6 +293,10 @@ export class ClientSession {
         this.events.onVoteResult?.(msg.winner, msg.tie);
         break;
     }
+  }
+
+  useItem(): void {
+    this.transport?.send({ t: "useItem" });
   }
 
   vote(trackId: string): void {

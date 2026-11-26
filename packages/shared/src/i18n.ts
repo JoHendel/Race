@@ -85,6 +85,16 @@ export const EN: Record<string, string> = {
   Nacht: "Night",
   Zufall: "Random",
   Wetter: "Weather",
+  "EMP-Puls": "EMP pulse",
+  Haftmine: "Sticky mine",
+  Drohne: "Homing drone",
+  Schutzschild: "Shield",
+  "Turbo-Zelle": "Turbo cell",
+  "Chaos-Modus": "Chaos mode",
+  "Chaos-Modus (Power-ups)": "Chaos mode (power-ups)",
+  "E / ↑ Item benutzen": "E / ↑ use item",
+  "GETROFFEN!": "HIT!",
+  "ABGEWEHRT!": "BLOCKED!",
 
   // Race
   "FALSCHE RICHTUNG": "WRONG WAY",
