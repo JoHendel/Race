@@ -116,6 +116,7 @@ export const EN: Record<string, string> = {
   "Ton an/aus (M)": "Sound on/off (M)",
   Lautstärke: "Volume",
   Musik: "Music",
+  "Physik wird geladen …": "Loading physics …",
   ZUSCHAUER: "SPECTATING",
   "Q/E: Fahrer wechseln · Im nächsten Rennen fährst du mit": "Q/E: switch driver · you race in the next one",
   "schaut zu": "watching",

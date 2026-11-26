@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { theme } from "@apex/shared";
-import { mulberry32 } from "@apex/sim";
+import { mulberry32 } from "@apex/sim/pure";
 import type { SplineTrack } from "./splineTrack";
 import { normalMap, type SurfaceKind } from "../normalMaps";
 
@@ -299,6 +299,7 @@ export function buildCircuit(t: SplineTrack): void {
     }
   }
   let time = 0;
+  for (const f of flags) f.userData.noMerge = true;
   t.animators.push((dt) => {
     time += dt;
     flags.forEach((f, i) => (f.rotation.y = Math.sin(time * 2 + i) * 0.4));

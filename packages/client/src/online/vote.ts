@@ -1,5 +1,5 @@
 import { trackById } from "@apex/shared";
-import { escapeHtml } from "../game/raceScene";
+import { escapeHtml } from "../game/grid";
 
 /**
  * Track vote overlay: three track cards, live vote dots, a countdown, and a wheel that spins

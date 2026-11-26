@@ -1,6 +1,6 @@
 import type { LobbyPlayer, LobbySettings } from "@apex/net";
 import { MAX_LAPS, MIN_LAPS, TRACKS, WEATHER_CHOICES, WEATHER_NAMES, carById } from "@apex/shared";
-import { escapeHtml } from "../game/raceScene";
+import { escapeHtml } from "../game/grid";
 
 export interface LobbyHandlers {
   isHost: boolean;

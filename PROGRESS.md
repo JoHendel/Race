@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M12 weiter – Performance: FPS-Anzeige (`?fps`), Draw-Calls/Dreiecke pro Strecke messen (renderer.info), Instancing/Zusammenfassen von Streckendeko wo es viele gleiche Objekte gibt, Rapier lazy laden (Rennszene dynamisch importieren); vorher/nachher-Zahlen in PROGRESS.md.
+**Nächster Schritt:** M12 weiter – Barrierefreiheit: Farbenblind-Modus (Palette ohne Rot/Grün-Unterscheidung für Minimap, Ampel, Items, Ideallinie), Untertitel für wichtige Sounds (Hupe, EMP, Treffer, Final Lap), freie Tastenbelegung im Menü (gespeichert); Logik in shared testbar.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -136,4 +136,19 @@ Alle Extra-Features aus dem Konzept sind drin: Wetter und Nacht, Chaos-Modus mit
 - Audio: `shared/audio.ts` (Getriebe, Motorstimme, Quietschen, Entfernung, Einstellungen – getestet), `client/audio/sound.ts` (WebAudio-Synthese, Motor-Schleife, Einmal-Effekte, Hupe). Im Browser geprüft: Audio startet nach dem ersten Klick, Motorfrequenz springt beim Hochschalten, M schaltet stumm, Lautstärke bleibt nach Neuladen. Neuer e2e-Test, alle 11 grün, `ai:evaluate` unverändert.
 - Musik: `shared/music.ts` (Sequencer, getestet), `Music` in `client/audio/sound.ts` (Lookahead-Planung auf der Audio-Uhr, Wechsel am Taktanfang). Im Browser: Menü-Song läuft nach dem ersten Klick (Spitzenpegel ~0,19, kein Übersteuern), im Rennen „race“, ab der letzten Runde „final“, Podest wieder „menu“. Gegner-Motoren: 3 nächste Autos. Architektur-Doku um Audio ergänzt.
 - Gamepad & Touch: `shared/touch.ts` (Stick, Neigung, räumliche Navigation, Tasten-Wiederholung – getestet), `client/gamepadNav.ts`, `client/game/touchControls.ts`. Im Browser mit „Pixel 7 landscape“-Emulation: Titel passt auf 863×360, Daumen-Stick und Gas fahren das Auto, HUD weicht den Daumen aus. Zwei neue e2e-Tests (Gamepad-Menü, Handy), alle 13 grün.
+- Performance (Messung `?fps`, Container mit Software-Rendering, 10 Autos, 6 s nach dem Start – FPS dort nicht aussagekräftig, Draw-Calls schon):
+
+  | Strecke | Draw-Calls vorher | nachher | Dreiecke vorher | nachher |
+  | --- | --- | --- | --- | --- |
+  | Neon Harbor | 345 | 283 | 27,7k | 28,4k |
+  | Sunset Canyon | 373 | 223 | 30,1k | 40,6k |
+  | Skyline Loop | 556 | 226 | 25,1k | 26,6k |
+  | Glacier Rift | 307 | 277 | 30,8k | 32,3k |
+  | Grand Circuit | 371 | 244 | 29,9k | 32,1k |
+  | Jungle Ruins | 454 | 234 | 30,3k | 33,8k |
+  | Volcano Rush | 283 | 233 | 28,4k | 30,9k |
+  | Orbital Station | 272 | 222 | 34,0k | 37,2k |
+
+  `mergeStatic` backt statische Meshes gleichen Materials zusammen (Skyline: 199 → 12, Jungle: 431 → 17); bewegte/blendende Objekte sind mit `userData.noMerge` markiert. Bildvergleich mit `?nomerge` aus gleicher Kamera: mittlere Pixelabweichung 0,04/255. Dreiecke steigen leicht, weil zusammengefasste Meshes nicht mehr einzeln weggeschnitten werden – bei Draw-Call-gebundener Last der bessere Tausch. Rapier, Rennszene und Testgelände liegen jetzt in einem nachgeladenen Chunk: der erste Download sinkt von ca. 1,9 MB auf ca. 0,25 MB (gzip), Titel, Lobby und Garage brauchen die Physik nicht (`@apex/sim/pure`, `game/grid.ts`).
+- Handy-Layout: Lobby/Garage scrollen, Replay-Leiste bricht um, Touch-Tasten werden in Ergebnis, Podest und Replay ausgeblendet.
 - Titelzeile „Early Access · weitere Strecken folgen“ war veraltet → „8 Strecken · 12 Autos · APEX-AI fährt mit“.

@@ -12,7 +12,8 @@ import {
   type SignalingProvider,
 } from "@apex/net";
 import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, TRACKS, VOTE_SECONDS, clampLaps, isEmote, isWeatherChoice, FxLimiter, RivalBook, type FxKind, pickCandidates, resolveWeather, tallyVotes, trackById } from "@apex/shared";
-import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry, type RaceScene } from "../game/raceScene";
+import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry } from "../game/grid";
+import type { RaceScene } from "../game/raceScene";
 import { currentCar } from "../save";
 
 type StartMessage = Extract<HostMessage, { t: "start" }>;

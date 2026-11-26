@@ -103,6 +103,7 @@ export function buildVolcano(t: SplineTrack): void {
     });
   }
 
+  for (const m of puffs) m.userData.noMerge = true;
   t.animators.push((dt) => {
     time.value += dt;
     puffs.forEach((m, i) => (m.position.y += Math.sin(time.value * 0.4 + i) * 0.01));

@@ -7,6 +7,8 @@
 - You now hear the engines of the cars right around you
 - **Phones:** on-screen thumb stick and buttons (gas, brake, drift, nitro, item), optional tilt steering, compact layout for landscape screens
 - **Gamepad in menus:** move with the d-pad or stick, A to press, B to go back
+- **Faster start:** the physics engine loads only when you start driving – the first download is about 8× smaller
+- Fewer draw calls: static scenery and car bodies are merged per material (up to 60 % fewer on Skyline Loop); `?fps` shows frame statistics
 
 ## v0.11.0 – Extra features
 - **Spectator mode:** join a room while a race is running to watch it (switch drivers with Q/E) and race in the next one

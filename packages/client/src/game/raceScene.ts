@@ -68,42 +68,13 @@ import { Podium } from "./podium";
 import { AiDriver, CURRENT_MODEL } from "@apex/ai";
 
 const STEP = 1 / 60;
-export const BOT_NAMES = ["Nova", "Blaze", "Kaito", "Vera", "Rook", "Juno", "Dash", "Mika", "Zed"];
-export const RACER_COLORS = [theme.cyan, theme.magenta, theme.orange, theme.violet, 0x39ff88, 0xffe14d, 0xff4d6d, 0x4dd2ff, 0xc0c0ff, 0xff9ef0];
+export { APEX_AI_COLOR, APEX_AI_ID, BOT_NAMES, RACER_COLORS, apexAiEntry, escapeHtml, type GridEntry } from "./grid";
+import { APEX_AI_ID, BOT_NAMES, RACER_COLORS, apexAiEntry, escapeHtml, type GridEntry } from "./grid";
 const LEVEL_NAMES = ["", "BOOST", "SUPER BOOST", "ULTRA BOOST"];
 const LEVEL_COLORS = ["white", "cyan", "orange", "violet"] as const;
 
 export type Phase = "intro" | "countdown" | "racing" | "finishing" | "results";
 export type NetRole = "offline" | "host" | "client";
-
-export interface GridEntry {
-  id: string;
-  name: string;
-  color: number;
-  human: boolean;
-  /** The machine-learning driver APEX-AI (simulated by the host or offline). */
-  ai?: boolean;
-  car?: { id: string; tuning: unknown; looks: unknown };
-}
-
-export const APEX_AI_ID = "apex-ai";
-export const APEX_AI_COLOR = 0xffc94d;
-
-/** APEX-AI drives the car it was trained with, in its own black-and-gold livery. */
-export function apexAiEntry(): GridEntry {
-  return {
-    id: APEX_AI_ID,
-    name: "APEX-AI",
-    color: APEX_AI_COLOR,
-    human: false,
-    ai: true,
-    car: {
-      id: "volt-hatch",
-      tuning: undefined,
-      looks: { color: 0x14162b, finish: "chrome", rimColor: APEX_AI_COLOR, spoiler: true, underglow: APEX_AI_COLOR, decal: "lightning", number: 0, smoke: APEX_AI_COLOR, horn: 3 },
-    },
-  };
-}
 
 export interface RewardSummary {
   reward: RaceReward;
@@ -604,6 +575,7 @@ export class RaceScene {
     this.clock += realDt;
     this.phaseTime += realDt;
     this.carFx.update(realDt);
+    this.touch?.setVisible(!this.replayView && !this.podium && !this.spectating && ["countdown", "racing", "finishing"].includes(this.phase) && !this.finished(this.player));
     if (this.replayView) {
       this.replayView.update(realDt);
       for (const e of [this.engineSound, ...this.nearEngines]) e?.update(engineVoice(0, 0, "street"), 0, false, 0);
@@ -1370,6 +1342,3 @@ export class RaceScene {
   }
 }
 
-export function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-}

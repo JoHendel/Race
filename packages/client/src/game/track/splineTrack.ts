@@ -7,6 +7,7 @@ import { buildJungle, buildTemple } from "./jungle";
 import { buildLavaTube, buildVolcano } from "./volcano";
 import { buildGlassTube, buildOrbital } from "./orbital";
 import { buildCircuit, buildCity, buildDesert } from "./scenery";
+import { mergeStatic } from "../mergeStatic";
 import { normalMap } from "../normalMaps";
 
 export { mulberry32, toGeometry };
@@ -45,7 +46,12 @@ export class SplineTrack extends TrackGeometry {
     else if (scenery === "city") buildCity(this);
     else if (scenery === "circuit") buildCircuit(this);
     else this.buildScenery();
+    // ?nomerge keeps every mesh separate (to compare performance and looks)
+    this.mergeStats = new URLSearchParams(location.search).has("nomerge") ? { before: 0, after: 0 } : mergeStatic(this.group);
   }
+
+  /** How many static meshes were baked together (see `mergeStatic`). */
+  readonly mergeStats: { before: number; after: number };
 
   /** Material of the main road (changed for wet weather). */
   roadMaterial: THREE.MeshStandardMaterial | null = null;
@@ -108,6 +114,7 @@ export class SplineTrack extends TrackGeometry {
       hazard.position.set(0, 0.03, leaf.dir * (leaf.length - 2.5));
       g.add(hazard);
       this.group.add(g);
+      g.userData.noMerge = true;
       leaves.push(g);
     }
     // Towers at the pivots with blinking warning lights
@@ -175,6 +182,7 @@ export class SplineTrack extends TrackGeometry {
       // temple: collapsed stone blocks instead of round boulders
       const geo = temple ? new THREE.BoxGeometry(b.radius * 1.5, b.radius * 1.2, b.radius * 1.5) : new THREE.DodecahedronGeometry(b.radius, 1);
       const m = new THREE.Mesh(geo, mat);
+      m.userData.noMerge = true;
       this.group.add(m);
       return m;
     });

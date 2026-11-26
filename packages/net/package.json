@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
+  "sideEffects": false,
   "dependencies": {
     "peerjs": "^1.5.5"
   }

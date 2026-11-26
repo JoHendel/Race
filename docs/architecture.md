@@ -24,7 +24,7 @@ flowchart TB
   sim --> shared
 ```
 
-Arrows point from a package to the packages it imports. `shared` and `net` depend on no other package, so the dependency graph has no cycles.
+Arrows point from a package to the packages it imports. `sim` also offers `@apex/sim/pure` (wheel layout, seeded random) without the physics engine, so menus and the garage do not load Rapier; the race scene and Rapier are a separately loaded chunk (`client/game/engine.ts`). `shared` and `net` depend on no other package, so the dependency graph has no cycles.
 
 | Package | Responsibility | Main public interface | External libraries |
 | --- | --- | --- | --- |

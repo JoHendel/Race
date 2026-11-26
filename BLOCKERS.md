@@ -26,3 +26,12 @@ Link an die Lehrkraft schicken: https://github.com/JoHendel/Race (Spiel: https:/
 Die Build-Umgebung kann kenney.nl und quaternius.com nicht erreichen. Das Spiel nutzt deshalb eigene, im Code erzeugte Karosserien (funktioniert vollständig). Falls echte Modelle gewünscht sind:
 1. Auf https://kenney.nl/assets/car-kit „Download“ klicken (kostenlos, CC0, keine Anmeldung nötig – den optionalen Spendenbetrag auf 0 lassen bzw. „Continue without donating“).
 2. Die ZIP-Datei in diesen Chat hochladen. Ich konvertiere die Modelle zu komprimiertem GLB und binde sie ein.
+
+## 60 FPS auf echter Hardware bestätigen (optional, kein Geld nötig)
+
+Im Container läuft nur Software-Rendering, daher lassen sich echte FPS nicht messen. So prüfst du es auf einem normalen Laptop:
+
+1. Spiel öffnen (lokal mit `pnpm dev` oder auf GitHub Pages) und `?fps` an die Adresse hängen, z. B. `…/Race/?fps`.
+2. „Rennen gegen Bots“ auf einer Strecke fahren (10 Autos).
+3. Unten in der Mitte steht die Zeile mit FPS, Frame-Zeit und Draw-Calls. Wenn dort dauerhaft um 60 FPS stehen, ist das Ziel erreicht – gern die Zahl pro Strecke in `PROGRESS.md` ergänzen.
+

@@ -166,6 +166,18 @@ export class TouchControls {
     }
   }
 
+  /** Only while driving – menus, results and replays need the screen. */
+  setVisible(on: boolean): void {
+    if (this.el.classList.contains("hidden") === !on) return;
+    this.el.classList.toggle("hidden", !on);
+    if (!on) {
+      for (const k of Object.keys(this.state) as (keyof TouchState)[]) (this.state as unknown as Record<string, number | boolean>)[k] = typeof this.state[k] === "number" ? 0 : false;
+      this.el.querySelectorAll(".on").forEach((b) => b.classList.remove("on"));
+      this.stickPointer = null;
+      this.knob.style.transform = "";
+    }
+  }
+
   dispose(): void {
     window.removeEventListener("deviceorientation", this.onOrientation);
     this.el.remove();

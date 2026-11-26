@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
@@ -9,11 +8,10 @@ import { DEFAULT_POST_FX, GradeShader, type PostFx } from "./game/postFx";
 import { CupStandings, DEFAULT_LAPS, RivalBook, NEON_HARBOR, TRACKS, WEATHER_CHOICES, WEATHER_NAMES, clampLaps, isWeatherChoice, resolveWeather, type TrackDef, type WeatherChoice } from "@apex/shared";
 import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } from "@apex/net";
 import { TitleScene } from "./titleScene";
-import { DriveScene } from "./game/driveScene";
-import { RaceScene } from "./game/raceScene";
 import { runFrameHooks } from "./game/frameHooks";
 import { initSound, sound } from "./audio/sound";
 import { initGamepadNav } from "./gamepadNav";
+import { PerfStats } from "./perfStats";
 import { wantsTouch } from "./game/touchControls";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
@@ -42,6 +40,7 @@ const ui = document.querySelector<HTMLElement>("#ui");
 if (!canvas || !ui) throw new Error("UI-Elemente fehlen");
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const perf = new PerfStats(renderer, params.has("fps"));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
@@ -128,7 +127,7 @@ let lobby: LobbyView | null = null;
 let busy = false;
 
 function expose(value: Record<string, unknown>): void {
-  (window as unknown as { apex: unknown }).apex = { ...value, sound };
+  (window as unknown as { apex: unknown }).apex = { ...value, sound, perf: perf.stats };
 }
 
 function clearScreen(): void {
@@ -140,6 +139,28 @@ function clearScreen(): void {
   document.querySelectorAll("#ui > .panel").forEach((el) => el.remove());
 }
 
+type Engine = typeof import("./game/engine");
+let engine: Engine | null = null;
+
+/** Load the 3D race and the physics engine (first time only); shows the loading screen meanwhile. */
+async function loadEngine(): Promise<Engine> {
+  if (engine) return engine;
+  const boot = document.getElementById("boot");
+  const overlay = document.createElement("div");
+  overlay.className = "engine-loading";
+  overlay.dataset.testid = "engine-loading";
+  overlay.innerHTML = `<div class="spinner"></div><span>Physik wird geladen …</span>`;
+  if (!boot) document.body.appendChild(overlay);
+  try {
+    const e = await import("./game/engine");
+    await e.initPhysics();
+    engine = e;
+    return e;
+  } finally {
+    overlay.remove();
+  }
+}
+
 function leaveSession(): void {
   session?.close();
   session = null;
@@ -148,7 +169,7 @@ function leaveSession(): void {
 async function startDrive(): Promise<void> {
   if (busy) return;
   busy = true;
-  await RAPIER.init();
+  const { DriveScene } = await loadEngine();
   clearScreen();
   const drive = new DriveScene(ui!, renderer);
   current = drive;
@@ -272,7 +293,7 @@ function startGrandPrix(): void {
 async function startOfflineRace(mode: RaceMode = "race"): Promise<void> {
   if (busy) return;
   busy = true;
-  await RAPIER.init();
+  const { RaceScene } = await loadEngine();
   clearScreen();
   const race = new RaceScene(
     ui!,
@@ -555,7 +576,7 @@ async function beginOnlineRace(
 ): Promise<void> {
   const s = session;
   if (!s) return;
-  await RAPIER.init();
+  const { RaceScene } = await loadEngine();
   clearScreen();
   const isHost = s instanceof HostSession;
   const race = new RaceScene(
@@ -603,8 +624,9 @@ initSound();
 sound.song("menu");
 if (wantsTouch()) document.body.classList.add("touch-mode");
 initGamepadNav(() => {
-  if (active instanceof DriveScene) return true;
-  if (!(active instanceof RaceScene)) return false;
+  if (!engine) return false;
+  if (active instanceof engine.DriveScene) return true;
+  if (!(active instanceof engine.RaceScene)) return false;
   return ["intro", "countdown", "racing", "finishing"].includes(active.phase);
 });
 expose({});
@@ -625,6 +647,7 @@ function frame(): void {
   clock.update();
   active.update(clock.getDelta());
   composer.render();
+  perf.frame(clock.getDelta());
   runFrameHooks();
   requestAnimationFrame(frame);
 }

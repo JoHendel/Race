@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { mulberry32 } from "@apex/sim";
+import { mulberry32 } from "@apex/sim/pure";
 
 export type SurfaceKind = "asphalt" | "rock" | "ice" | "sand";
 

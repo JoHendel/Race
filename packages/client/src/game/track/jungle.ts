@@ -132,6 +132,7 @@ function buildWaterfall(t: SplineTrack, at: number): void {
     mists.push(m);
     g.add(m);
   }
+  for (const m of mists) m.userData.noMerge = true;
   t.animators.push((dt) => {
     time.value += dt;
     mists.forEach((m, i) => m.scale.setScalar(1 + 0.15 * Math.sin(time.value * 1.5 + i)));

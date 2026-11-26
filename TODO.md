@@ -91,6 +91,7 @@
 - [ ] Menü-Animationen
 - [x] Gamepad in Menüs: Fokus per Steuerkreuz/Stick mit räumlicher Navigation (`shared/touch.ts`), A drückt, B zurück, Regler mit links/rechts; im Fahren aus
 - [x] Touch-Steuerung: Daumen-Stick links, Gas/Bremse/Drift/Nitro/Item rechts, Reset, Neigungssteuerung zum Einschalten (iOS fragt nach Erlaubnis); kompakter Titel und HUD auf kurzen Bildschirmen, Tippen überspringt das Intro
-- [ ] Touch: Lobby, Garage und Replay auf dem Handy durchgehen (Layout)
-- [ ] Performance: 60 FPS mit 10 Autos messen, Rapier lazy laden, Draw-Calls senken
+- [x] Touch: Lobby, Garage, Ergebnis und Replay auf 863×360 geprüft – Panels scrollen, Replay-Leiste bricht um, Touch-Tasten nur während der Fahrt
+- [x] Performance-Werkzeug `?fps` (FPS, Frame-Zeit, Draw-Calls, Dreiecke), statische Deko und Auto-Karosserien je Material zusammengefasst (`mergeStatic`), Rapier + Rennszene lazy geladen (Start-Download ~1,9 MB → ~0,25 MB gzip)
+- [ ] 60 FPS auf echter Hardware bestätigen (Swiftshader im Container misst nur 3–4 FPS, nicht aussagekräftig) – braucht einen Menschen mit Laptop, siehe BLOCKERS.md
 - [ ] Barrierefreiheit: Farbenblind-Modus, Untertitel für Sounds, Tastenbelegung

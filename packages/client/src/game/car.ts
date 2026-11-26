@@ -3,6 +3,7 @@ import type RAPIER from "@dimforge/rapier3d-compat";
 import { carById, defaultLooks, theme, type CarDef, type CarLooks, type VehicleStats } from "@apex/shared";
 import { SUSPENSION_REST, VehiclePhysics, wheelLayout, type CarEvents } from "@apex/sim";
 import { buildCarModel } from "./carModel";
+import { mergeStatic } from "./mergeStatic";
 
 export type { CarEvents };
 
@@ -26,6 +27,12 @@ export class Car extends VehiclePhysics {
     super(world, stats, events, wheelLayout(look.def));
     this.modelId = look.def.id;
     const model = buildCarModel(look.def, look.looks);
+    // body parts never move relative to each other: one draw call per material (wheels stay separate)
+    for (const w of model.wheelMeshes) {
+      mergeStatic(w); // rim + spokes share a material and spin together
+      w.userData.noMerge = true;
+    }
+    mergeStatic(model.group);
     this.mesh.add(model.group);
     this.wheelMeshes = model.wheelMeshes;
   }

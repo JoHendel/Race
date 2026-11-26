@@ -29,7 +29,7 @@ import {
   type TuningPart,
 } from "@apex/shared";
 import { buildCarModel } from "../game/carModel";
-import { escapeHtml } from "../game/raceScene";
+import { escapeHtml } from "../game/grid";
 import { loadSave, storeSave } from "../save";
 
 const RATING_NAMES: [keyof ReturnType<typeof tunedRating>, string][] = [

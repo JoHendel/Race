@@ -106,6 +106,7 @@ export function buildOrbital(t: SplineTrack): void {
     }
   }
 
+  for (const o of [ring, windows, atmosphere]) o.userData.noMerge = true;
   t.animators.push((dt) => {
     ring.rotation.z += dt * 0.05;
     windows.rotation.z = ring.rotation.z;

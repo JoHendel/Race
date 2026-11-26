@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { theme, type BodyStyle, type CarDef, type CarLooks, type DecalPattern } from "@apex/shared";
-import { wheelLayout } from "@apex/sim";
+import { wheelLayout } from "@apex/sim/pure";
 
 /** Seitenprofil (z nach vorne, y nach oben) pro Karosserie, normiert auf Länge 1 und Höhe 1. */
 const PROFILES: Record<BodyStyle, [number, number][]> = {
