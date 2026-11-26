@@ -27,6 +27,7 @@
 - **Drift boost in three stages, nitro, jumps**
 - Rule-based bots fill empty grid slots
 - **5 tracks** (Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift with slippery ice, Grand Circuit) – pick one on the title screen or in the lobby; more are planned
+- **Shortcuts and live track events:** a warehouse shortcut and a drawbridge that rises from lap 2 on Neon Harbor, a rockfall that opens a canyon shortcut on Sunset Canyon
 - **German and English UI** – switch with the button in the top right corner of the title screen
 
 ## Play online

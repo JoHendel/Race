@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M9 weiter – Steinschlag in Sunset Canyon: neues Ereignis `rockfall` in `TrackEvent`, Felsen blockieren eine Abkürzung (Shortcut mit `closedUntilLap`), ab Runde 2 fallen sie (kinematisch animiert, danach entfernt) und geben sie frei. `locate()`/Mauerlücke müssen geschlossene Abkürzungen ignorieren.
+**Nächster Schritt:** M9 weiter – Turbo Cup: Strecke Jungle Ruins (Wasserfall-Durchfahrt, Hangbrücke) mit eigener Umgebung (`scenery: "jungle"`), Abkürzung und Sprung; danach Volcano Rush und Orbital Station.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -79,3 +79,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Abkürzung Lagerhalle in Neon Harbor: zweiter Spline-Abschnitt mit Mauerlücke, Halle mit Deckenlampen und Chevron-Schild, gestrichelt auf der Minimap. Runde zählt nur bei echter Durchfahrt (Checkpoint-Gutschrift in der Mitte). Spart ca. 0,65 s.
 - KI-Training nutzt `withoutShortcuts` – `pnpm ai:evaluate` liefert bit-genau dieselben Ergebnisse wie bei M7.
 - Zugbrücke Neon Harbor (Ereignisse als Daten in `TrackDef.events`, `Drawbridge` in `packages/sim`): Klappen heben sich ab Runde 2, alle Fahrer kommen sicher drüber (ca. 0,3 s Zeitverlust), Banner „ZUGBRÜCKE ÖFFNET SICH!“. KI-Training nutzt `forTraining()` (ohne Abkürzungen und Ereignisse), `ai:evaluate` bit-genau gleich.
+- Steinschlag Sunset Canyon: neues Ereignis `rockfall` (`packages/sim/src/rockfall.ts`), geschlossene Abkürzungen ignoriert `locate()`. Dabei zwei Geometriefehler an Abzweigungen behoben (Höhenkante zwischen Abkürzung und Seitenstreifen, Mauerende in der Ideallinie) – Abkürzungen haben jetzt einen Trichter und übernehmen nahe der Hauptstrecke deren Höhe. `ai:evaluate` bit-genau gleich.

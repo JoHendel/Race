@@ -47,9 +47,9 @@
 - [x] Bots bremsen auf Eis früher; Physik nutzt den Grip in Spiel und Headless-Simulation
 - [x] Streckenwahl im Titelmenü (Pfeile, gespeichert, `?track=`), Streckenwahl des Hosts in der Lobby
 - [x] Abkürzungen: eigener Spline-Abschnitt mit Mauerlücke, Gutschrift der Checkpoints nur bei Durchfahrt (`creditShortcut`), Lagerhalle in Neon Harbor (spart ca. 0,65 s), gestrichelt auf der Minimap
-- [ ] Abkürzungen für die übrigen Strecken (Sunset Canyon nach dem Steinschlag, Skyline Loop, Glacier Rift, Grand Circuit Boxengasse)
+- [ ] Abkürzungen für die übrigen Strecken (Skyline Loop, Glacier Rift, Grand Circuit Boxengasse) und je ein Ereignis für Skyline Loop, Glacier Rift, Grand Circuit
 - [x] Dynamisches Ereignis Zugbrücke Neon Harbor: zwei kinematische Klappen, heben sich ab Runde 2 auf 10° (Buckel-Sprung), Türme mit Warnlichtern, Banner; online aus der Rundenzahl des Führenden
-- [ ] Steinschlag Sunset Canyon (gibt eine Abkürzung frei)
+- [x] Steinschlag Sunset Canyon: Felssperre schließt die Schlucht-Abkürzung, ab Runde 2 stürzen Brocken herab, Sperre bricht zusammen (Staubwolke), Abkürzung frei (spart ca. 0,65 s); Minimap rot/orange
 - [ ] Turbo Cup: Jungle Ruins, Volcano Rush, Orbital Station (geringe Schwerkraft)
 - [ ] Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand)
 - [ ] Rundenzeiten auf 45–75 s bringen (aktuell ca. 35–45 s für schnelle Fahrer)

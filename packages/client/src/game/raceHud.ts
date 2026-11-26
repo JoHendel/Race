@@ -21,7 +21,7 @@ export class RaceHud {
   private readonly banner: HTMLElement;
   private readonly map: CanvasRenderingContext2D;
   private readonly mapPath: Path2D;
-  private readonly shortcutPath = new Path2D();
+  private readonly shortcutPaths: { path: Path2D; shortcut: { open: boolean } }[] = [];
   private readonly mapTransform: (x: number, z: number) => [number, number];
   private bannerTimer = 0;
 
@@ -66,11 +66,13 @@ export class RaceHud {
     });
     this.mapPath.closePath();
     for (const c of track.shortcuts) {
+      const path = new Path2D();
       c.samples.forEach((s, i) => {
         const [x, y] = this.mapTransform(s.pos.x, s.pos.z);
-        if (i === 0) this.shortcutPath.moveTo(x, y);
-        else this.shortcutPath.lineTo(x, y);
+        if (i === 0) path.moveTo(x, y);
+        else path.lineTo(x, y);
       });
+      this.shortcutPaths.push({ path, shortcut: c });
     }
   }
 
@@ -114,10 +116,12 @@ export class RaceHud {
     g.lineWidth = 2;
     g.strokeStyle = cssColor("cyan");
     g.stroke(this.mapPath);
-    // Shortcuts: dashed orange
+    // Shortcuts: dashed orange when open, faint red while blocked
     g.setLineDash([4, 4]);
-    g.strokeStyle = cssColor("orange");
-    g.stroke(this.shortcutPath);
+    for (const { path, shortcut } of this.shortcutPaths) {
+      g.strokeStyle = shortcut.open ? cssColor("orange") : "rgba(255,77,77,0.45)";
+      g.stroke(path);
+    }
     g.setLineDash([]);
     for (const r of [...racers].sort((a, b) => Number(a.isPlayer) - Number(b.isPlayer))) {
       const [x, y] = this.mapTransform(r.pos.x, r.pos.z);

@@ -4,6 +4,7 @@
 - New track **Glacier Rift**: ice patches with less grip, an ice cave and northern lights – the Neon Cup now has four tracks
 - Tracks can define surfaces (grip) and their own environment (sky, fog, scenery)
 - Track selection on the title screen and for the host in the online lobby
+- **Rockfall** on Sunset Canyon: a rock barrier blocks a canyon shortcut; from lap 2 boulders crash down and open it
 - **Drawbridge** on Neon Harbor: from lap 2 the bridge leaves rise and turn into a jump, with blinking warning lights and a banner
 - **Shortcut** through a warehouse on Neon Harbor – laps through it count only when you really drive through; shown dashed on the minimap
 

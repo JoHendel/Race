@@ -161,6 +161,7 @@ export class RaceScene {
   private podium: Podium | null = null;
   private readonly sky: THREE.Group;
   private bridgeBannerIn = 0;
+  private eventBanner = "";
   private podiumTime = 0;
   private cupRecorded = false;
   private cupCeremony = false;
@@ -344,7 +345,7 @@ export class RaceScene {
     this.track.syncBridges(realDt);
     if (this.bridgeBannerIn > 0) {
       this.bridgeBannerIn -= realDt;
-      if (this.bridgeBannerIn <= 0) this.raceHud.showBanner("ZUGBRÜCKE ÖFFNET SICH!", 3);
+      if (this.bridgeBannerIn <= 0) this.raceHud.showBanner(this.eventBanner, 3);
     }
     this.clock += realDt;
     this.phaseTime += realDt;
@@ -481,10 +482,13 @@ export class RaceScene {
       r.car.setSurfaceGrip(this.track.gripAt(r.index));
       r.car.update(controls, STEP);
     }
-    if (this.track.bridges.length && this.racing) {
+    if (this.track.hasEvents && this.racing) {
       const leaderLaps = Math.max(...this.racers.map((r) => this.status(r).lap));
       // Shown a moment later so it does not collide with the lap banner of the leader.
-      if (this.track.updateEvents(leaderLaps, STEP).length) this.bridgeBannerIn = 1.8;
+      for (const ev of this.track.updateEvents(leaderLaps, STEP)) {
+        this.eventBanner = ev.event.kind === "rockfall" ? "STEINSCHLAG – ABKÜRZUNG FREI!" : "ZUGBRÜCKE ÖFFNET SICH!";
+        this.bridgeBannerIn = 1.8;
+      }
     }
     this.world.step();
     if (this.racing && this.role !== "client") this.updateRaceStats();

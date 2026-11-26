@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { NEON_HARBOR, SUNSET_CANYON, forTraining, withoutShortcuts } from "@apex/shared";
+import { GRAND_CIRCUIT, NEON_HARBOR, SUNSET_CANYON, forTraining, withoutShortcuts, type DrawbridgeEvent } from "@apex/shared";
 import { TrackGeometry } from "./track";
 
 describe("TrackGeometry shortcuts", () => {
@@ -47,7 +47,7 @@ describe("TrackGeometry shortcuts", () => {
   });
 
   it("tracks without shortcuts have no wall gaps", () => {
-    for (const def of [SUNSET_CANYON, withoutShortcuts(NEON_HARBOR)]) {
+    for (const def of [GRAND_CIRCUIT, withoutShortcuts(NEON_HARBOR)]) {
       const t = make(def);
       expect(t.shortcuts).toHaveLength(0);
       expect(t.wallMask(1)).toBeUndefined();
@@ -74,7 +74,7 @@ describe("Drawbridge", () => {
   it("leaves a gap in the fixed road only where the bridge is", () => {
     const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), NEON_HARBOR);
     const gaps = t.roadMask!.filter((v) => !v).length;
-    expect(gaps * 2).toBeCloseTo(NEON_HARBOR.events![0]!.span, -1);
+    expect(gaps * 2).toBeCloseTo((NEON_HARBOR.events![0] as DrawbridgeEvent).span, -1);
   });
 
   it("the training variant has no bridge and no road gap", () => {
@@ -94,5 +94,25 @@ describe("Drawbridge state", () => {
     b.update(1, 10);
     b.update(0, 1 / 60);
     expect((b.angle * 180) / Math.PI).toBeCloseTo(10, 5);
+  });
+});
+
+describe("Rockfall", () => {
+  beforeAll(async () => {
+    await RAPIER.init();
+  });
+
+  it("keeps the canyon shortcut of Sunset Canyon closed until lap 2", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), SUNSET_CANYON);
+    const c = t.shortcuts[0]!;
+    const mid = c.samples[Math.floor(c.samples.length / 2)]!;
+    expect(c.open).toBe(false);
+    expect(t.locate(mid.pos, Math.round(0.6 * t.samples.length)).shortcut).toBeNull();
+    for (let i = 0; i < 600; i++) t.updateEvents(0, 1 / 60);
+    expect(c.open).toBe(false);
+    expect(t.updateEvents(1, 1 / 60)).toEqual([t.rockfalls[0]]);
+    for (let i = 0; i < 60 * 3; i++) t.updateEvents(1, 1 / 60);
+    expect(c.open).toBe(true);
+    expect(t.locate(mid.pos, Math.round(0.6 * t.samples.length)).shortcut).toBe(c);
   });
 });

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 import { DEFAULT_ENVIRONMENT, theme, type TrackDef } from "@apex/shared";
-import { CURB_WIDTH, LEAF_THICKNESS, TrackGeometry, mulberry32, stripRibbon, stripWall, type Drawbridge, type MeshArrays, type ShortcutPath } from "@apex/sim";
+import { CURB_WIDTH, LEAF_THICKNESS, TrackGeometry, mulberry32, stripRibbon, stripWall, type Drawbridge, type MeshArrays, type Rockfall, type ShortcutPath } from "@apex/sim";
 
 export { mulberry32 };
 
@@ -29,6 +29,7 @@ export class SplineTrack extends TrackGeometry {
     this.buildSurfaces();
     for (const c of this.shortcuts) this.buildShortcut(c);
     for (const b of this.bridges) this.buildBridge(b);
+    for (const r of this.rockfalls) this.buildRockfall(r);
     if ((this.def.environment ?? DEFAULT_ENVIRONMENT).scenery === "glacier") this.buildGlacier();
     else this.buildScenery();
   }
@@ -98,8 +99,74 @@ export class SplineTrack extends TrackGeometry {
     this.syncBridges(0);
   }
 
+  /** Canyon shortcut: tall sandstone cliffs on both sides with loose rocks on top. */
+  private buildCanyon(c: ShortcutPath, off: number): void {
+    const rock = new THREE.MeshStandardMaterial({ color: 0x8a4b2a, roughness: 0.95, envMapIntensity: 0.15, side: THREE.DoubleSide });
+    const dark = new THREE.MeshStandardMaterial({ color: 0x3d2216, roughness: 1, envMapIntensity: 0.1 });
+    const k0 = Math.floor(c.samples.length * 0.12);
+    const k1 = Math.ceil(c.samples.length * 0.88);
+    const part = c.samples.slice(k0, k1 + 1);
+    for (const side of [1, -1]) {
+      this.group.add(new THREE.Mesh(toGeometry(stripWall(part, false, side * (off + 0.4), 16)), rock));
+      this.group.add(new THREE.Mesh(toGeometry(stripRibbon(part, false, side * (off + 0.4), side * (off + 9), 16, 18)), rock));
+    }
+    const geo = new THREE.DodecahedronGeometry(1, 0);
+    const rnd = mulberry32(57);
+    for (let k = 0; k < part.length; k += 3) {
+      const s = part[k]!;
+      for (const side of [1, -1]) {
+        if (rnd() < 0.4) continue;
+        const r = 1.5 + rnd() * 3;
+        const m = new THREE.Mesh(geo, dark);
+        m.scale.set(r, r * 0.8, r);
+        m.position.copy(s.pos).addScaledVector(s.left, side * (off + 2 + rnd() * 6)).add(new THREE.Vector3(0, 16.5 + r * 0.3, 0));
+        m.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3);
+        this.group.add(m);
+      }
+    }
+  }
+
+  private readonly rockVisuals: { rockfall: Rockfall; meshes: THREE.Mesh[]; dust: THREE.Mesh }[] = [];
+
+  /** Rock barrier and falling boulders of a rockfall event. */
+  private buildRockfall(r: Rockfall): void {
+    const mat = new THREE.MeshStandardMaterial({ color: 0x6e3a20, roughness: 0.95, envMapIntensity: 0.15 });
+    const meshes = r.boulders.map((b) => {
+      const m = new THREE.Mesh(new THREE.DodecahedronGeometry(b.radius, 1), mat);
+      this.group.add(m);
+      return m;
+    });
+    const dust = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 16, 12),
+      new THREE.MeshBasicMaterial({ color: 0xd9a066, transparent: true, opacity: 0, depthWrite: false }),
+    );
+    dust.position.copy(r.boulders[0]!.start);
+    this.group.add(dust);
+    this.rockVisuals.push({ rockfall: r, meshes, dust });
+  }
+
   /** Move the bridge meshes to the physics pose; blink the warning lights while a bridge is open. */
   syncBridges(dt: number): void {
+    for (const v of this.rockVisuals) {
+      v.rockfall.boulders.forEach((b, i) => {
+        const m = v.meshes[i]!;
+        const pose = v.rockfall.pose(b);
+        m.visible = pose !== null;
+        if (pose) {
+          m.position.copy(pose.pos);
+          m.rotation.set(pose.spin, pose.spin * 0.7, 0);
+        }
+      });
+      // A dust cloud grows and fades while the barrier collapses
+      const t = v.rockfall.elapsed;
+      const mat = v.dust.material as THREE.MeshBasicMaterial;
+      if (t === null || t > 4) mat.opacity = 0;
+      else {
+        const f = Math.min(1, t / 4);
+        v.dust.scale.setScalar(3 + f * 14);
+        mat.opacity = t < 1 ? 0 : 0.55 * (1 - f);
+      }
+    }
     this.blink += dt;
     for (const v of this.bridgeVisuals) {
       v.bridge.leaves.forEach((leaf, i) => {
@@ -134,6 +201,11 @@ export class SplineTrack extends TrackGeometry {
     ] as const) {
       this.group.add(new THREE.Mesh(toGeometry(stripWall(c.samples, false, side * off, WALL_HEIGHT, mask)), wallMat));
       this.group.add(new THREE.Mesh(toGeometry(stripRibbon(c.samples, false, side * off, side * (off + 0.05), WALL_HEIGHT, WALL_HEIGHT + 0.12, mask)), trim));
+    }
+
+    if (c.def.kind === "canyon") {
+      this.buildCanyon(c, off);
+      return;
     }
 
     // Warehouse over the middle 60 % of the shortcut

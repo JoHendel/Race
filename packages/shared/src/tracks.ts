@@ -38,8 +38,8 @@ export interface TrackShortcut {
   /** Control points in between (x, z); the height is interpolated. */
   via: [number, number][];
   width: number;
-  /** Building the shortcut runs through (visual only). */
-  kind: "warehouse";
+  /** What the shortcut runs through (visual only). */
+  kind: "warehouse" | "canyon";
 }
 
 /**
@@ -58,7 +58,18 @@ export interface DrawbridgeEvent {
   angle: number;
 }
 
-export type TrackEvent = DrawbridgeEvent;
+/** Rockfall: a rock barrier blocks a shortcut until the leader reaches `fromLap`; then boulders smash it open. */
+export interface RockfallEvent {
+  kind: "rockfall";
+  /** Index into `TrackDef.shortcuts`. */
+  shortcut: number;
+  fromLap: number;
+}
+
+export type TrackEvent = DrawbridgeEvent | RockfallEvent;
+
+/** Seconds from the first falling boulder until the shortcut is open. */
+export const ROCKFALL_DURATION = 2.5;
 
 /** Seconds a drawbridge needs to rise. */
 export const DRAWBRIDGE_RISE_TIME = 4;
@@ -163,7 +174,9 @@ export const SUNSET_CANYON: TrackDef = {
     [30, 2, -85],
   ],
   ramps: [{ at: 0.36, length: 16, height: 3 }],
-  blurb: "Wüstenschlucht im Abendlicht, großer Sprung",
+  shortcuts: [{ from: 0.515, to: 0.7, via: [[292, -40], [287, -112]], width: 10, kind: "canyon" }],
+  events: [{ kind: "rockfall", shortcut: 0, fromLap: 2 }],
+  blurb: "Wüstenschlucht im Abendlicht, großer Sprung, Steinschlag öffnet ab Runde 2 eine Abkürzung",
 };
 
 export const SKYLINE_LOOP: TrackDef = {

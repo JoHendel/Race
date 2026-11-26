@@ -2,6 +2,7 @@ import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { surfaceGripAt, type TrackDef, type TrackShortcut } from "@apex/shared";
 import { Drawbridge } from "./drawbridge";
+import { Rockfall } from "./rockfall";
 
 export const SAMPLE_SPACING = 2; // m between two samples
 export const CURB_WIDTH = 1.2;
@@ -19,6 +20,8 @@ export interface ShortcutPath {
   def: TrackShortcut;
   samples: (TrackSample & { frac: number })[];
   halfWidth: number;
+  /** Closed shortcuts (e.g. blocked by rocks) are ignored by locate() and give no lap credit. */
+  open: boolean;
   /** Wall segments of the shortcut that are outside the main track (per side). */
   wallMask: { left: boolean[]; right: boolean[] };
 }
@@ -110,6 +113,12 @@ export class TrackGeometry {
 
   readonly shortcuts: ShortcutPath[] = [];
   readonly bridges: Drawbridge[] = [];
+  readonly rockfalls: Rockfall[] = [];
+
+  /** Does the track have dynamic events at all? */
+  get hasEvents(): boolean {
+    return this.bridges.length + this.rockfalls.length > 0;
+  }
   /** Road segments that are replaced by moving parts (drawbridges); false = no fixed road there. */
   roadMask?: boolean[];
 
@@ -135,15 +144,16 @@ export class TrackGeometry {
   private buildEvents(): void {
     const n = this.samples.length;
     for (const e of this.def.events ?? []) {
-      if (e.kind !== "drawbridge") continue;
-      this.bridges.push(new Drawbridge(this.world, e, this.sample(Math.round(e.at * n)), this.wallOffset - 0.15));
+      if (e.kind === "drawbridge") this.bridges.push(new Drawbridge(this.world, e, this.sample(Math.round(e.at * n)), this.wallOffset - 0.15));
+      else if (e.kind === "rockfall" && this.shortcuts[e.shortcut]) this.rockfalls.push(new Rockfall(this.world, e, this.shortcuts[e.shortcut]!));
     }
   }
 
   /** Advance dynamic events. Returns the events that just started (for banners and sounds). */
-  updateEvents(leaderLaps: number, dt: number): Drawbridge[] {
-    const started: Drawbridge[] = [];
+  updateEvents(leaderLaps: number, dt: number): (Drawbridge | Rockfall)[] {
+    const started: (Drawbridge | Rockfall)[] = [];
     for (const b of this.bridges) if (b.update(leaderLaps, dt)) started.push(b);
+    for (const r of this.rockfalls) if (r.update(leaderLaps, dt)) started.push(r);
     return started;
   }
   private mainMask: { left?: boolean[]; right?: boolean[] } = {};
@@ -163,6 +173,12 @@ export class TrackGeometry {
       for (let k = 0; k <= count; k++) {
         const u = k / count;
         const pos = curve.getPointAt(u);
+        // Near the main track follow its height, so there is no ledge at the junctions.
+        const mi = this.nearestIndex(pos);
+        const m = this.samples[mi]!.pos;
+        const d = Math.hypot(pos.x - m.x, pos.z - m.z);
+        const w = 1 - smoothstep(this.wallOffset - 2, this.wallOffset + 10, d);
+        pos.y += (m.y - pos.y) * w;
         const tangent = curve.getTangentAt(u).normalize();
         const left = new THREE.Vector3().crossVectors(up, tangent).normalize();
         samples.push({ pos, tangent, left, frac: def.from + (def.to - def.from) * u });
@@ -171,17 +187,19 @@ export class TrackGeometry {
       const outside = (k: number, side: number) => {
         const s = samples[k]!;
         const p = s.pos.clone().addScaledVector(s.left, side * (halfWidth + CURB_WIDTH));
-        return this.distanceToTrack(p) > this.wallOffset - 0.3;
+        // walls start a bit inside the shortcut: a funnel at the junction, no wall end in the racing line
+        return this.distanceToTrack(p) > this.wallOffset + 4;
       };
       const seg = (side: number) => samples.map((_, k) => k < samples.length - 1 && outside(k, side) && outside(k + 1, side));
-      this.shortcuts.push({ def, samples, halfWidth, wallMask: { left: seg(1), right: seg(-1) } });
+      this.shortcuts.push({ def, samples, halfWidth, open: true, wallMask: { left: seg(1), right: seg(-1) } });
     }
     if (!this.shortcuts.length) return;
     // Gaps in the main walls where a shortcut corridor crosses them
     const blocked = (i: number, side: number) => {
       const s = this.samples[i % n]!;
       const p = s.pos.clone().addScaledVector(s.left, side * this.wallOffset);
-      return this.shortcuts.some((c) => nearestDistance(c.samples, p) < c.halfWidth + CURB_WIDTH + 1);
+      // generous gap = funnel into the shortcut, so clipping the wall end is unlikely
+      return this.shortcuts.some((c) => nearestDistance(c.samples, p) < c.halfWidth + CURB_WIDTH + 3.5);
     };
     const mask = (side: number) => this.samples.map((_, i) => !blocked(i, side) && !blocked(i + 1, side));
     this.mainMask = { left: mask(1), right: mask(-1) };
@@ -200,6 +218,7 @@ export class TrackGeometry {
       dMain = Math.hypot(p.x - this.samples[index]!.pos.x, p.z - this.samples[index]!.pos.z);
     }
     for (const c of this.shortcuts) {
+      if (!c.open) continue;
       let best = 0;
       let bestD = Infinity;
       c.samples.forEach((s, k) => {
@@ -328,4 +347,9 @@ export function stripWall(samples: TrackSample[], closed: boolean, offset: numbe
     }
   }
   return { positions: new Float32Array(pos), uvs: new Float32Array(0), indices: new Uint32Array(idx) };
+}
+
+function smoothstep(a: number, b: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
 }
