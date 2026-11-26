@@ -193,6 +193,36 @@ test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ b
   await ctx.close();
 });
 
+test("Online: a player joining during the race watches as a spectator", async ({ browser }) => {
+  test.setTimeout(300_000);
+  const ctx = await browser.newContext();
+  const host = await ctx.newPage();
+  const late = await ctx.newPage();
+  const hostErrors = collectErrors(host);
+  const lateErrors = collectErrors(late);
+  await host.goto("./?net=local&autopilot");
+  await host.getByTestId("online").click();
+  await host.getByTestId("host").click();
+  const code = (await host.getByTestId("room-code").textContent())!.trim();
+  await host.getByTestId("start-race").click();
+  await host.waitForFunction(() => Boolean((window as ApexWindow).apex?.race), undefined, { timeout: 120_000 });
+  await host.keyboard.press("Enter");
+  await host.waitForFunction(() => (window as ApexWindow).apex?.race?.phase === "racing", undefined, { timeout: 150_000 });
+  await late.goto(`./?room=${code}&net=local`);
+  await expect(late.getByTestId("spectator")).toBeVisible({ timeout: 120_000 });
+  type W = { apex: { race: { player: { id: string; car: { mesh: { position: { x: number; z: number } } } } } } };
+  const watched = () => late.evaluate(() => (window as unknown as W).apex.race.player.id);
+  const first = await watched();
+  await late.keyboard.press("KeyE");
+  await expect.poll(watched).not.toBe(first);
+  const pos = () => late.evaluate(() => ({ ...(window as unknown as W).apex.race.player.car.mesh.position }));
+  const p0 = await pos();
+  await expect.poll(async () => { const p = await pos(); return Math.hypot(p.x - p0.x, p.z - p0.z); }, { timeout: 60_000, intervals: [1000] }).toBeGreaterThan(3);
+  await expect(host.getByTestId("results")).toBeHidden();
+  expect([...hostErrors, ...lateErrors]).toEqual([]);
+  await ctx.close();
+});
+
 test("Online track vote: both players vote, the race starts on the chosen track", async ({ browser }) => {
   test.setTimeout(300_000);
   const ctx = await browser.newContext();

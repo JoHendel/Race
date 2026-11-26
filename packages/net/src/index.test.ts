@@ -9,3 +9,13 @@ describe("createRoomCode", () => {
     }
   });
 });
+
+describe("joinRole", () => {
+  it("lets new players race in the lobby, watch during a race, and stops at 10", async () => {
+    const { joinRole } = await import("./protocol");
+    expect(joinRole(3, 10, false)).toBe("player");
+    expect(joinRole(3, 10, true)).toBe("spectator");
+    expect(joinRole(10, 10, true)).toBe("full");
+    expect(joinRole(10, 10, false)).toBe("full");
+  });
+});

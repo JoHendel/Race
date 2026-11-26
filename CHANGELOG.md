@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
-- **Rivals:** the driver who overtakes you most becomes your rival, marked above their car – beat them for +1 Grand Prix point and bonus XP
+## v0.11.0 – Extra features
+- **Spectator mode:** join a room while a race is running to watch it (switch drivers with Q/E) and race in the next one
+- **Rivals:** the driver who overtakes you most becomes your rival, marked above their car – beat them for +1 Grand Prix point and bonus XP (offline and online)
 - **Horn & emotes in the race:** press H to honk (every car model has its own horn) and 1–6 for emotes above your car – everyone online sees and hears them; bots sometimes honk when they pass you
 - **Replay & photo mode:** watch the whole race again with chase, orbit or free camera, slow motion and a timeline – and save PNG photos without the UI
 - **Highlight clip:** closest overtake, longest drift and biggest jump in up to 15 seconds, right after the race

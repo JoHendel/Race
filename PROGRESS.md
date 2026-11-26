@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M11 weiter – Zuschauermodus: wer einer Lobby beitritt, während ein Rennen läuft, bekommt die Snapshots, sieht das Rennen mit Kamera auf wechselnde Fahrer (Q/E wie im Replay) und ist im nächsten Rennen dabei; danach Rivalen für Online-Clients und M11 abschließen.
+**Nächster Schritt:** M12 – Sound & Feinschliff starten: Audio-System (Howler.js) mit Motor-Sound (Pitch nach Drehzahl), Drift-, Boost- und Nitro-Sounds; Sounds zuerst prozedural per WebAudio erzeugen (kein Download, kein Lizenzrisiko), CC0-Samples später optional.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -15,8 +15,8 @@
 | M8 – Abgabe-Release (spätestens 18.12.2026) | ✅ fertig (Pages/Release brauchen den Menschen, siehe BLOCKERS.md) |
 | M9 – Alle Strecken | ✅ fertig |
 | M10 – Grafik & Assets | ✅ fertig |
-| M11 – Extra-Features | ⏳ als Nächstes |
-| M12 – Sound & Feinschliff | offen |
+| M11 – Extra-Features | ✅ fertig (`v0.11.0` lokal) |
+| M12 – Sound & Feinschliff | ⏳ als Nächstes |
 | M13 – Release v1.0 | offen |
 ## Berichte
 
@@ -119,3 +119,14 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Replay & Highlights: `shared/replay.ts` (ReplayRecorder, replayPose, pickHighlights, getestet), `client/game/replayView.ts`, Foto über `frameHooks.ts` direkt nach dem Zeichnen. Im Browser geprüft (Sunset Canyon: 7 Autos, 43 s, 31 Überholungen, 11 Sprünge erkannt), e2e-Test erweitert (Replay, Foto-Download, Highlights überspringen).
 - Hupe & Emotes: `shared/fx.ts` (Emote-Liste, Hupe pro Automodell, FxLimiter), `client/game/carFx.ts` (Sprites, WebAudio), Nachricht `fx` in beide Richtungen. Online-e2e prüft Emote Client→Host und Hupe Host→Client.
 - Rivalen: `shared/rivals.ts` (RivalBook, getestet), Bonuspunkt über `bonus` in `CupStandings`. Im Browser: Rivale nach 2 Überholungen, Markierung, Ergebnis „You beat your rival … +1 point · +60 XP“. Alle 9 e2e-Tests grün.
+- Zuschauermodus: `joinRole` in `net/protocol.ts` (getestet), Zuschauer-Ansicht in `raceScene.ts` (Q/E). Im Browser mit 3 Fenstern: Zuschauer sieht das Rennen, wechselt Fahrer, ist nach „Zur Lobby“ normaler Spieler und fährt im nächsten Rennen. Neuer e2e-Test.
+- Rivalen für Clients: Host führt `peerRivals`, Snapshot-Feld `rivals`; im Browser kam der Rivale samt Markierung beim Client an.
+
+## Abschlussbericht M11 – Extra-Features
+
+Alle Extra-Features aus dem Konzept sind drin: Wetter und Nacht, Chaos-Modus mit fünf Power-ups, Zeitrennen mit Ghost, Drift-Challenge, Replay mit Fotomodus, automatischer Highlight-Clip, Hupe und Emotes (online synchron), Rivalen-System und Zuschauermodus. Die Logik steckt jeweils testbar in `packages/shared` bzw. `packages/net` (`weather`, `items`, `ghost`, `replay`, `fx`, `rivals`, `joinRole`), die Darstellung in eigenen Client-Modulen (`weatherFx`, `chaos`, `soloMode`, `replayView`, `carFx`).
+
+- Tests: 96 Unit-Tests und 10 Playwright-Tests grün (neu: Zeitrennen/Drift, Replay mit Foto-Download und Highlights, Hupe/Emote zwischen Host und Client, Zuschauer).
+- `ai:evaluate` lief nach jedem Schritt reproduzierbar durch; die Kennzahlen in `docs/ai-driver.md` sind unverändert gültig.
+- Verschoben: Weltbestzeit-Ghost (bräuchte einen Server), Item-Sounds (kommen mit dem Audio-System in M12).
+- Offen für den Menschen (unverändert): Pages aktivieren und Tags/Release anlegen, siehe `BLOCKERS.md`. Version `0.11.0`, Tag `v0.11.0` nur lokal.

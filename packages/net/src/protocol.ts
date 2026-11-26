@@ -15,6 +15,19 @@ export interface LobbyPlayer {
   isHost: boolean;
   connected: boolean;
   car?: VehicleChoice;
+  /** Joined while a race was running: watches it and races in the next one. */
+  spectator?: boolean;
+}
+
+export type JoinResult = "player" | "spectator" | "full";
+
+/**
+ * How a new player gets in: in the lobby as a racer, during a race as a spectator
+ * (they race from the next start on), or not at all when the room is full.
+ */
+export function joinRole(playerCount: number, maxPlayers: number, raceRunning: boolean): JoinResult {
+  if (playerCount >= maxPlayers) return "full";
+  return raceRunning ? "spectator" : "player";
 }
 
 export interface LobbySettings {
@@ -63,7 +76,7 @@ export type HostMessage =
   | { t: "welcome"; clientId: string; players: LobbyPlayer[]; settings: LobbySettings }
   | { t: "lobby"; players: LobbyPlayer[]; settings: LobbySettings }
   | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean; ai?: boolean; car?: VehicleChoice }[] }
-  | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[]; chaos?: ChaosNet }
+  | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[]; chaos?: ChaosNet; rivals?: Record<string, string> }
   | { t: "toLobby" }
   | { t: "kick"; reason: string }
   /** Track vote: candidates, seconds left, current votes (clientId → trackId). Sent at the start and on every new vote. */

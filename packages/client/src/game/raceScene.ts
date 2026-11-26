@@ -147,6 +147,8 @@ export interface RaceOptions {
   chaos?: boolean;
   /** Rival bookkeeping kept across the races of a session (offline/host). */
   rivals?: RivalBook;
+  /** Host only: rival books of the other human players (id → book), kept across races. */
+  peerRivals?: Map<string, RivalBook>;
   /** Game mode: normal race, time trial against the own ghost, or drift challenge (both alone). */
   mode?: RaceMode;
 }
@@ -173,7 +175,10 @@ export class RaceScene {
   readonly world: RAPIER.World;
   readonly track: SplineTrack;
   readonly racers: Racer[] = [];
-  readonly player: Racer;
+  /** The local player's racer – while spectating, the driver being watched. */
+  player: Racer;
+  /** Joined during a running race: not in the grid, only watching. */
+  readonly spectating: boolean;
   readonly role: NetRole;
   phase: Phase = "intro";
   raceTime = 0;
@@ -198,6 +203,8 @@ export class RaceScene {
   private readonly fxLimiter = new FxLimiter();
   private readonly rivals: RivalBook | null;
   private rivalBeaten = false;
+  /** Online client: the rival the host told us about. */
+  private netRival: string | null = null;
   private readonly canvas: HTMLCanvasElement;
   private readonly replayRec = new ReplayRecorder();
   private replayClock = 0;
@@ -339,7 +346,9 @@ export class RaceScene {
         onPodium: false,
       });
     });
-    this.player = this.racers.find((r) => r.id === localId) ?? this.racers[0]!;
+    const own = this.racers.find((r) => r.id === localId);
+    this.spectating = !own && this.role === "client";
+    this.player = own ?? this.racers[0]!;
     if (this.weather === "night") {
       // Headlights: one spot light on the player's car (cheap), pointing a bit down the road
       const spot = new THREE.SpotLight(0xfff0d0, 260, 90, 0.55, 0.45, 1.4);
@@ -370,9 +379,39 @@ export class RaceScene {
     window.addEventListener("keydown", this.skipIntro);
     this.carFx = new CarFx(this.scene, this.camera);
     this.rivals = this.role === "client" || this.solo ? null : (options.rivals ?? new RivalBook());
+    if (this.spectating) this.setupSpectator();
     this.carFx.setRival(this.rivalRacer?.car.mesh ?? null);
     window.addEventListener("keydown", this.onFxKey);
   }
+
+  /** Spectator: banner, a hint and Q/E to switch the watched driver. */
+  private setupSpectator(): void {
+    const tag = document.createElement("div");
+    tag.className = "spectator-tag";
+    tag.dataset.testid = "spectator";
+    tag.innerHTML = `<b>ZUSCHAUER</b><span>Q/E: Fahrer wechseln · Im nächsten Rennen fährst du mit</span><em></em>`;
+    this.ui.appendChild(tag);
+    this.spectatorTag = tag;
+    this.ui.querySelector(".hud-help")?.remove();
+    this.watch(0);
+    window.addEventListener("keydown", this.onSpectatorKey);
+  }
+
+  private spectatorTag: HTMLElement | null = null;
+
+  /** Switch the watched driver by `step` places. */
+  watch(step: number): void {
+    const i = this.racers.indexOf(this.player);
+    this.player = this.racers[(i + step + this.racers.length) % this.racers.length]!;
+    const name = this.spectatorTag?.querySelector("em");
+    if (name) name.textContent = this.player.name;
+  }
+
+  private readonly onSpectatorKey = (e: KeyboardEvent): void => {
+    if (this.replayView) return;
+    if (e.code === "KeyE" || e.code === "ArrowRight") this.watch(1);
+    if (e.code === "KeyQ" || e.code === "ArrowLeft") this.watch(-1);
+  };
 
   /** H = horn, 1–6 = emotes (also on the podium). */
   private readonly onFxKey = (e: KeyboardEvent): void => {
@@ -385,6 +424,7 @@ export class RaceScene {
 
   /** The local player honks or emotes: show it here and send it to the others. */
   localFx(kind: FxKind, value?: string): void {
+    if (this.spectating) return;
     if (!this.fxLimiter.allow(`${this.player.id}:${kind}`, this.clock)) return;
     this.showFx(this.player.id, kind, value);
     this.callbacks.onFx?.(this.player.id, kind, value);
@@ -402,7 +442,7 @@ export class RaceScene {
   }
 
   private get rivalRacer(): Racer | null {
-    const id = this.rivals?.rival();
+    const id = this.role === "client" ? this.netRival : this.rivals?.rival();
     return (id && this.racers.find((r) => r.id === id && r !== this.player)) || null;
   }
 
@@ -863,6 +903,14 @@ export class RaceScene {
         r.overtakes += r.lastPlace - place;
         this.botBanter(r, ranked[i + 1]);
         if (ranked[i + 1] === this.player) this.notePassedPlayer(r);
+        const victim = ranked[i + 1];
+        if (victim && victim.human && victim !== this.player && victim !== r) {
+          const books = this.options.peerRivals;
+          if (books) {
+            if (!books.has(victim.id)) books.set(victim.id, new RivalBook());
+            books.get(victim.id)!.add(r.id);
+          }
+        }
       }
       if (this.raceTime > 3) r.worstPlace = Math.max(r.worstPlace, place);
       r.lastPlace = place;
@@ -891,7 +939,8 @@ export class RaceScene {
   private onResultsFinal(): void {
     const cup = this.options.cup;
     const order = this.ranking().map((r) => r.id);
-    this.rivalBeaten = Boolean(this.rivals?.beaten(order, this.player.id) && this.rivalRacer);
+    const rival = this.rivalRacer;
+    this.rivalBeaten = Boolean(rival && !this.spectating && order.indexOf(this.player.id) < order.indexOf(rival.id));
     if (cup && !this.cupRecorded) {
       this.cupRecorded = true;
       const ranked = this.ranking();
@@ -914,7 +963,7 @@ export class RaceScene {
   private rewardSummary: RewardSummary | null = null;
 
   private grantReward(): void {
-    if (this.rewardSummary || !this.callbacks.onReward || this.options.autopilot || this.solo) return;
+    if (this.rewardSummary || !this.callbacks.onReward || this.options.autopilot || this.solo || this.spectating) return;
     const place = this.playerPlace;
     const s = this.status(this.player);
     const reward = raceReward(place, this.racers.length, s.finishTime !== null, s.drift ?? this.player.driftTime, s.overtakes ?? this.player.overtakes);
@@ -1142,17 +1191,38 @@ export class RaceScene {
       cars: this.racers.map((r) => r.car.snapshot(r.id)),
       racers: this.racers.map((r) => this.status(r)),
       chaos: this.chaos?.netState(),
+      rivals: this.peerRivalIds(),
     };
   }
 
   /** Client: Snapshot vom Host anwenden. */
+  /** Host: current rival of every other human (only those that have one). */
+  private peerRivalIds(): Record<string, string> | undefined {
+    const books = this.options.peerRivals;
+    if (!books) return undefined;
+    const out: Record<string, string> = {};
+    for (const [id, b] of books) {
+      const rival = b.rival();
+      if (rival && this.racers.some((r) => r.id === id)) out[id] = rival;
+    }
+    return out;
+  }
+
   applySnapshot(snap: Extract<HostMessage, { t: "snap" }>): void {
+    const rivalId = this.spectating ? null : (snap.rivals?.[this.player.id] ?? null);
+    if (rivalId !== this.netRival) {
+      const isNew = this.netRival !== null || this.phase === "racing";
+      this.netRival = rivalId;
+      const rival = this.rivalRacer;
+      this.carFx.setRival(rival?.car.mesh ?? null);
+      if (rival && isNew) this.raceHud.showBanner(`NEUER RIVALE: ${rival.name.toUpperCase()}`, 2.5);
+    }
     const offset = snap.time - this.clock;
     this.hostClockOffset = this.hostClockOffset === null ? offset : Math.max(offset, this.hostClockOffset - 0.002);
     for (const c of snap.cars) {
       const r = this.racers.find((x) => x.id === c.id);
       if (!r) continue;
-      if (r === this.player) {
+      if (r === this.player && !this.spectating) {
         // Wiedereinstieg: eigenes Auto dort einsetzen, wo der Ersatz-Bot es hingefahren hat.
         const p = r.car.body.translation();
         if (this.phaseTime < 0.5 && Math.hypot(p.x - c.p[0], p.z - c.p[2]) > 8) r.car.teleport(c.p, c.q);
@@ -1201,6 +1271,8 @@ export class RaceScene {
     this.replayView?.dispose();
     window.removeEventListener("keydown", this.skipIntro);
     window.removeEventListener("keydown", this.onFxKey);
+    window.removeEventListener("keydown", this.onSpectatorKey);
+    this.spectatorTag?.remove();
     this.carFx.dispose();
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();

@@ -543,6 +543,7 @@ async function beginOnlineRace(
       weather: resolveWeather(weather, Math.random),
       chaos: Boolean(chaos),
       rivals: s instanceof HostSession ? s.rivals : undefined,
+      peerRivals: s instanceof HostSession ? s.peerRivals : undefined,
       autopilot: params.has("autopilot"),
     },
     {

@@ -334,3 +334,9 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .replay-bar input[type=range] { width: min(28vw, 320px); accent-color: var(--magenta); }
 .replay-name { min-width: 7rem; text-align: center; font-weight: 800; color: var(--cyan); }
 .replay-help { position: absolute; bottom: 0.8rem; left: 50%; transform: translateX(-50%); font-size: 0.75rem; opacity: 0.55; white-space: nowrap; font-style: normal; }
+
+/* Spectator */
+.spectator-tag { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.8rem; align-items: baseline; padding: 0.45rem 1rem; border-radius: 10px; background: rgba(8, 6, 24, 0.72); border: 1px solid rgba(255, 42, 170, 0.45); font-style: italic; pointer-events: none; white-space: nowrap; }
+.spectator-tag b { color: var(--magenta); letter-spacing: 0.2em; }
+.spectator-tag span { font-size: 0.8rem; opacity: 0.7; }
+.spectator-tag em { color: var(--cyan); font-weight: 800; font-style: italic; }

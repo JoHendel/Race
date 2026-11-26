@@ -2,6 +2,7 @@ import {
   RECONNECT_WINDOW,
   SNAPSHOT_RATE,
   createRoomCode,
+  joinRole,
   type ClientMessage,
   type ClientTransport,
   type HostMessage,
@@ -37,6 +38,8 @@ export class HostSession {
   private readonly fxLimiter = new FxLimiter(0.5);
   /** The host's rivals over the races in this room. */
   readonly rivals = new RivalBook();
+  /** Rivals of the other players in this room (clientId → book). */
+  readonly peerRivals = new Map<string, RivalBook>();
 
   /** Relay a horn/emote (from the host, a bot or a client) to every client. */
   sendFx(id: string, kind: FxKind, value?: string): void {
@@ -81,12 +84,13 @@ export class HostSession {
     if (msg.t === "hello") {
       let p = this.players.find((x) => x.clientId === msg.clientId);
       if (!p) {
-        if (this.players.length >= MAX_PLAYERS || (this.race && !p)) {
-          t.send(peer, { t: "kick", reason: this.race ? "Das Rennen läuft schon." : "Der Raum ist voll." });
+        const role = joinRole(this.players.length, MAX_PLAYERS, Boolean(this.race));
+        if (role === "full") {
+          t.send(peer, { t: "kick", reason: "Der Raum ist voll." });
           return;
         }
         const color = RACER_COLORS.find((c) => !this.players.some((x) => x.color === c)) ?? RACER_COLORS[1]!;
-        p = { clientId: msg.clientId, name: cleanName(msg.name), color, ready: false, isHost: false, connected: true, car: msg.car };
+        p = { clientId: msg.clientId, name: cleanName(msg.name), color, ready: false, isHost: false, connected: true, car: msg.car, spectator: role === "spectator" };
         this.players.push(p);
       }
       p.connected = true;
@@ -164,12 +168,12 @@ export class HostSession {
   }
 
   get canStart(): boolean {
-    return this.players.filter((p) => p.connected).every((p) => p.ready);
+    return this.players.filter((p) => p.connected && !p.spectator).every((p) => p.ready);
   }
 
   /** Startaufstellung: Menschen in Beitrittsreihenfolge, Rest mit Bots auffüllen. */
   start(): StartMessage {
-    const humans = this.players.filter((p) => p.connected);
+    const humans = this.players.filter((p) => p.connected && !p.spectator);
     this.players[0]!.car = currentCar();
     const grid: GridEntry[] = humans.map((p) => ({ id: p.clientId, name: p.name, color: p.color, human: true, car: p.car }));
     // APEX-AI always races along (if there is a free slot).
@@ -241,6 +245,8 @@ export class HostSession {
     this.lastStart = null;
     this.transport?.broadcast({ t: "toLobby" });
     this.players = this.players.filter((p) => p.connected);
+    // spectators race from now on
+    for (const p of this.players) p.spectator = false;
     this.emitLobby();
   }
 
@@ -277,7 +283,7 @@ export class ClientSession {
     });
     t.send({ t: "hello", clientId: this.clientId, name: this.name, car: currentCar() });
     this.timer = window.setInterval(() => {
-      if (this.race) t.send({ t: "car", state: this.race.localCarState() });
+      if (this.race && !this.race.spectating) t.send({ t: "car", state: this.race.localCarState() });
     }, 1000 / SNAPSHOT_RATE);
   }
 
