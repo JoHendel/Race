@@ -10,7 +10,7 @@ import {
   type LobbySettings,
   type SignalingProvider,
 } from "@apex/net";
-import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, clampLaps, trackById } from "@apex/shared";
+import { DEFAULT_LAPS, MAX_PLAYERS, NEON_HARBOR, TRACKS, VOTE_SECONDS, clampLaps, pickCandidates, tallyVotes, trackById } from "@apex/shared";
 import { BOT_NAMES, RACER_COLORS, apexAiEntry, type GridEntry, type RaceScene } from "../game/raceScene";
 import { currentCar } from "../save";
 
@@ -21,7 +21,16 @@ export interface SessionEvents {
   onStart: (start: StartMessage) => void;
   onToLobby: () => void;
   onClosed: (reason: string) => void;
+  /** Track vote opened or updated. */
+  onVote?: (candidates: string[], votes: Record<string, string>, seconds: number) => void;
+  /** Vote decided (`tie` has more than one entry when the wheel decided). */
+  onVoteResult?: (winner: string, tie: string[]) => void;
+  /** Host only: the result has been shown, the race can start now. */
+  onVoteDone?: () => void;
 }
+
+/** Seconds the result (or the wheel) is shown before the race starts. */
+export const VOTE_RESULT_SECONDS = { plain: 2, wheel: 4 };
 
 /** Host einer Online-Runde: verwaltet Lobby, Startaufstellung und sendet Snapshots. */
 export class HostSession {
@@ -35,6 +44,7 @@ export class HostSession {
   private readonly dropTimers = new Map<string, number>();
   private timer = 0;
   private lastStart: StartMessage | null = null;
+  private vote: { candidates: string[]; votes: Record<string, string>; endsAt: number; timer: number } | null = null;
 
   constructor(
     private readonly signaling: SignalingProvider,
@@ -88,6 +98,10 @@ export class HostSession {
     if (msg.t === "ready") p.ready = msg.ready;
     else if (msg.t === "name") p.name = cleanName(msg.name);
     else if (msg.t === "vehicle") p.car = msg.car;
+    else if (msg.t === "vote") {
+      this.castVote(p.clientId, msg.trackId);
+      return;
+    }
     else if (msg.t === "car") {
       this.race?.applyRemoteCar(p.clientId, msg.state);
       return;
@@ -155,6 +169,51 @@ export class HostSession {
     return msg;
   }
 
+  get voting(): boolean {
+    return this.vote !== null;
+  }
+
+  /** Open the track vote: 3 random tracks, everyone (host included) votes. */
+  startVote(): void {
+    if (this.vote) return;
+    const candidates = pickCandidates(
+      TRACKS.map((t) => t.id),
+      Math.random,
+    );
+    this.vote = { candidates, votes: {}, endsAt: Date.now() + VOTE_SECONDS * 1000, timer: window.setTimeout(() => this.finishVote(), VOTE_SECONDS * 1000) };
+    this.emitVote();
+  }
+
+  castVote(clientId: string, trackId: string): void {
+    const v = this.vote;
+    if (!v || !v.candidates.includes(trackId)) return;
+    v.votes[clientId] = trackId;
+    this.emitVote();
+    const voters = this.players.filter((p) => p.connected);
+    if (voters.every((p) => v.votes[p.clientId])) this.finishVote();
+  }
+
+  private emitVote(): void {
+    const v = this.vote;
+    if (!v) return;
+    const seconds = Math.max(0, Math.ceil((v.endsAt - Date.now()) / 1000));
+    this.transport?.broadcast({ t: "vote", candidates: v.candidates, seconds, votes: v.votes });
+    this.events.onVote?.(v.candidates, v.votes, seconds);
+  }
+
+  private finishVote(): void {
+    const v = this.vote;
+    if (!v) return;
+    window.clearTimeout(v.timer);
+    this.vote = null;
+    const result = tallyVotes(v.candidates, Object.values(v.votes), Math.random);
+    this.settings = { ...this.settings, trackId: result.winner };
+    this.transport?.broadcast({ t: "voteResult", winner: result.winner, tie: result.tie });
+    this.events.onVoteResult?.(result.winner, result.tie);
+    const wait = result.tie.length > 1 ? VOTE_RESULT_SECONDS.wheel : VOTE_RESULT_SECONDS.plain;
+    window.setTimeout(() => this.events.onVoteDone?.(), wait * 1000);
+  }
+
   backToLobby(): void {
     this.race = null;
     this.lastStart = null;
@@ -165,6 +224,7 @@ export class HostSession {
 
   close(): void {
     window.clearInterval(this.timer);
+    if (this.vote) window.clearTimeout(this.vote.timer);
     this.transport?.close();
   }
 }
@@ -220,7 +280,17 @@ export class ClientSession {
       case "kick":
         this.events.onClosed(msg.reason);
         break;
+      case "vote":
+        this.events.onVote?.(msg.candidates, msg.votes, msg.seconds);
+        break;
+      case "voteResult":
+        this.events.onVoteResult?.(msg.winner, msg.tie);
+        break;
     }
+  }
+
+  vote(trackId: string): void {
+    this.transport?.send({ t: "vote", trackId });
   }
 
   setReady(ready: boolean): void {

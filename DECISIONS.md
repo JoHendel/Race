@@ -37,3 +37,4 @@
 - **M9 Kein Looping auf Orbital Station:** Die Streckengeometrie berechnet „links“ aus Hochachse × Tangente; bei senkrechter Tangente bricht das, und ein Raycast-Fahrzeug bräuchte im Looping garantierten Anpressdruck. Statt eines unzuverlässigen Loopings gibt es geringe Schwerkraft mit zwei langen Sprüngen – headless geprüft, alle Fahrer im Ziel ohne Resets.
 - **M9 Geringe Schwerkraft nur in der Luft:** Weltgravitation 4,2 m/s², am Boden drückt `groundPress` mit der Differenz zu 9,81 m/s² an. So bleibt der Reifengrip gleich und das Fahrgefühl vertraut, nur Sprünge werden lang.
 - **M9 Grand Prix nach Cup der gewählten Strecke:** keine zusätzliche Auswahl nötig; der Cup-Name steht in der Streckenwahl.
+- **M9 Abstimmung entscheidet der Host:** Der Host zieht Kandidaten und Gleichstand-Sieger; das Glücksrad auf allen Bildschirmen ist nur die Animation zum bereits feststehenden Ergebnis. So können Clients nicht unterschiedlich ausgehen.

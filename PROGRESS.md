@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M9 abschließen – Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand; Stimmen als neue Client-Nachricht `vote`), danach M9-Abschlussbericht und Start M10 (Grafik & Assets).
+**Nächster Schritt:** M10 starten – zuerst eigene Kulissen für Sunset Canyon (Wüste: Sandboden, Tafelberge, Kakteen), Skyline Loop (Hochhäuser mit Leuchtreklame) und Grand Circuit (Tribünen, Boxengasse) als Module wie `track/jungle.ts`; danach CC0-Assets prüfen (TODO.md M10).
 
 | Meilenstein | Status |
 | --- | --- |
@@ -13,8 +13,8 @@
 | M6 – KI-Fahrer, Teil 1 (Daten & Modell) | ✅ fertig |
 | M7 – KI-Fahrer, Teil 2 (Training, Evaluation, Einbau) | ✅ fertig |
 | M8 – Abgabe-Release (spätestens 18.12.2026) | ✅ fertig (Pages/Release brauchen den Menschen, siehe BLOCKERS.md) |
-| M9 – Alle Strecken | ⏳ als Nächstes |
-| M10 – Grafik & Assets | offen |
+| M9 – Alle Strecken | ✅ fertig |
+| M10 – Grafik & Assets | ⏳ als Nächstes |
 | M11 – Extra-Features | offen |
 | M12 – Sound & Feinschliff | offen |
 | M13 – Release v1.0 | offen |
@@ -83,3 +83,14 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Jungle Ruins als 6. Strecke (Turbo Cup): Wasserfall (Shader-Vorhang ohne Collider), Hangbrücke mit Holzplanken und Seilgeländer (sichtbare Mauer ausgeblendet, Collider bleibt), Tempel-Abkürzung mit Steinschlag-Mechanik, Dschungel-Kulisse in `track/jungle.ts`. Alle Fahrer im Ziel, Runden 32–49 s. `ai:evaluate` bit-genau gleich.
 - Volcano Rush als 7. Strecke: Lava als Ereignis (`packages/sim/src/lava.ts`), Bremswirkung über `applyDrag`, Bots meiden die Lavaseite. Messfehler behoben: Mauerkontakte werden in Abkürzungen nicht mehr fälschlich gezählt. `ai:evaluate` bit-genau gleich.
 - Orbital Station als 8. Strecke: Schwerkraft pro Strecke (`TrackDef.gravity`), `groundPress` hält den Grip am Boden normal. Erster Entwurf ließ Autos über 150 m springen und in der nächsten Kurve rausfliegen → flachere Rampen, Landung auf der Geraden. Grand Prix für beide Cups. Alle 8 Strecken fertig, `ai:evaluate` bit-genau gleich.
+
+## Abschlussbericht M9 – Alle Strecken
+
+- 8 Strecken in 2 Cups. Neon Cup: Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift. Turbo Cup: Grand Circuit, Jungle Ruins, Volcano Rush, Orbital Station.
+- Streckenformat als Daten: Spline, Rampen, Untergrund-Zonen (Eis), Abkürzungen, dynamische Ereignisse (Zugbrücke, Steinschlag/Tempeleinsturz, Lava), Umgebung, Schwerkraft.
+- Abkürzungen: Lagerhalle (Neon Harbor), Schlucht (Sunset Canyon), Tempel (Jungle Ruins), Lavatunnel (Volcano Rush), Glasröhre (Orbital Station). Runden zählen nur bei echter Durchfahrt.
+- Streckenwahl im Titelmenü, in der Lobby (Host) und per Abstimmung mit Glücksrad; Grand Prix für beide Cups.
+- Headless-Prüfung jeder Strecke (alle Fahrer im Ziel). Gefundene Fehler: Höhenkante und Mauerende an Abzweigungen, zu lange Sprünge bei geringer Schwerkraft, Bots driften in Lava, Mauerkontakte in Abkürzungen falsch gezählt – alle behoben.
+- KI-Training nutzt `forTraining()`; `ai:evaluate` blieb bei jedem Schritt bit-genau gleich.
+- Offen (nach M10/M12 verschoben): Abkürzungen/Ereignisse für Skyline Loop, Glacier Rift, Grand Circuit; Rundenzeiten unter dem Zielbereich 45–75 s; eigene Kulissen für Sunset Canyon, Skyline Loop, Grand Circuit.
+- 66 Unit-Tests, 7 E2E-Tests grün. Tag `v0.9.0` lokal.

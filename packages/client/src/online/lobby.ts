@@ -88,12 +88,15 @@ export class LobbyView {
     if (this.h.isHost) {
       s.innerHTML = `
         <label class="field inline">Strecke
-          <select data-field="track" data-testid="lobby-track">${TRACKS.map((t) => `<option value="${t.id}" ${t.id === settings.trackId ? "selected" : ""}>${t.name}</option>`).join("")}</select>
+          <select data-field="track" data-testid="lobby-track" ${settings.vote ? "disabled" : ""}>${TRACKS.map((t) => `<option value="${t.id}" ${t.id === settings.trackId ? "selected" : ""}>${t.name}</option>`).join("")}</select>
         </label>
+        <label class="field inline"><input type="checkbox" data-field="vote" data-testid="lobby-vote" ${settings.vote ? "checked" : ""}/> Streckenwahl per Abstimmung</label>
         <label class="field inline">Runden
           <input type="number" data-field="laps" min="${MIN_LAPS}" max="${MAX_LAPS}" value="${settings.laps}" />
         </label>
         <label class="field inline"><input type="checkbox" data-field="bots" ${settings.fillWithBots ? "checked" : ""}/> Mit Bots auffüllen</label>`;
+      const voteBox = s.querySelector<HTMLInputElement>("[data-field=vote]")!;
+      voteBox.onchange = () => this.h.onSettings({ vote: voteBox.checked });
       const trackSel = s.querySelector<HTMLSelectElement>("[data-field=track]")!;
       trackSel.onchange = () => this.h.onSettings({ trackId: trackSel.value });
       const laps = s.querySelector<HTMLInputElement>("[data-field=laps]")!;
@@ -104,7 +107,7 @@ export class LobbyView {
       start.disabled = !canStart;
       start.title = canStart ? "" : "Warte, bis alle bereit sind";
     } else {
-      s.innerHTML = `<div class="summary">${track?.name ?? settings.trackId} · ${settings.laps} Runden${settings.fillWithBots ? " · mit Bots" : ""}</div>`;
+      s.innerHTML = `<div class="summary">${settings.vote ? "Abstimmung" : (track?.name ?? settings.trackId)} · ${settings.laps} Runden${settings.fillWithBots ? " · mit Bots" : ""}</div>`;
     }
   }
 

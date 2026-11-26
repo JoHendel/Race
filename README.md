@@ -26,7 +26,7 @@
 - **12 cars in 4 classes** to unlock, with performance and visual tuning and a performance index per class
 - **Drift boost in three stages, nitro, jumps**
 - Rule-based bots fill empty grid slots
-- **8 tracks in 2 cups** – Neon Cup: Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift (slippery ice); Turbo Cup: Grand Circuit, Jungle Ruins (waterfall, rope bridge), Volcano Rush (shifting lava), Orbital Station (low gravity). Pick one on the title screen or in the lobby; the Grand Prix plays the cup of the selected track
+- **8 tracks in 2 cups** – Neon Cup: Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift (slippery ice); Turbo Cup: Grand Circuit, Jungle Ruins (waterfall, rope bridge), Volcano Rush (shifting lava), Orbital Station (low gravity). Pick one on the title screen, in the lobby, or let everyone vote online (with a wheel for ties); the Grand Prix plays the cup of the selected track
 - **Shortcuts and live track events:** a warehouse shortcut and a drawbridge that rises from lap 2 on Neon Harbor, a rockfall that opens a canyon shortcut on Sunset Canyon, a collapsing temple on Jungle Ruins
 - **German and English UI** – switch with the button in the top right corner of the title screen
 

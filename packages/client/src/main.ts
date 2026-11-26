@@ -11,6 +11,8 @@ import { DriveScene } from "./game/driveScene";
 import { RaceScene } from "./game/raceScene";
 import { ClientSession, HostSession } from "./online/session";
 import { LobbyView, showNotice } from "./online/lobby";
+import { VoteView } from "./online/vote";
+import { VOTE_RESULT_SECONDS } from "./online/session";
 import { currentLang, initI18n, setLang } from "./i18n";
 import { Garage } from "./garage/garage";
 import { currentCar, loadSave, storeSave } from "./save";
@@ -308,6 +310,9 @@ async function hostGame(error: HTMLElement): Promise<void> {
   error.textContent = "Raum wird erstellt …";
   const host = new HostSession(signaling, clientId(), storedName(), {
     onLobby: (players, settings) => lobby?.update(players, settings, host.canStart),
+    onVote: showVote,
+    onVoteResult: showVoteResult,
+    onVoteDone: () => startHostRace(host),
     onStart: () => undefined,
     onToLobby: () => undefined,
     onClosed: (reason) => showNotice(ui!, reason, showMenu),
@@ -333,7 +338,12 @@ async function joinGame(code: string, error: HTMLElement): Promise<void> {
       if (!lobby && !current) showLobby();
       lobby?.update(players, settings, false);
     },
-    onStart: (start) => void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed),
+    onVote: showVote,
+    onVoteResult: showVoteResult,
+    onStart: (start) => {
+      closeVote();
+      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed);
+    },
     onToLobby: () => showLobby(),
     onClosed: (reason) => {
       leaveSession();
@@ -351,6 +361,34 @@ async function joinGame(code: string, error: HTMLElement): Promise<void> {
     return;
   }
   busy = false;
+}
+
+let vote: VoteView | null = null;
+
+function showVote(candidates: string[], votes: Record<string, string>, seconds: number): void {
+  const s = session;
+  if (!s) return;
+  if (!vote) {
+    vote = new VoteView(ui!, s.clientId, (trackId) => (s instanceof HostSession ? s.castVote(s.clientId, trackId) : s.vote(trackId)));
+    expose({ session: s, vote });
+  }
+  vote.update(candidates, votes, seconds);
+}
+
+function showVoteResult(winner: string, tie: string[]): void {
+  vote?.showResult(winner, tie, tie.length > 1 ? VOTE_RESULT_SECONDS.wheel : VOTE_RESULT_SECONDS.plain);
+}
+
+function closeVote(): void {
+  vote?.dispose();
+  vote = null;
+}
+
+/** Host: start the online race with the current settings. */
+function startHostRace(s: HostSession): void {
+  closeVote();
+  const start = s.start();
+  void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed);
 }
 
 function showLobby(): void {
@@ -371,9 +409,9 @@ function showLobby(): void {
     onReady: (ready) => (s instanceof ClientSession ? s.setReady(ready) : undefined),
     onSettings: (patch) => (s instanceof HostSession ? s.updateSettings(patch) : undefined),
     onStart: () => {
-      if (!(s instanceof HostSession) || !s.canStart) return;
-      const start = s.start();
-      void beginOnlineRace(start.settings.trackId, start.settings.laps, start.grid, start.seed);
+      if (!(s instanceof HostSession) || !s.canStart || s.voting) return;
+      if (s.settings.vote) s.startVote();
+      else startHostRace(s);
     },
     onLeave: showMenu,
   });

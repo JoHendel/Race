@@ -21,6 +21,8 @@ export interface LobbySettings {
   trackId: string;
   laps: number;
   fillWithBots: boolean;
+  /** Choose the track by vote instead of the host's pick. */
+  vote?: boolean;
 }
 
 /** Zustand eines Autos: Position, Rotation (Quaternion), Tempo, Effekte. */
@@ -50,14 +52,18 @@ export type HostMessage =
   | { t: "start"; seed: number; settings: LobbySettings; grid: { id: string; name: string; color: number; human: boolean; ai?: boolean; car?: VehicleChoice }[] }
   | { t: "snap"; time: number; raceTime: number; phase: string; phaseTime: number; final: boolean; cars: CarState[]; racers: RacerStatus[] }
   | { t: "toLobby" }
-  | { t: "kick"; reason: string };
+  | { t: "kick"; reason: string }
+  /** Track vote: candidates, seconds left, current votes (clientId → trackId). Sent at the start and on every new vote. */
+  | { t: "vote"; candidates: string[]; seconds: number; votes: Record<string, string> }
+  | { t: "voteResult"; winner: string; tie: string[] };
 
 export type ClientMessage =
   | { t: "hello"; clientId: string; name: string; car?: VehicleChoice }
   | { t: "ready"; ready: boolean }
   | { t: "name"; name: string }
   | { t: "vehicle"; car: VehicleChoice }
-  | { t: "car"; state: CarState };
+  | { t: "car"; state: CarState }
+  | { t: "vote"; trackId: string };
 
 export const SNAPSHOT_RATE = 30;
 export const RECONNECT_WINDOW = 30;

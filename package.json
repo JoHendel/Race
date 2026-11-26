@@ -1,7 +1,7 @@
 {
   "name": "apex-rush",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "APEX RUSH – browserbasiertes Arcade-Rennspiel für bis zu 10 Spieler",
   "license": "MIT",
   "type": "module",

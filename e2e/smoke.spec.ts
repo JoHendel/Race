@@ -131,3 +131,40 @@ test("Online: Host und Client fahren gemeinsam (lokaler Vermittler)", async ({ b
   expect([...hostErrors, ...clientErrors]).toEqual([]);
   await ctx.close();
 });
+
+test("Online track vote: both players vote, the race starts on the chosen track", async ({ browser }) => {
+  test.setTimeout(300_000);
+  const ctx = await browser.newContext();
+  const host = await ctx.newPage();
+  const client = await ctx.newPage();
+  const hostErrors = collectErrors(host);
+  const clientErrors = collectErrors(client);
+  await host.goto("./?net=local&autopilot&laps=1");
+  await host.getByTestId("online").click();
+  await host.getByTestId("host").click();
+  const code = (await host.getByTestId("room-code").textContent())!.trim();
+  await client.goto(`./?room=${code}&net=local&autopilot&laps=1`);
+  await client.getByTestId("ready").click();
+  await expect(host.getByTestId("players").locator("li")).toHaveCount(2);
+  await host.getByTestId("lobby-vote").check();
+  await expect(host.getByTestId("start-race")).toBeEnabled();
+  await host.getByTestId("start-race").click();
+
+  // both see the same three candidates
+  const cards = (page: Page) => page.locator(".vote-card");
+  await expect(cards(host)).toHaveCount(3);
+  await expect(cards(client)).toHaveCount(3);
+  const ids = await cards(host).evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.track!));
+  expect(await cards(client).evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.track!))).toEqual(ids);
+  const choice = ids[1]!;
+  await client.getByTestId(`vote-${choice}`).click();
+  await host.getByTestId(`vote-${choice}`).click();
+  await expect(host.locator(".vote-card.winner")).toHaveAttribute("data-track", choice);
+
+  const trackOf = (page: Page) =>
+    page.waitForFunction(() => (window as unknown as { apex?: { race?: { track: { def: { id: string } } } } }).apex?.race?.track.def.id, undefined, { timeout: 120_000 }).then((h) => h.jsonValue());
+  expect(await trackOf(host)).toBe(choice);
+  expect(await trackOf(client)).toBe(choice);
+  expect([...hostErrors, ...clientErrors]).toEqual([]);
+  await ctx.close();
+});

@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## v0.9.0 – All tracks
+- **Track vote** in the online lobby: three random tracks, everyone votes, a wheel decides ties
 - New track **Glacier Rift**: ice patches with less grip, an ice cave and northern lights – the Neon Cup now has four tracks
 - Tracks can define surfaces (grip) and their own environment (sky, fog, scenery)
 - Track selection on the title screen and for the host in the online lobby

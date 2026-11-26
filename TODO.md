@@ -55,5 +55,13 @@
 - [x] Orbital Station (Turbo Cup): Dreieck mit zwei langen Sprüngen, Schwerkraft 4,2 m/s² (am Boden normaler Anpressdruck), Glasröhren-Abkürzung, Raumstations-Kulisse; Looping bewusst weggelassen (DECISIONS.md)
 - [x] Grand Prix spielt den Cup der gewählten Strecke (Neon Cup / Turbo Cup), Cup-Name in der Streckenwahl
 - [ ] APEX-AI kennt Lava/Eis nicht (kein Merkmal) – Kandidat für ein v3-Training mit Untergrund-Merkmal
-- [ ] Streckenwahl per Abstimmung in der Lobby (3 zufällige Strecken, Glücksrad bei Gleichstand)
+- [x] Streckenwahl per Abstimmung in der Lobby (Host-Schalter, 3 zufällige Strecken, 12 s, Glücksrad bei Gleichstand; E2E mit Host+Client)
 - [ ] Rundenzeiten auf 45–75 s bringen (aktuell ca. 35–45 s für schnelle Fahrer)
+
+## M10 – Grafik & Assets
+- [ ] Kenney Car Kit / Quaternius Cars (CC0) prüfen: als GLB einbinden oder bei den prozeduralen Karosserien bleiben (Ladegröße < 15 MB, Lizenz in assets/CREDITS.md)
+- [ ] Poly-Haven-HDRI pro Strecke (CC0) für Reflexionen statt RoomEnvironment, komprimiert
+- [ ] Texturen (Asphalt, Fels, Eis, Sand) von ambientCG/Poly Haven als WebP
+- [ ] Kulisse für Skyline Loop (Hochhäuser), Sunset Canyon (Wüste) und Grand Circuit (Tribünen, Boxengasse) – bisher Hafen-Kulisse
+- [ ] Neon-Post-Processing feinjustieren (Bloom pro Strecke, Farbkorrektur, leichte Bewegungsunschärfe)
+- [ ] Bundle-Größe: Three.js/Rapier aufteilen (dynamic import), Ladebildschirm
