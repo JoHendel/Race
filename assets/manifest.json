@@ -1,7 +1,81 @@
 {
   "assets": [
-    { "id": "menu-bg", "typ": "bild", "quelle": "higgsfield", "lizenz": "offen – Nutzungsbedingungen prüfen", "status": "placeholder" },
-    { "id": "readme-banner", "typ": "bild", "quelle": "higgsfield", "lizenz": "offen – Nutzungsbedingungen prüfen", "status": "placeholder" },
-    { "id": "loading-bg", "typ": "bild", "quelle": "higgsfield", "lizenz": "offen – Nutzungsbedingungen prüfen", "status": "placeholder" }
+    {
+      "id": "menu-bg",
+      "typ": "bild",
+      "quelle": "higgsfield",
+      "lizenz": "offen – Nutzungsbedingungen prüfen",
+      "status": "placeholder"
+    },
+    {
+      "id": "readme-banner",
+      "typ": "bild",
+      "quelle": "higgsfield",
+      "lizenz": "offen – Nutzungsbedingungen prüfen",
+      "status": "placeholder"
+    },
+    {
+      "id": "loading-bg",
+      "typ": "bild",
+      "quelle": "higgsfield",
+      "lizenz": "offen – Nutzungsbedingungen prüfen",
+      "status": "placeholder"
+    },
+    {
+      "id": "hdri-harbor",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/night.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-desert",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/sunset.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-city",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/city.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-glacier",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/dawn.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-jungle",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/forest.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-volcano",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/sunset.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-orbital",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/studio.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    },
+    {
+      "id": "hdri-circuit",
+      "typ": "hdri",
+      "quelle": "@pmndrs/assets 1.7.0 (npm) – hdri/park.exr, originally Poly Haven",
+      "lizenz": "CC0-1.0",
+      "status": "eingebunden"
+    }
   ]
 }

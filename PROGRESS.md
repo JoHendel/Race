@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M10 weiter – CC0-Assets prüfen: Lizenz und Größe von Kenney Car Kit / Racing Kit und Poly-Haven-HDRIs (nur CC0, Download über pip/npm nicht möglich → über WebFetch der Lizenzseite prüfen; Dateien nur einbinden, wenn sie aus dem Netz der Umgebung erreichbar sind, sonst als Blocker mit Anleitung).
+**Nächster Schritt:** M10 weiter – Texturen: prüfen, ob @pmndrs/assets passende CC0-Texturen/Normal-Maps enthält (Ordner `textures`, `normals`), damit Asphalt/Fels/Eis/Sand Struktur bekommen; danach Post-Processing pro Strecke (Bloom-Stärke, Farbkorrektur) und Ladebildschirm mit Code-Splitting von Three.js/Rapier.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -99,3 +99,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 
 - Jede Strecke hat jetzt eine eigene Kulisse (Wüste, Stadt, Rennstrecke neu). Nur Optik, keine Collider – `ai:evaluate` bit-genau gleich.
 - Hinweis Leistung: Im Headless-Browser (Software-Rendering) ca. 5–6 FPS, nicht aussagekräftig; echte Messung auf einem Mittelklasse-Laptop steht aus (M12).
+- Reflexionen pro Strecke aus CC0-HDRIs (Poly Haven über npm `@pmndrs/assets`), per dynamischem Import nachgeladen. Kenney/Quaternius/Poly-Haven-Webseiten sind aus der Umgebung nicht erreichbar.

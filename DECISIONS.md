@@ -38,3 +38,5 @@
 - **M9 Geringe Schwerkraft nur in der Luft:** Weltgravitation 4,2 m/s², am Boden drückt `groundPress` mit der Differenz zu 9,81 m/s² an. So bleibt der Reifengrip gleich und das Fahrgefühl vertraut, nur Sprünge werden lang.
 - **M9 Grand Prix nach Cup der gewählten Strecke:** keine zusätzliche Auswahl nötig; der Cup-Name steht in der Streckenwahl.
 - **M9 Abstimmung entscheidet der Host:** Der Host zieht Kandidaten und Gleichstand-Sieger; das Glücksrad auf allen Bildschirmen ist nur die Animation zum bereits feststehenden Ergebnis. So können Clients nicht unterschiedlich ausgehen.
+- **M10 Prozedurale Karosserien statt Kenney/Quaternius:** Die Asset-Seiten sind aus der Build-Umgebung nicht erreichbar; die eigenen Karosserien sind konsistent im Neon-Stil, kosten 0 KB Download und lassen sich lackieren und tunen. Optionaler Weg über Upload steht in BLOCKERS.md.
+- **M10 HDRIs über das npm-Paket @pmndrs/assets:** CC0, kleine 512×512-EXR-Versionen der Poly-Haven-HDRIs, per dynamischem Import pro Strecke – der erste Ladevorgang wächst nicht. Bisheriger RoomEnvironment-Fallback bleibt, bis die Karte geladen ist.

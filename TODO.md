@@ -59,8 +59,8 @@
 - [ ] Rundenzeiten auf 45–75 s bringen (aktuell ca. 35–45 s für schnelle Fahrer)
 
 ## M10 – Grafik & Assets
-- [ ] Kenney Car Kit / Quaternius Cars (CC0) prüfen: als GLB einbinden oder bei den prozeduralen Karosserien bleiben (Ladegröße < 15 MB, Lizenz in assets/CREDITS.md)
-- [ ] Poly-Haven-HDRI pro Strecke (CC0) für Reflexionen statt RoomEnvironment, komprimiert
+- [x] Kenney/Quaternius geprüft: aus der Build-Umgebung nicht erreichbar → prozedurale Karosserien bleiben (DECISIONS.md, optional BLOCKERS.md)
+- [x] Poly-Haven-HDRIs (CC0, über npm-Paket @pmndrs/assets) pro Strecke für Reflexionen, nachgeladen (150–420 KB je Strecke)
 - [ ] Texturen (Asphalt, Fels, Eis, Sand) von ambientCG/Poly Haven als WebP
 - [x] Kulissen: Sunset Canyon (Wüste, Tafelberge, Kakteen), Skyline Loop (Hochhäuser mit Fenstern und Leuchtbändern), Grand Circuit (Tribünen mit Publikum, Boxengebäude, Fahnen, Bäume) – `track/scenery.ts`
 - [ ] Neon-Post-Processing feinjustieren (Bloom pro Strecke, Farbkorrektur, leichte Bewegungsunschärfe)

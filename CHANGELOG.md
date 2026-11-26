@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Track-specific reflections from CC0 environment maps (Poly Haven, via @pmndrs/assets), loaded on demand
 - Own scenery for Sunset Canyon (desert with layered mesas and cacti), Skyline Loop (neon skyscrapers with lit windows) and Grand Circuit (grandstands with crowds, pit building, flags)
 
 ## v0.9.0 – All tracks

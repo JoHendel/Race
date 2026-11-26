@@ -32,6 +32,7 @@ import { Hud } from "./hud";
 import { Input, type ControlState } from "./input";
 import { Sparks } from "./sparks";
 import { createSky } from "./sky";
+import { loadEnvironmentMap } from "./environmentMap";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
 import { SplineTrack, mulberry32 } from "./track/splineTrack";
@@ -186,6 +187,17 @@ export class RaceScene {
     this.scene.environmentIntensity = 0.25;
     this.scene.background = new THREE.Color(theme.background);
     const env = options.track.environment ?? DEFAULT_ENVIRONMENT;
+    // Track-specific reflections (CC0 HDRI), loaded in the background; the room environment is the fallback.
+    loadEnvironmentMap(renderer, env.scenery)
+      .then((tex) => {
+        if (this.disposed) tex.dispose();
+        else {
+          this.scene.environment = tex;
+          // real HDRIs are darker than the generated room environment
+          this.scene.environmentIntensity = 0.6;
+        }
+      })
+      .catch(() => undefined);
     this.scene.fog = new THREE.Fog(env.fog, 120, 520);
     this.sky = createSky(env);
     this.scene.add(this.sky);
@@ -890,7 +902,10 @@ export class RaceScene {
     return this.player.car.snapshot(this.player.id);
   }
 
+  private disposed = false;
+
   dispose(): void {
+    this.disposed = true;
     window.removeEventListener("keydown", this.skipIntro);
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();

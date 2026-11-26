@@ -21,3 +21,8 @@ Tags (`v0.1.0` … `v0.8.0`) können aus der Claude-Umgebung nicht gepusht werde
 
 ## Abgabe bis 18.12.2026
 Link an die Lehrkraft schicken: https://github.com/JoHendel/Race (Spiel: https://johendel.github.io/Race/ – erst erreichbar, wenn Pages eingeschaltet ist).
+
+## CC0-Automodelle (optional, nicht nötig)
+Die Build-Umgebung kann kenney.nl und quaternius.com nicht erreichen. Das Spiel nutzt deshalb eigene, im Code erzeugte Karosserien (funktioniert vollständig). Falls echte Modelle gewünscht sind:
+1. Auf https://kenney.nl/assets/car-kit „Download“ klicken (kostenlos, CC0, keine Anmeldung nötig – den optionalen Spendenbetrag auf 0 lassen bzw. „Continue without donating“).
+2. Die ZIP-Datei in diesen Chat hochladen. Ich konvertiere die Modelle zu komprimiertem GLB und binde sie ein.

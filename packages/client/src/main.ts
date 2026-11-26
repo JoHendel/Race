@@ -477,8 +477,9 @@ window.addEventListener("keydown", (e) => {
 const roomParam = params.get("room");
 if (roomParam) showOnlineMenu(roomParam);
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer();
 function frame(): void {
+  clock.update();
   active.update(clock.getDelta());
   composer.render();
   requestAnimationFrame(frame);
