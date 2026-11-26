@@ -115,6 +115,7 @@ export const EN: Record<string, string> = {
   "Ton an/aus": "Sound on/off",
   "Ton an/aus (M)": "Sound on/off (M)",
   Lautstärke: "Volume",
+  Musik: "Music",
   ZUSCHAUER: "SPECTATING",
   "Q/E: Fahrer wechseln · Im nächsten Rennen fährst du mit": "Q/E: switch driver · you race in the next one",
   "schaut zu": "watching",

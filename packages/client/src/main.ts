@@ -323,6 +323,7 @@ function startGarage(): void {
 }
 
 function showMenu(): void {
+  sound.song("menu");
   cup = null;
   leaveSession();
   clearScreen();
@@ -336,16 +337,19 @@ function bindSoundControls(): void {
   const box = document.querySelector<HTMLElement>(".sound-ctl");
   const mute = document.querySelector<HTMLButtonElement>("#mute");
   const vol = document.querySelector<HTMLInputElement>("#volume");
-  if (!box || !mute || !vol) return;
+  const music = document.querySelector<HTMLInputElement>("#music");
+  if (!box || !mute || !vol || !music) return;
   const show = (): void => {
     const st = sound.settings;
     mute.textContent = st.muted || st.volume === 0 ? "🔇" : "🔊";
     box.classList.toggle("muted", st.muted);
     vol.value = String(Math.round(st.volume * 100));
+    music.value = String(Math.round(st.music * 100));
   };
   show();
   mute.onclick = () => sound.toggleMute();
   vol.oninput = () => sound.setSettings({ volume: Number(vol.value) / 100, muted: false });
+  music.oninput = () => sound.setSettings({ music: Number(music.value) / 100 });
   const off = sound.onChange(show);
   // the title screen is rebuilt on every visit: drop the old listener with it
   new MutationObserver((_, obs) => {
@@ -594,6 +598,7 @@ async function beginOnlineRace(
 // ---------- Start ----------
 
 initSound();
+sound.song("menu");
 expose({});
 bindMenu();
 window.addEventListener("keydown", (e) => {

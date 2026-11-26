@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M12 weiter – Musik prozedural per WebAudio (Synthwave-Loop: Bass, Arpeggio, Drums aus Oszillatoren/Rauschen), im Rennen lauter, in der letzten Runde schneller/zusätzliche Stimme; eigener Musik-Regler neben dem Lautstärke-Regler. Danach Gegner-Motoren in der Nähe.
+**Nächster Schritt:** M12 weiter – Gamepad in den Menüs (Fokus mit Steuerkreuz, A bestätigt, B zurück) und Touch-Steuerung auf dem Handy (virtuelle Tasten Gas/Bremse/Drift/Nitro, Lenken per Wischen oder Neigung als Option); im Browser mit Mobil-Viewport und Touch-Emulation prüfen.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -134,4 +134,5 @@ Alle Extra-Features aus dem Konzept sind drin: Wetter und Nacht, Chaos-Modus mit
 ## Zwischenstand M12 (Sound & Feinschliff)
 
 - Audio: `shared/audio.ts` (Getriebe, Motorstimme, Quietschen, Entfernung, Einstellungen – getestet), `client/audio/sound.ts` (WebAudio-Synthese, Motor-Schleife, Einmal-Effekte, Hupe). Im Browser geprüft: Audio startet nach dem ersten Klick, Motorfrequenz springt beim Hochschalten, M schaltet stumm, Lautstärke bleibt nach Neuladen. Neuer e2e-Test, alle 11 grün, `ai:evaluate` unverändert.
+- Musik: `shared/music.ts` (Sequencer, getestet), `Music` in `client/audio/sound.ts` (Lookahead-Planung auf der Audio-Uhr, Wechsel am Taktanfang). Im Browser: Menü-Song läuft nach dem ersten Klick (Spitzenpegel ~0,19, kein Übersteuern), im Rennen „race“, ab der letzten Runde „final“, Podest wieder „menu“. Gegner-Motoren: 3 nächste Autos. Architektur-Doku um Audio ergänzt.
 - Titelzeile „Early Access · weitere Strecken folgen“ war veraltet → „8 Strecken · 12 Autos · APEX-AI fährt mit“.

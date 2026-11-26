@@ -50,19 +50,21 @@ export function distanceGain(dist: number, maxDist = 120): number {
 }
 
 export interface AudioSettings {
-  /** 0–1 */
+  /** 0–1, everything */
   volume: number;
+  /** 0–1, music relative to the main volume */
+  music: number;
   muted: boolean;
 }
 
-export const DEFAULT_AUDIO: AudioSettings = { volume: 0.7, muted: false };
+export const DEFAULT_AUDIO: AudioSettings = { volume: 0.7, music: 0.5, muted: false };
 
 /** Read stored settings; broken or missing data gives the defaults. */
 export function parseAudioSettings(text: string | null): AudioSettings {
   try {
     const j = JSON.parse(text ?? "") as Partial<AudioSettings>;
-    const volume = typeof j.volume === "number" && Number.isFinite(j.volume) ? Math.max(0, Math.min(1, j.volume)) : DEFAULT_AUDIO.volume;
-    return { volume, muted: j.muted === true };
+    const level = (v: unknown, def: number): number => (typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : def);
+    return { volume: level(j.volume, DEFAULT_AUDIO.volume), music: level(j.music, DEFAULT_AUDIO.music), muted: j.muted === true };
   } catch {
     return { ...DEFAULT_AUDIO };
   }

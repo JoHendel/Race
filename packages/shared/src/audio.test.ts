@@ -32,9 +32,10 @@ describe("audio", () => {
   });
 
   it("reads stored settings safely", () => {
-    expect(parseAudioSettings(null)).toEqual({ volume: 0.7, muted: false });
-    expect(parseAudioSettings('{"volume":3,"muted":true}')).toEqual({ volume: 1, muted: true });
-    expect(parseAudioSettings("{oops")).toEqual({ volume: 0.7, muted: false });
-    expect(effectiveVolume({ volume: 0.5, muted: true })).toBe(0);
+    expect(parseAudioSettings(null)).toEqual({ volume: 0.7, music: 0.5, muted: false });
+    expect(parseAudioSettings('{"volume":3,"muted":true}')).toEqual({ volume: 1, music: 0.5, muted: true });
+    expect(parseAudioSettings('{"music":0.2}').music).toBe(0.2);
+    expect(parseAudioSettings("{oops")).toEqual({ volume: 0.7, music: 0.5, muted: false });
+    expect(effectiveVolume({ volume: 0.5, music: 0.5, muted: true })).toBe(0);
   });
 });

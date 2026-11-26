@@ -15,3 +15,4 @@ export * from "./replay";
 export * from "./fx";
 export * from "./rivals";
 export * from "./audio";
+export * from "./music";

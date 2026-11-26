@@ -26,7 +26,9 @@
         <button id="lang" class="lang-toggle" type="button" data-testid="lang" aria-label="Sprache / Language"></button>
         <div class="sound-ctl" data-testid="sound">
           <button id="mute" type="button" aria-label="Ton an/aus" title="Ton an/aus (M)" data-testid="mute">🔊</button>
-          <input id="volume" type="range" min="0" max="100" step="5" aria-label="Lautstärke" data-testid="volume" />
+          <input id="volume" type="range" min="0" max="100" step="5" aria-label="Lautstärke" title="Lautstärke" data-testid="volume" />
+          <span class="sound-label" aria-hidden="true">♪</span>
+          <input id="music" type="range" min="0" max="100" step="5" aria-label="Musik" title="Musik" data-testid="music" />
         </div>
         <h1 class="logo">APEX <span>RUSH</span></h1>
         <p class="tagline">Neon-Arcade-Racing für bis zu 10 Spieler – direkt im Browser.</p>

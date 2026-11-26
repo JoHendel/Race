@@ -208,6 +208,8 @@ export class RaceScene {
   private placeTimer = 0;
   private podium: Podium | null = null;
   private engineSound: EngineSound | null = null;
+  /** Quiet engines for the nearest opponents. */
+  private readonly nearEngines: (EngineSound | null)[] = [null, null, null];
   private readonly carFx: CarFx;
   private readonly fxLimiter = new FxLimiter();
   private readonly rivals: RivalBook | null;
@@ -395,6 +397,7 @@ export class RaceScene {
     this.raceHud.showBanner(options.track.name.toUpperCase(), 3);
     window.addEventListener("keydown", this.skipIntro);
     this.carFx = new CarFx(this.scene, this.camera);
+    sound.song(this.options.laps === 1 ? "final" : "race");
     this.rivals = this.role === "client" || this.solo ? null : (options.rivals ?? new RivalBook());
     if (this.spectating) this.setupSpectator();
     this.carFx.setRival(this.rivalRacer?.car.mesh ?? null);
@@ -597,7 +600,7 @@ export class RaceScene {
     this.carFx.update(realDt);
     if (this.replayView) {
       this.replayView.update(realDt);
-      this.engineSound?.update(engineVoice(0, 0, "street"), 0, false, 0);
+      for (const e of [this.engineSound, ...this.nearEngines]) e?.update(engineVoice(0, 0, "street"), 0, false, 0);
       return;
     }
 
@@ -664,6 +667,27 @@ export class RaceScene {
     }
     const volume = this.podium || this.phase === "results" ? 0 : this.phase === "intro" ? 0.35 : 1;
     e.update(engineVoice(revs, throttle, def.cls, car.boostTime > 0 || car.nitroActive), squealGain(slip, car.speed, car.drifting), car.nitroActive, volume);
+    // the three nearest opponents get their own (quiet) engine voice
+    const cam = this.camera.position;
+    const near = this.racers
+      .filter((r) => r !== this.player)
+      .map((r) => ({ r, d: r.car.mesh.position.distanceTo(cam) }))
+      .filter((x) => x.d < 60)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, this.nearEngines.length);
+    this.nearEngines.forEach((slot, i) => {
+      const n = near[i];
+      if (!n) {
+        slot?.update(engineVoice(0, 0, "street"), 0, false, 0);
+        return;
+      }
+      const engine = slot ?? (this.nearEngines[i] = sound.engine());
+      if (!engine) return;
+      const c = n.r.car;
+      const cls = carById(c.modelId).cls;
+      const g = distanceGain(n.d, 60) * 0.45 * volume;
+      engine.update(engineVoice(engineRpm(c.speed, c.stats.topSpeed).rpm, 0.7, cls, c.boostTime > 0 || c.nitroActive), c.drifting ? 0.6 : 0, false, g);
+    });
   }
 
   /** Record every car's pose and notable moments for replay and highlight clip. */
@@ -922,7 +946,10 @@ export class RaceScene {
   private onPlayerLap(): void {
     const s = this.status(this.player);
     if (s.finishTime !== null) sound.play("finish");
-    else if (s.lap === this.options.laps - 1) sound.play("finalLap");
+    else if (s.lap === this.options.laps - 1) {
+      sound.play("finalLap");
+      sound.song("final");
+    }
     else sound.play("lap");
     const soloBanner = this.solo?.lapDone(this.player.tracker.lapTimes.at(-1)!);
     if (soloBanner && s.finishTime === null) {
@@ -1023,6 +1050,7 @@ export class RaceScene {
   }
 
   private startPodium(top: Racer[], title?: string): void {
+    sound.song("menu");
     this.podium?.dispose();
     for (const r of this.racers) r.onPodium = false;
     const xs = this.track.samples.map((s) => s.pos.x);
@@ -1324,6 +1352,7 @@ export class RaceScene {
     this.spectatorTag?.remove();
     this.carFx.dispose();
     this.engineSound?.stop();
+    for (const e of this.nearEngines) e?.stop();
     this.podium?.dispose();
     this.ui.querySelector(".emote-bar")?.remove();
     this.hud.dispose();

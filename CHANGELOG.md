@@ -3,6 +3,8 @@
 ## Unreleased
 - **Sound:** engine with gear shifts and a voice per car class, tyre squeal, nitro hiss, boost, countdown, lap and finish jingles, item sounds – all synthesised in the browser, no downloads
 - Volume slider and mute switch on the title screen (M mutes anywhere)
+- **Music:** a synthwave soundtrack generated live – calm in the menu, driving in the race, faster with a lead line on the final lap; own music slider
+- You now hear the engines of the cars right around you
 
 ## v0.11.0 – Extra features
 - **Spectator mode:** join a room while a race is running to watch it (switch drivers with Q/E) and race in the next one

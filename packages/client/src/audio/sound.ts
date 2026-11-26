@@ -1,4 +1,16 @@
-import { effectiveVolume, parseAudioSettings, type AudioSettings, type EngineVoice, type HornSound } from "@apex/shared";
+import {
+  SONGS,
+  effectiveVolume,
+  parseAudioSettings,
+  stepDuration,
+  stepEvents,
+  STEPS_PER_BAR,
+  type AudioSettings,
+  type EngineVoice,
+  type HornSound,
+  type NoteEvent,
+  type SongId,
+} from "@apex/shared";
 
 /**
  * Procedural sound: every effect is synthesised with WebAudio (oscillators + filtered noise),
@@ -32,6 +44,8 @@ class Sound {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private noise: AudioBuffer | null = null;
+  private music: Music | null = null;
+  private wantedSong: SongId | null = null;
   settings: AudioSettings;
   private readonly listeners = new Set<(s: AudioSettings) => void>();
 
@@ -65,6 +79,8 @@ class Sound {
         seed = (seed * 1103515245 + 12345) & 0x7fffffff;
         d[i] = (seed / 0x7fffffff) * 2 - 1;
       }
+      this.music = new Music(ctx, this.master, this.noise, this.settings.music);
+      this.music.play(this.wantedSong);
     } catch {
       this.ctx = null;
     }
@@ -82,7 +98,18 @@ class Sound {
       // ignore
     }
     if (this.master && this.ctx) this.master.gain.setTargetAtTime(effectiveVolume(this.settings), this.ctx.currentTime, 0.05);
+    this.music?.setLevel(this.settings.music);
     for (const l of this.listeners) l(this.settings);
+  }
+
+  /** Switch the music (at the next bar); null fades it out. Remembered until audio is unlocked. */
+  song(id: SongId | null): void {
+    this.wantedSong = id;
+    this.music?.play(id);
+  }
+
+  get currentSong(): SongId | null {
+    return this.music?.current ?? null;
   }
 
   toggleMute(): void {
@@ -311,6 +338,174 @@ export class EngineSound {
     this.out.gain.setTargetAtTime(0, t, 0.08);
     for (const s of this.sources) s.stop(t + 0.4);
     window.setTimeout(() => this.out.disconnect(), 600);
+  }
+}
+
+/** Step sequencer with lookahead scheduling on the audio clock. */
+class Music {
+  private readonly bus: GainNode;
+  private readonly echo: DelayNode;
+  current: SongId | null = null;
+  private next: SongId | null = null;
+  private step = 0;
+  private nextTime = 0;
+  private timer = 0;
+
+  constructor(
+    private readonly ctx: AudioContext,
+    master: GainNode,
+    private readonly noise: AudioBuffer,
+    level: number,
+  ) {
+    this.bus = ctx.createGain();
+    this.bus.gain.value = level * 0.55;
+    this.bus.connect(master);
+    // echo for arp and lead – the synthwave sheen
+    this.echo = ctx.createDelay(1);
+    const feedback = ctx.createGain();
+    feedback.gain.value = 0.32;
+    const wet = ctx.createGain();
+    wet.gain.value = 0.35;
+    this.echo.connect(feedback).connect(this.echo);
+    this.echo.connect(wet).connect(this.bus);
+  }
+
+  setLevel(level: number): void {
+    this.bus.gain.setTargetAtTime(level * 0.55, this.ctx.currentTime, 0.1);
+  }
+
+  play(id: SongId | null): void {
+    if (id === this.current && this.next === null) return;
+    if (id === null) {
+      this.current = null;
+      this.next = null;
+      window.clearInterval(this.timer);
+      this.timer = 0;
+      return;
+    }
+    if (!this.current) {
+      this.current = id;
+      this.step = 0;
+      this.nextTime = this.ctx.currentTime + 0.1;
+      this.timer = window.setInterval(() => this.schedule(), 25);
+    } else this.next = id;
+  }
+
+  private schedule(): void {
+    if (!this.current) return;
+    while (this.nextTime < this.ctx.currentTime + 0.15) {
+      if (this.next && this.step % STEPS_PER_BAR === 0) {
+        this.current = this.next;
+        this.next = null;
+      }
+      const song = SONGS[this.current];
+      const dur = stepDuration(song.bpm);
+      this.echo.delayTime.setValueAtTime(dur * 3, this.nextTime);
+      for (const e of stepEvents(song, this.step)) this.voice(e, this.nextTime, dur);
+      this.nextTime += dur;
+      this.step++;
+    }
+  }
+
+  private env(t: number, attack: number, hold: number, release: number, peak: number): GainNode {
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.setValueAtTime(peak, t + attack + hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + release);
+    return g;
+  }
+
+  private osc(type: OscillatorType, freq: number, t: number, end: number, detune = 0): OscillatorNode {
+    const o = this.ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    o.detune.value = detune;
+    o.start(t);
+    o.stop(end + 0.05);
+    return o;
+  }
+
+  private filter(type: BiquadFilterType, freq: number, q = 1): BiquadFilterNode {
+    const f = this.ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    f.Q.value = q;
+    return f;
+  }
+
+  private voice(e: NoteEvent, t: number, step: number): void {
+    const v = e.velocity;
+    const len = e.steps * step;
+    switch (e.voice) {
+      case "bass": {
+        const g = this.env(t, 0.005, len * 0.5, len * 0.4, 0.32 * v);
+        const f = this.filter("lowpass", 520, 4);
+        f.frequency.setValueAtTime(900, t);
+        f.frequency.exponentialRampToValueAtTime(260, t + len);
+        this.osc("sawtooth", e.freq, t, t + len).connect(f);
+        f.connect(g).connect(this.bus);
+        break;
+      }
+      case "arp": {
+        const g = this.env(t, 0.003, 0.02, len * 0.9, 0.09 * v);
+        const f = this.filter("lowpass", 2600, 2);
+        this.osc("square", e.freq, t, t + len).connect(f);
+        f.connect(g);
+        g.connect(this.bus);
+        g.connect(this.echo);
+        break;
+      }
+      case "lead": {
+        const g = this.env(t, 0.02, len * 0.6, len * 0.4, 0.1 * v);
+        const f = this.filter("lowpass", 3200, 1);
+        const o = this.osc("sawtooth", e.freq, t, t + len);
+        const vib = this.osc("sine", 5.5, t, t + len);
+        const depth = this.ctx.createGain();
+        depth.gain.value = e.freq * 0.01;
+        vib.connect(depth).connect(o.frequency);
+        o.connect(f);
+        f.connect(g);
+        g.connect(this.bus);
+        g.connect(this.echo);
+        break;
+      }
+      case "pad": {
+        const g = this.env(t, len * 0.3, len * 0.4, len * 0.3, 0.045 * v);
+        const f = this.filter("lowpass", 1100, 0.7);
+        this.osc("sawtooth", e.freq, t, t + len, -9).connect(f);
+        this.osc("sawtooth", e.freq, t, t + len, 9).connect(f);
+        f.connect(g).connect(this.bus);
+        break;
+      }
+      case "kick": {
+        const g = this.env(t, 0.002, 0.02, 0.25, 0.9 * v);
+        const o = this.osc("sine", 150, t, t + 0.3);
+        o.frequency.exponentialRampToValueAtTime(42, t + 0.18);
+        o.connect(g).connect(this.bus);
+        break;
+      }
+      case "snare": {
+        const g = this.env(t, 0.002, 0.01, 0.16, 0.35 * v);
+        const src = this.ctx.createBufferSource();
+        src.buffer = this.noise;
+        src.connect(this.filter("bandpass", 1900, 0.8)).connect(g).connect(this.bus);
+        src.start(t, (t * 7.31) % 1.5);
+        src.stop(t + 0.2);
+        const body = this.env(t, 0.002, 0.01, 0.08, 0.2 * v);
+        this.osc("triangle", 190, t, t + 0.1).connect(body).connect(this.bus);
+        break;
+      }
+      case "hat": {
+        const g = this.env(t, 0.001, 0.005, 0.035, 0.12 * v);
+        const src = this.ctx.createBufferSource();
+        src.buffer = this.noise;
+        src.connect(this.filter("highpass", 7500)).connect(g).connect(this.bus);
+        src.start(t, (t * 3.17) % 1.5);
+        src.stop(t + 0.06);
+        break;
+      }
+    }
   }
 }
 

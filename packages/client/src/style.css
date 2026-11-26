@@ -283,7 +283,9 @@ html, body { height: 100%; background: var(--bg); color: var(--white); overflow:
 .lang-toggle { position: absolute; top: 1.2rem; right: 1.4rem; font: 800 0.8rem/1 system-ui, sans-serif; letter-spacing: 0.12em; color: #e8ecff; background: rgba(10, 12, 30, 0.6); border: 1px solid rgba(0, 229, 255, 0.5); border-radius: 999px; padding: 0.45rem 0.8rem; cursor: pointer; pointer-events: auto; }
 .sound-ctl { position: absolute; top: 1.2rem; right: 5.2rem; display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem 0.25rem 0.3rem; border-radius: 999px; background: rgba(10, 12, 30, 0.6); border: 1px solid rgba(0, 229, 255, 0.5); pointer-events: auto; }
 .sound-ctl button { background: none; border: 0; font-size: 1rem; cursor: pointer; padding: 0.15rem 0.3rem; line-height: 1; }
-.sound-ctl input { width: 90px; accent-color: var(--cyan); }
+.sound-ctl input { width: 80px; accent-color: var(--cyan); }
+.sound-ctl #music { accent-color: var(--magenta); }
+.sound-label { color: var(--magenta); font-weight: 800; }
 .sound-ctl.muted input { opacity: 0.35; }
 .lang-toggle:hover, .lang-toggle:focus-visible { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.5); outline: none; }
 
