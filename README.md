@@ -6,17 +6,25 @@
 
 [▶ Play now](https://johendel.github.io/Race/) · [AI driver (CRISP-DM)](docs/ai-driver.md) · [Architecture](docs/architecture.md) · [Changelog](CHANGELOG.md)
 
-![Title screen](docs/media/title.png)
+![APEX RUSH trailer](docs/media/trailer.gif)
+
+**[▶ Watch the full trailer (37 s, MP4)](docs/media/trailer.mp4)**
 
 </div>
 
-> 🚧 **Work in progress.** Playable today: 8 tracks in 2 cups, online races with up to 10 players, Grand Prix and single races against bots and the APEX-AI driver, a garage with 12 cars, and a test ground. Every commit on `main` is deployed automatically.
+APEX RUSH is a free, open-source arcade racer that runs entirely in the browser – on a laptop, a phone or with a gamepad. Open the link, pick a car, and race up to nine friends online in under 30 seconds: no install, no account, no game server. In every race a self-trained neural network driver, **APEX-AI**, races along.
 
-| Racing against the field | Podium ceremony |
-| --- | --- |
-| ![Race](docs/media/race.png) | ![Podium](docs/media/podium.png) |
-| **Results & Grand Prix standings** | **Garage & tuning** |
-| ![Results](docs/media/results.png) | ![Garage](docs/media/garage.png) |
+| Night city | Jungle ruins | Rain on the glacier |
+| --- | --- | --- |
+| ![Skyline Loop at night](docs/media/night-city.webp) | ![Jungle Ruins](docs/media/jungle.webp) | ![Glacier Rift in the rain](docs/media/rain.webp) |
+| **Racing against the field** | **Podium ceremony** | **Volcano Rush** |
+| ![Race](docs/media/race.png) | ![Podium](docs/media/podium.png) | ![Volcano Rush](docs/media/volcano.webp) |
+| **Results & Grand Prix standings** | **Garage & tuning** | **Settings & accessibility** |
+| ![Results](docs/media/results.png) | ![Garage](docs/media/garage.png) | ![Settings](docs/media/settings.webp) |
+
+**On the phone:** on-screen thumb stick and buttons, optional tilt steering.
+
+![Touch controls on a phone](docs/media/phone.webp)
 
 ## Tracks
 
@@ -70,14 +78,12 @@ The connection runs directly between browsers (WebRTC). The free public PeerJS s
 | Reset car | R | Y |
 | Use item (chaos mode) | E | B |
 | Horn | H | – |
+| Emotes | 1–6 | – |
 | Mute | M | – |
+| Replay: pause / slow motion / camera / photo | Space / S / C / P | – |
 | Menus | Mouse / Tab | D-pad or stick, A = press, B = back |
 
-All driving keys can be changed in **Settings**.
-
-On phones and tablets, on-screen controls appear automatically: a thumb stick on the left, gas, brake, drift, nitro and item buttons on the right, and an optional tilt steering switch (📱).
-| Emotes | 1–6 | – |
-| Replay: pause / slow motion / camera / photo | Space / S / C / P | – |
+All driving keys can be changed in **Settings**. On phones and tablets, on-screen controls appear automatically: a thumb stick on the left, gas, brake, drift, nitro and item buttons on the right, and an optional tilt steering switch (📱). Add `?fps` to the address for frame statistics.
 
 ## Run locally
 
@@ -87,7 +93,7 @@ pnpm install
 pnpm dev
 ```
 
-Tests: `pnpm test` (unit tests), `pnpm test:e2e` (browser tests, including a full race and a two-window online race).
+Then open http://localhost:5173/Race/. Tests: `pnpm test` (unit tests), `pnpm test:e2e` (14 browser tests, including a full race with replay, a two-window online race, spectator mode, gamepad menus and a phone).
 
 AI pipeline: `pnpm ai:all` (record → train → evolve → evaluate → report, about 10 minutes, reproducible with a fixed seed).
 

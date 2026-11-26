@@ -95,3 +95,10 @@
 - [x] Performance-Werkzeug `?fps` (FPS, Frame-Zeit, Draw-Calls, Dreiecke), statische Deko und Auto-Karosserien je Material zusammengefasst (`mergeStatic`), Rapier + Rennszene lazy geladen (Start-Download ~1,9 MB → ~0,25 MB gzip)
 - [ ] (Mensch, optional) 60 FPS auf echter Hardware bestätigen (Swiftshader im Container misst nur 3–4 FPS, nicht aussagekräftig) – braucht einen Menschen mit Laptop, siehe BLOCKERS.md
 - [x] Barrierefreiheit (Menü „Einstellungen“, `shared/a11y.ts`): Farbenblind-Modus (Okabe-Ito-Palette für alle Fahrer), Untertitel für spielrelevante Geräusche und Hupen anderer, freie Tastenbelegung mit Schutz reservierter Tasten; alles gespeichert, HUD-Hilfe zeigt die eigene Belegung
+
+## M13 – Release v1.0
+- [x] Trailer aus Spielszenen: Headless-Browser im `?capture`-Modus (feste 1/30-s-Schritte), 1115 Bilder, ffmpeg schneidet 37 s mit Einblendungen → `docs/media/trailer.mp4` (5,6 MB) und `trailer.gif` (18 s, 5,4 MB)
+- [x] README mit Trailer-GIF, neuen Screenshots (Nacht, Regen, Dschungel, Vulkan, Handy, Einstellungen), Steuerungstabelle repariert
+- [x] Changelog v1.0.0, Version 1.0.0, Tag `v1.0.0` lokal
+- [ ] (Mensch, optional) Release v1.0.0 auf GitHub anlegen und das MP4 dort anhängen, siehe BLOCKERS.md
+- [ ] (optional) Trailer mit Musik: Soundtrack per OfflineAudioContext rendern und unterlegen

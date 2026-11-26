@@ -660,7 +660,19 @@ function frame(): void {
   runFrameHooks();
   requestAnimationFrame(frame);
 }
-frame();
+if (params.has("capture")) {
+  // Trailer recording: time only moves when the recorder asks for frames (fixed steps, any machine speed).
+  (window as unknown as { __step: (n?: number, dt?: number) => void }).__step = (n = 1, dt = 1 / 30) => {
+    for (let i = 0; i < n; i++) {
+      active.update(dt);
+      // fast-forwarding: only the last frame is drawn
+      if (i === n - 1) {
+        composer.render();
+        runFrameHooks();
+      }
+    }
+  };
+} else frame();
 // Hide the loading screen once the first frame is on screen.
 requestAnimationFrame(() => {
   const boot = document.getElementById("boot");

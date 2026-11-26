@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M13 – Release v1.0: Trailer aus Spielszenen (Headless-Browser nimmt Frames auf, ffmpeg schneidet 30–45 s mit Titel/Strecken/Online/Podest), Trailer-GIF und Screenshots für die README, README mit allen Medien, Changelog v1.0.0, Abschlussbericht; Tag `v1.0.0` nur lokal.
+**Nächster Schritt:** Alle Meilensteine sind fertig (v1.0.0). Bonus nach Wunsch: Rückmeldungen aus echten Testrunden umsetzen (Sound-Pegel, FPS auf echter Hardware, Fahrgefühl), Trailer mit Musik unterlegen, Strecken-Editor (Bonus aus der Streckenliste).
 
 | Meilenstein | Status |
 | --- | --- |
@@ -17,7 +17,7 @@
 | M10 – Grafik & Assets | ✅ fertig |
 | M11 – Extra-Features | ✅ fertig (`v0.11.0` lokal) |
 | M12 – Sound & Feinschliff | ✅ fertig (`v0.12.0` lokal) |
-| M13 – Release v1.0 | ⏳ als Nächstes |
+| M13 – Release v1.0 | ✅ fertig (`v1.0.0` lokal) |
 ## Berichte
 
 ### M0 – Fundament
@@ -165,3 +165,13 @@ Das Spiel klingt, lässt sich mit Gamepad und auf dem Handy bedienen, startet sc
 - **Barrierefreiheit:** Farbenblind-Modus, Untertitel, freie Tastenbelegung, reduzierte Bewegung respektiert.
 - **Tests:** 116 Unit-Tests, 14 Playwright-Tests grün (neu in M12: Ton, Gamepad, Handy, Einstellungen). `ai:evaluate` unverändert reproduzierbar.
 - **Offen für den Menschen:** echte FPS auf einem Laptop prüfen (`?fps`), Sound anhören, Pages einschalten – siehe `BLOCKERS.md`. Version `0.12.0`, Tag `v0.12.0` nur lokal.
+
+## Abschlussbericht M13 – Release v1.0
+
+**Zum Spielen: https://johendel.github.io/Race/** (GitHub Pages ist seit dem 26.11.2026 eingeschaltet; jeder Push auf `main` wird automatisch veröffentlicht.) Repo: https://github.com/JoHendel/Race
+
+- **Trailer:** Ein neuer `?capture`-Modus lässt das Spiel nur auf Anforderung in festen 1/30-s-Schritten weiterlaufen. So nimmt ein Headless-Browser auch mit Software-Rendering flüssige Bilder auf: Titel, Intro-Flug über Neon Harbor, Start mit Countdown, Skyline Loop bei Nacht, Jungle Ruins, Volcano Rush, Orbital Station, Glacier Rift im Regen, Chaos-Modus, Siegertreppe und Abspann. ffmpeg setzt daraus 37 s mit Einblendungen zusammen (`docs/media/trailer.mp4`), dazu ein 18-s-GIF für die README. Die Aufnahme- und Schnittskripte sind Hilfsskripte und liegen gemäß Projektregel nicht im Repo; der Ablauf steht hier und in `DECISIONS.md`.
+- **README:** Trailer-GIF oben, neue Screenshots, kurze Einleitung, reparierte Steuerungstabelle, Hinweis auf `?fps`.
+- **Stand v1.0:** 8 Strecken in 2 Cups, 12 Autos mit Tuning, Online für bis zu 10 Spieler (Peer-to-Peer, Zuschauer, Host-Übergabe beim Wiedereinstieg, Abstimmung), APEX-AI (CRISP-DM, `docs/ai-driver.md`) in jedem Rennen, Grand Prix mit Siegertreppe, Chaos-Modus, Zeitrennen, Drift-Challenge, Replay/Foto/Highlights, Rivalen, Hupe/Emotes, Wetter und Nacht, prozeduraler Sound und Musik, Gamepad, Touch, Barrierefreiheit, Deutsch/Englisch.
+- **Qualität:** 116 Unit-Tests, 14 Playwright-Tests, Lint und Build grün, lokal und in GitHub Actions; `ai:evaluate` reproduzierbar.
+- **Bewusst offen:** echte 60-FPS-Messung auf einem Laptop (`?fps`), Trailer ohne Ton (GIF hat ohnehin keinen), GitHub-Release mit Tag (Proxy blockiert Tag-Pushes) – Anleitungen in `BLOCKERS.md`.

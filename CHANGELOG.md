@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.0 – Release
+- **Trailer:** a 37-second trailer recorded from real gameplay (MP4) and a trailer GIF at the top of the README
+- New README with screenshots of night, rain, jungle, volcano, phone controls and settings
+- `?capture` mode: the game advances only on request, so a headless browser can record smooth frames on any machine
+- APEX RUSH is complete: 8 tracks, 12 cars, online races for up to 10 players, APEX-AI in every race, Grand Prix, chaos mode, time trial, drift challenge, replays, rivals, spectators, sound, music, gamepad, touch and accessibility options
+
 ## v0.12.0 – Sound & polish
 - **Accessibility:** colour-blind mode, captions for important sounds, free key bindings – all in the new Settings menu
 - Menu animations (switched off when the system asks for reduced motion)
