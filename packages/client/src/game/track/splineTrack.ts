@@ -4,6 +4,7 @@ import { DEFAULT_ENVIRONMENT, theme, type TrackDef } from "@apex/shared";
 import { CURB_WIDTH, LEAF_THICKNESS, TrackGeometry, mulberry32, stripRibbon, stripWall, type Drawbridge, type MeshArrays, type Rockfall, type ShortcutPath } from "@apex/sim";
 
 import { buildJungle, buildTemple } from "./jungle";
+import { buildLavaTube, buildVolcano } from "./volcano";
 
 export { mulberry32, toGeometry };
 
@@ -35,6 +36,7 @@ export class SplineTrack extends TrackGeometry {
     const scenery = (this.def.environment ?? DEFAULT_ENVIRONMENT).scenery;
     if (scenery === "glacier") this.buildGlacier();
     else if (scenery === "jungle") buildJungle(this);
+    else if (scenery === "volcano") buildVolcano(this);
     else this.buildScenery();
   }
 
@@ -230,6 +232,10 @@ export class SplineTrack extends TrackGeometry {
     }
     if (c.def.kind === "temple") {
       buildTemple(this, c, off);
+      return;
+    }
+    if (c.def.kind === "lavatube") {
+      buildLavaTube(this, c, off);
       return;
     }
 

@@ -6,3 +6,4 @@ export * from "./bot";
 export * from "./race";
 export * from "./drawbridge";
 export * from "./rockfall";
+export * from "./lava";

@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M9 weiter – Volcano Rush: neues Ereignis `lava` (Lavaströme als Untergrund-Zonen mit sehr wenig Grip/Bremswirkung, die sich pro Runde verschieben), Vulkan-Kulisse; danach Orbital Station (Schwerkraft pro Strecke in `TrackDef.gravity`).
+**Nächster Schritt:** M9 weiter – Orbital Station: Schwerkraft pro Strecke (`TrackDef.gravity`, an `RAPIER.World` in Spiel und `HeadlessRace` durchreichen), Raumstations-Kulisse; Looping zuerst headless prüfen (Fahrzeug muss bei Tempo haften – ggf. Anpressdruck in `VehiclePhysics`).
 
 | Meilenstein | Status |
 | --- | --- |
@@ -81,3 +81,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Zugbrücke Neon Harbor (Ereignisse als Daten in `TrackDef.events`, `Drawbridge` in `packages/sim`): Klappen heben sich ab Runde 2, alle Fahrer kommen sicher drüber (ca. 0,3 s Zeitverlust), Banner „ZUGBRÜCKE ÖFFNET SICH!“. KI-Training nutzt `forTraining()` (ohne Abkürzungen und Ereignisse), `ai:evaluate` bit-genau gleich.
 - Steinschlag Sunset Canyon: neues Ereignis `rockfall` (`packages/sim/src/rockfall.ts`), geschlossene Abkürzungen ignoriert `locate()`. Dabei zwei Geometriefehler an Abzweigungen behoben (Höhenkante zwischen Abkürzung und Seitenstreifen, Mauerende in der Ideallinie) – Abkürzungen haben jetzt einen Trichter und übernehmen nahe der Hauptstrecke deren Höhe. `ai:evaluate` bit-genau gleich.
 - Jungle Ruins als 6. Strecke (Turbo Cup): Wasserfall (Shader-Vorhang ohne Collider), Hangbrücke mit Holzplanken und Seilgeländer (sichtbare Mauer ausgeblendet, Collider bleibt), Tempel-Abkürzung mit Steinschlag-Mechanik, Dschungel-Kulisse in `track/jungle.ts`. Alle Fahrer im Ziel, Runden 32–49 s. `ai:evaluate` bit-genau gleich.
+- Volcano Rush als 7. Strecke: Lava als Ereignis (`packages/sim/src/lava.ts`), Bremswirkung über `applyDrag`, Bots meiden die Lavaseite. Messfehler behoben: Mauerkontakte werden in Abkürzungen nicht mehr fälschlich gezählt. `ai:evaluate` bit-genau gleich.

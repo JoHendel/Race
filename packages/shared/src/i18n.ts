@@ -26,6 +26,8 @@ export const EN: Record<string, string> = {
   "ZUGBRÜCKE ÖFFNET SICH!": "DRAWBRIDGE OPENING!",
   "Dschungel und Tempelruinen, Wasserfall-Durchfahrt, Hangbrücke, Tempel-Abkürzung ab Runde 2": "Jungle and temple ruins, drive through a waterfall, rope bridge, temple shortcut from lap 2",
   "TEMPEL STÜRZT EIN – ABKÜRZUNG FREI!": "TEMPLE COLLAPSES – SHORTCUT OPEN!",
+  "Vulkaninsel, Lavaströme wechseln jede Runde die Seite, Lavatunnel als Abkürzung": "Volcano island, lava flows switch sides every lap, lava tube shortcut",
+  "LAVA WECHSELT DIE SEITE!": "LAVA SWITCHES SIDES!",
   "Wüstenschlucht im Abendlicht, großer Sprung, Steinschlag öffnet ab Runde 2 eine Abkürzung": "Desert canyon at sunset, big jump, a rockfall opens a shortcut from lap 2",
   "STEINSCHLAG – ABKÜRZUNG FREI!": "ROCKFALL – SHORTCUT OPEN!",
   "Hochhäuser und Rampen zwischen den Dächern": "Skyscrapers and ramps between the rooftops",

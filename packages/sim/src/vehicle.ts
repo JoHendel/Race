@@ -107,6 +107,14 @@ export class VehiclePhysics {
   /** Current surface grip factor (1 = asphalt, < 1 = ice). */
   surfaceGrip = 1;
 
+  /** Slow the car down (lava): exponential drag with `rate` per second on the horizontal velocity. */
+  applyDrag(rate: number, dt: number): void {
+    if (rate <= 0 || this.remote) return;
+    const v = this.body.linvel();
+    const k = Math.exp(-rate * dt);
+    this.body.setLinvel({ x: v.x * k, y: v.y, z: v.z * k }, true);
+  }
+
   /** Set the grip of the surface under the car (from the track, every physics step). */
   setSurfaceGrip(factor: number): void {
     if (factor === this.surfaceGrip) return;

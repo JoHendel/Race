@@ -26,7 +26,7 @@
 - **12 cars in 4 classes** to unlock, with performance and visual tuning and a performance index per class
 - **Drift boost in three stages, nitro, jumps**
 - Rule-based bots fill empty grid slots
-- **6 tracks** (Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift with slippery ice, Grand Circuit, Jungle Ruins with a waterfall and a rope bridge) – pick one on the title screen or in the lobby; more are planned
+- **7 tracks** (Neon Harbor, Sunset Canyon, Skyline Loop, Glacier Rift with slippery ice, Grand Circuit, Jungle Ruins with a waterfall and a rope bridge, Volcano Rush with shifting lava flows) – pick one on the title screen or in the lobby; more are planned
 - **Shortcuts and live track events:** a warehouse shortcut and a drawbridge that rises from lap 2 on Neon Harbor, a rockfall that opens a canyon shortcut on Sunset Canyon, a collapsing temple on Jungle Ruins
 - **German and English UI** – switch with the button in the top right corner of the title screen
 

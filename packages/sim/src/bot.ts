@@ -53,7 +53,20 @@ export class BotDriver {
     const lookahead = Math.round(5 + Math.max(0, speed) * 0.35);
     const target = this.track.sample(this.index + lookahead);
     const curve = this.curvature(this.index, 22);
-    const laneHere = this.lane * (1 - Math.min(1, curve * 1.5));
+    let laneHere = this.lane * (1 - Math.min(1, curve * 1.5));
+    // Avoid lava: if a lava zone is coming up, drive on the other half of the road.
+    const lava = this.track.lava;
+    let nearLava = false;
+    if (lava) {
+      for (let k = 0; k <= lookahead + 60; k += 5) {
+        const z = lava.zoneAt(this.index + k);
+        if (z >= 0) {
+          laneHere = -lava.side(z) * this.track.halfWidth * 0.6;
+          nearLava = true;
+          break;
+        }
+      }
+    }
     const aim = this.tmp.copy(target.pos).addScaledVector(target.left, laneHere);
 
     // Lenkwinkel aus dem Winkel zwischen Fahrtrichtung und Ziel.
@@ -85,7 +98,8 @@ export class BotDriver {
 
     // Drift through tight, fast corners (and only while steering hard), like a player would.
     const tight = this.curvature(this.index + 6, 16);
-    const drift = s.drift && tight > 0.55 && speed > 20 && Math.abs(steer) > 0.45;
+    // (no drifting next to lava – sliding sideways would end up in it)
+    const drift = s.drift && !nearLava && tight > 0.55 && speed > 20 && Math.abs(steer) > 0.45;
 
     return { throttle: brake ? 0 : throttle, brake, steer, drift, nitro, reset };
   }

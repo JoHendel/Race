@@ -123,6 +123,7 @@ export class HeadlessRace {
       else c = r.bot!.drive(SIM_STEP);
       r.controls = c;
       r.car.setSurfaceGrip(this.track.gripAt(r.index));
+      if (this.track.lava) r.car.applyDrag(this.track.lavaDrag(r.index, this.track.lateralOffset(r.car.position, r.index)), SIM_STEP);
       r.car.update(c, SIM_STEP);
     }
     if (this.track.hasEvents) this.track.updateEvents(Math.max(...this.racers.map((r) => r.tracker.lap)), SIM_STEP);
@@ -143,7 +144,8 @@ export class HeadlessRace {
       const lateral = this.track.lateralOffset(p, r.index);
       r.lateralSum += Math.abs(lateral);
       r.lateralSamples++;
-      const inWall = Math.abs(lateral) > this.track.wallOffset - 1.3;
+      // inside a shortcut the distance to the main track says nothing about walls
+      const inWall = !loc.shortcut && Math.abs(lateral) > this.track.wallOffset - 1.3;
       if (inWall && !r.private_inWall) r.wallContacts++;
       r.private_inWall = inWall;
       const t = this.track.sample(r.index).tangent;

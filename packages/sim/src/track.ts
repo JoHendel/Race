@@ -3,6 +3,7 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { surfaceGripAt, type TrackDef, type TrackShortcut } from "@apex/shared";
 import { Drawbridge } from "./drawbridge";
 import { Rockfall } from "./rockfall";
+import { LavaFlows } from "./lava";
 
 export const SAMPLE_SPACING = 2; // m between two samples
 export const CURB_WIDTH = 1.2;
@@ -114,10 +115,16 @@ export class TrackGeometry {
   readonly shortcuts: ShortcutPath[] = [];
   readonly bridges: Drawbridge[] = [];
   readonly rockfalls: Rockfall[] = [];
+  lava: LavaFlows | null = null;
 
   /** Does the track have dynamic events at all? */
   get hasEvents(): boolean {
-    return this.bridges.length + this.rockfalls.length > 0;
+    return this.bridges.length + this.rockfalls.length > 0 || this.lava !== null;
+  }
+
+  /** Lava drag rate (1/s) at a position on the track. */
+  lavaDrag(index: number, lateral: number): number {
+    return this.lava ? this.lava.dragAt(index, lateral) : 0;
   }
   /** Road segments that are replaced by moving parts (drawbridges); false = no fixed road there. */
   roadMask?: boolean[];
@@ -146,14 +153,16 @@ export class TrackGeometry {
     for (const e of this.def.events ?? []) {
       if (e.kind === "drawbridge") this.bridges.push(new Drawbridge(this.world, e, this.sample(Math.round(e.at * n)), this.wallOffset - 0.15));
       else if (e.kind === "rockfall" && this.shortcuts[e.shortcut]) this.rockfalls.push(new Rockfall(this.world, e, this.shortcuts[e.shortcut]!));
+      else if (e.kind === "lava") this.lava = new LavaFlows(e, n, SAMPLE_SPACING);
     }
   }
 
   /** Advance dynamic events. Returns the events that just started (for banners and sounds). */
-  updateEvents(leaderLaps: number, dt: number): (Drawbridge | Rockfall)[] {
-    const started: (Drawbridge | Rockfall)[] = [];
+  updateEvents(leaderLaps: number, dt: number): (Drawbridge | Rockfall | LavaFlows)[] {
+    const started: (Drawbridge | Rockfall | LavaFlows)[] = [];
     for (const b of this.bridges) if (b.update(leaderLaps, dt)) started.push(b);
     for (const r of this.rockfalls) if (r.update(leaderLaps, dt)) started.push(r);
+    if (this.lava?.update(leaderLaps, dt)) started.push(this.lava);
     return started;
   }
   private mainMask: { left?: boolean[]; right?: boolean[] } = {};

@@ -39,7 +39,7 @@ export interface TrackShortcut {
   via: [number, number][];
   width: number;
   /** What the shortcut runs through (visual only). */
-  kind: "warehouse" | "canyon" | "temple";
+  kind: "warehouse" | "canyon" | "temple" | "lavatube";
 }
 
 /**
@@ -66,7 +66,24 @@ export interface RockfallEvent {
   fromLap: number;
 }
 
-export type TrackEvent = DrawbridgeEvent | RockfallEvent;
+/**
+ * Lava flows: each zone covers one half of the road and slows cars down heavily.
+ * With every lap of the leader the flows switch sides, so the ideal line changes.
+ */
+export interface LavaEvent {
+  kind: "lava";
+  zones: { at: number; length: number }[];
+}
+
+export type TrackEvent = DrawbridgeEvent | RockfallEvent | LavaEvent;
+
+/** Side of the road covered by lava zone `zone` while the leader has completed `leaderLaps` laps (1 = left, -1 = right). */
+export function lavaSide(zone: number, leaderLaps: number): 1 | -1 {
+  return (zone + leaderLaps) % 2 === 0 ? 1 : -1;
+}
+
+/** Speed loss on lava per second (exponential drag rate). */
+export const LAVA_DRAG = 0.9;
 
 /** Seconds from the first falling boulder until the shortcut is open. */
 export const ROCKFALL_DURATION = 2.5;
@@ -97,7 +114,7 @@ export function withoutShortcuts(def: TrackDef): TrackDef {
 }
 
 export interface TrackEnvironment {
-  scenery: "harbor" | "glacier" | "jungle";
+  scenery: "harbor" | "glacier" | "jungle" | "volcano";
   /** Lap share where the track runs through a waterfall (visual only). */
   waterfall?: number;
   /** Lap shares of a rope bridge section: wooden deck, rope railings, pillars (visual only). */
@@ -311,7 +328,42 @@ export const JUNGLE_RUINS: TrackDef = {
   blurb: "Dschungel und Tempelruinen, Wasserfall-Durchfahrt, Hangbrücke, Tempel-Abkürzung ab Runde 2",
 };
 
-export const TRACKS: TrackDef[] = [NEON_HARBOR, SUNSET_CANYON, SKYLINE_LOOP, GLACIER_RIFT, GRAND_CIRCUIT, JUNGLE_RUINS];
+export const VOLCANO_RUSH: TrackDef = {
+  id: "volcano-rush",
+  name: "Volcano Rush",
+  cup: "turbo",
+  width: 16,
+  accent: 0xff5a1f,
+  accent2: 0xffc94d,
+  points: [
+    [0, 0, 0],
+    [0, 0, 180],
+    [60, 2, 250],
+    [150, 4, 245],
+    [175, 8, 175],
+    [105, 12, 150],
+    [65, 14, 95],
+    [110, 14, 40],
+    [200, 10, 60],
+    [270, 6, 20],
+    [280, 3, -80],
+    [210, 1, -160],
+    [110, 0, -170],
+    [40, 0, -110],
+  ],
+  ramps: [{ at: 0.5, length: 14, height: 2.8 }],
+  shortcuts: [{ from: 0.58, to: 0.77, via: [[234, -8], [230, -92]], width: 10, kind: "lavatube" }],
+  events: [{ kind: "lava", zones: [{ at: 0.08, length: 44 }, { at: 0.23, length: 40 }, { at: 0.88, length: 44 }] }],
+  environment: {
+    scenery: "volcano",
+    sky: { top: 0x0a0306, mid: 0x3a0d08, horizon: 0xff5a1f },
+    fog: 0x2a0a06,
+    sun: null,
+  },
+  blurb: "Vulkaninsel, Lavaströme wechseln jede Runde die Seite, Lavatunnel als Abkürzung",
+};
+
+export const TRACKS: TrackDef[] = [NEON_HARBOR, SUNSET_CANYON, SKYLINE_LOOP, GLACIER_RIFT, GRAND_CIRCUIT, JUNGLE_RUINS, VOLCANO_RUSH];
 
 export function trackById(id: string): TrackDef | undefined {
   return TRACKS.find((t) => t.id === id);

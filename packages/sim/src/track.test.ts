@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { GRAND_CIRCUIT, NEON_HARBOR, SUNSET_CANYON, forTraining, withoutShortcuts, type DrawbridgeEvent } from "@apex/shared";
+import { GRAND_CIRCUIT, NEON_HARBOR, SUNSET_CANYON, VOLCANO_RUSH, forTraining, withoutShortcuts, type DrawbridgeEvent } from "@apex/shared";
 import { TrackGeometry } from "./track";
 
 describe("TrackGeometry shortcuts", () => {
@@ -114,5 +114,32 @@ describe("Rockfall", () => {
     for (let i = 0; i < 60 * 3; i++) t.updateEvents(1, 1 / 60);
     expect(c.open).toBe(true);
     expect(t.locate(mid.pos, Math.round(0.6 * t.samples.length)).shortcut).toBe(c);
+  });
+});
+
+describe("Lava flows", () => {
+  beforeAll(async () => {
+    await RAPIER.init();
+  });
+
+  it("covers one half of the road and switches sides with every lap of the leader", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), VOLCANO_RUSH);
+    const lava = t.lava!;
+    const [a, b] = lava.ranges[0]!;
+    const mid = Math.round((a + b) / 2);
+    const side = lava.side(0);
+    expect(t.lavaDrag(mid, side * 4)).toBeGreaterThan(0);
+    expect(t.lavaDrag(mid, -side * 4)).toBe(0);
+    expect(t.lavaDrag(b + 20, side * 4)).toBe(0);
+    expect(t.updateEvents(1, 1 / 60)).toContain(lava);
+    expect(lava.side(0)).toBe(-side);
+    expect(t.lavaDrag(mid, side * 4)).toBe(0);
+    expect(t.lavaDrag(mid, -side * 4)).toBeGreaterThan(0);
+  });
+
+  it("is not part of the training variant", () => {
+    const t = new TrackGeometry(new RAPIER.World({ x: 0, y: -9.81, z: 0 }), forTraining(VOLCANO_RUSH));
+    expect(t.lava).toBeNull();
+    expect(t.lavaDrag(50, 3)).toBe(0);
   });
 });

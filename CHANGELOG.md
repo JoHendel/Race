@@ -4,6 +4,7 @@
 - New track **Glacier Rift**: ice patches with less grip, an ice cave and northern lights – the Neon Cup now has four tracks
 - Tracks can define surfaces (grip) and their own environment (sky, fog, scenery)
 - Track selection on the title screen and for the host in the online lobby
+- New track **Volcano Rush** (Turbo Cup): a spiral around a smoking volcano; lava flows cover one half of the road and switch sides every lap; lava tube shortcut
 - New track **Jungle Ruins** (Turbo Cup): drive through a waterfall, cross a rope bridge high above the jungle floor, and take the temple shortcut once the ruin collapses in lap 2
 - **Rockfall** on Sunset Canyon: a rock barrier blocks a canyon shortcut; from lap 2 boulders crash down and open it
 - **Drawbridge** on Neon Harbor: from lap 2 the bridge leaves rise and turn into a jump, with blinking warning lights and a banner

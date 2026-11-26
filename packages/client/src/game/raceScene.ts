@@ -480,14 +480,19 @@ export class RaceScene {
       else if (r.bot) controls = r.bot.drive(STEP);
       else controls = this.idle;
       r.car.setSurfaceGrip(this.track.gripAt(r.index));
+      if (this.track.lava) r.car.applyDrag(this.track.lavaDrag(r.index, this.track.lateralOffset(r.car.body.translation(), r.index)), STEP);
       r.car.update(controls, STEP);
     }
     if (this.track.hasEvents && this.racing) {
       const leaderLaps = Math.max(...this.racers.map((r) => this.status(r).lap));
       // Shown a moment later so it does not collide with the lap banner of the leader.
       for (const ev of this.track.updateEvents(leaderLaps, STEP)) {
+        // lava switches only after lap 1 (no banner at the start)
+        if (ev.event.kind === "lava" && this.track.lava!.leaderLaps === 0) continue;
         this.eventBanner =
-          ev.event.kind === "drawbridge"
+          ev.event.kind === "lava"
+            ? "LAVA WECHSELT DIE SEITE!"
+            : ev.event.kind === "drawbridge"
             ? "ZUGBRÜCKE ÖFFNET SICH!"
             : "shortcut" in ev && ev.shortcut.def.kind === "temple"
               ? "TEMPEL STÜRZT EIN – ABKÜRZUNG FREI!"
