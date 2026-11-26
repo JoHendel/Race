@@ -4,6 +4,8 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { DEFAULT_POST_FX, GradeShader, type PostFx } from "./game/postFx";
 import { CupStandings, DEFAULT_LAPS, NEON_HARBOR, TRACKS, clampLaps, type TrackDef } from "@apex/shared";
 import { LocalSignaling, PeerSignaling, parseRoomCode, type SignalingProvider } from "@apex/net";
 import { TitleScene } from "./titleScene";
@@ -24,6 +26,8 @@ interface ActiveScene {
   camera: THREE.PerspectiveCamera;
   resize(w: number, h: number): void;
   update(dt: number): void;
+  /** Optional look of this scene (bloom, colour grade). */
+  postFx?: PostFx;
 }
 
 const params = new URLSearchParams(window.location.search);
@@ -41,13 +45,26 @@ let active: ActiveScene = new TitleScene();
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(active.scene, active.camera);
 composer.addPass(renderPass);
-composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.65, 0.5, 0.55));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), DEFAULT_POST_FX.bloom, 0.5, DEFAULT_POST_FX.threshold);
+composer.addPass(bloomPass);
+const gradePass = new ShaderPass(GradeShader);
+composer.addPass(gradePass);
 composer.addPass(new OutputPass());
+
+function applyPostFx(fx: PostFx = DEFAULT_POST_FX): void {
+  bloomPass.strength = fx.bloom;
+  bloomPass.threshold = fx.threshold;
+  gradePass.uniforms.saturation!.value = fx.saturation;
+  gradePass.uniforms.contrast!.value = fx.contrast;
+  (gradePass.uniforms.tint!.value as THREE.Color).setHex(fx.tint);
+  gradePass.uniforms.vignette!.value = fx.vignette;
+}
 
 function setScene(next: ActiveScene): void {
   active = next;
   renderPass.scene = next.scene;
   renderPass.camera = next.camera;
+  applyPostFx(next.postFx);
   resize();
 }
 
@@ -485,3 +502,10 @@ function frame(): void {
   requestAnimationFrame(frame);
 }
 frame();
+// Hide the loading screen once the first frame is on screen.
+requestAnimationFrame(() => {
+  const boot = document.getElementById("boot");
+  if (!boot) return;
+  boot.classList.add("done");
+  window.setTimeout(() => boot.remove(), 600);
+});

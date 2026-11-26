@@ -1,6 +1,6 @@
 # Fortschritt
 
-**Nächster Schritt:** M10 weiter – Texturen: prüfen, ob @pmndrs/assets passende CC0-Texturen/Normal-Maps enthält (Ordner `textures`, `normals`), damit Asphalt/Fels/Eis/Sand Struktur bekommen; danach Post-Processing pro Strecke (Bloom-Stärke, Farbkorrektur) und Ladebildschirm mit Code-Splitting von Three.js/Rapier.
+**Nächster Schritt:** M10 abschließen – README-Screenshots aller 8 Strecken neu aufnehmen (Headless-Browser, `docs/media/`), Galerie in der README, dann M10-Abschlussbericht und M11 (Extra-Features: zuerst Wetter & Nacht) starten.
 
 | Meilenstein | Status |
 | --- | --- |
@@ -100,3 +100,4 @@ Befund: Die Regel-Bots nutzen praktisch kein Nitro – Nitro wird erst in Stufe 
 - Jede Strecke hat jetzt eine eigene Kulisse (Wüste, Stadt, Rennstrecke neu). Nur Optik, keine Collider – `ai:evaluate` bit-genau gleich.
 - Hinweis Leistung: Im Headless-Browser (Software-Rendering) ca. 5–6 FPS, nicht aussagekräftig; echte Messung auf einem Mittelklasse-Laptop steht aus (M12).
 - Reflexionen pro Strecke aus CC0-HDRIs (Poly Haven über npm `@pmndrs/assets`), per dynamischem Import nachgeladen. Kenney/Quaternius/Poly-Haven-Webseiten sind aus der Umgebung nicht erreichbar.
+- Prozedurale Normal-Maps (Asphalt, Fels, Eis, Sand), Bloom und Farbkorrektur pro Strecke, Ladebildschirm, Bibliotheken in eigenen Chunks. Erster Ladevorgang ca. 1,9 MB gzip (Ziel < 15 MB erfüllt).

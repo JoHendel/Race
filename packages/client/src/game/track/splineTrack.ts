@@ -7,6 +7,7 @@ import { buildJungle, buildTemple } from "./jungle";
 import { buildLavaTube, buildVolcano } from "./volcano";
 import { buildGlassTube, buildOrbital } from "./orbital";
 import { buildCircuit, buildCity, buildDesert } from "./scenery";
+import { normalMap } from "../normalMaps";
 
 export { mulberry32, toGeometry };
 
@@ -125,7 +126,7 @@ export class SplineTrack extends TrackGeometry {
 
   /** Canyon shortcut: tall sandstone cliffs on both sides with loose rocks on top. */
   private buildCanyon(c: ShortcutPath, off: number): void {
-    const rock = new THREE.MeshStandardMaterial({ color: 0x8a4b2a, roughness: 0.95, envMapIntensity: 0.15, side: THREE.DoubleSide });
+    const rock = new THREE.MeshStandardMaterial({ color: 0x8a4b2a, normalMap: normalMap("rock"), normalScale: new THREE.Vector2(1.2, 1.2), roughness: 0.95, envMapIntensity: 0.15, side: THREE.DoubleSide });
     const dark = new THREE.MeshStandardMaterial({ color: 0x3d2216, roughness: 1, envMapIntensity: 0.1 });
     const k0 = Math.floor(c.samples.length * 0.12);
     const k1 = Math.ceil(c.samples.length * 0.88);
@@ -344,6 +345,8 @@ export class SplineTrack extends TrackGeometry {
     const tex = this.iceTexture();
     const mat = new THREE.MeshStandardMaterial({
       map: tex,
+      normalMap: normalMap("ice"),
+      normalScale: new THREE.Vector2(0.22, 0.22),
       color: 0x7fb6cc,
       roughness: 0.1,
       metalness: 0.45,
@@ -459,7 +462,10 @@ export class SplineTrack extends TrackGeometry {
     const hw = this.halfWidth;
     const geo = toGeometry(this.ribbon(hw, -hw, 0, 0, this.roadMask));
     const tex = this.asphaltTexture();
-    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.75, metalness: 0.15, envMapIntensity: 0.12, side: THREE.DoubleSide });
+    const asphalt = normalMap("asphalt").clone();
+    asphalt.repeat.set(6, 3); // road UVs: u spans the full width, v runs 8 m per unit – keep the grain roughly square
+    asphalt.needsUpdate = true;
+    const mat = new THREE.MeshStandardMaterial({ map: tex, normalMap: asphalt, normalScale: new THREE.Vector2(0.18, 0.18), roughness: 0.75, metalness: 0.15, envMapIntensity: 0.12, side: THREE.DoubleSide });
     this.group.add(new THREE.Mesh(geo, mat));
     // Seitenstreifen (befahrbar, aber langsamer gibt es erst mit Untergrund-Typen in M6)
     for (const side of [1, -1]) {

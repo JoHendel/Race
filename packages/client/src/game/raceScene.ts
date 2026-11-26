@@ -33,6 +33,7 @@ import { Input, type ControlState } from "./input";
 import { Sparks } from "./sparks";
 import { createSky } from "./sky";
 import { loadEnvironmentMap } from "./environmentMap";
+import { POST_FX, type PostFx } from "./postFx";
 import { BotDriver, type BotSkill } from "./bot";
 import { RaceHud } from "./raceHud";
 import { SplineTrack, mulberry32 } from "./track/splineTrack";
@@ -162,6 +163,8 @@ export class RaceScene {
   private placeTimer = 0;
   private podium: Podium | null = null;
   private readonly sky: THREE.Group;
+  /** Bloom and colour grade of this track. */
+  readonly postFx: PostFx;
   private bridgeBannerIn = 0;
   private eventBanner = "";
   private podiumTime = 0;
@@ -187,6 +190,7 @@ export class RaceScene {
     this.scene.environmentIntensity = 0.25;
     this.scene.background = new THREE.Color(theme.background);
     const env = options.track.environment ?? DEFAULT_ENVIRONMENT;
+    this.postFx = POST_FX[env.scenery];
     // Track-specific reflections (CC0 HDRI), loaded in the background; the room environment is the fallback.
     loadEnvironmentMap(renderer, env.scenery)
       .then((tex) => {

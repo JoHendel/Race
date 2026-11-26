@@ -61,7 +61,9 @@
 ## M10 – Grafik & Assets
 - [x] Kenney/Quaternius geprüft: aus der Build-Umgebung nicht erreichbar → prozedurale Karosserien bleiben (DECISIONS.md, optional BLOCKERS.md)
 - [x] Poly-Haven-HDRIs (CC0, über npm-Paket @pmndrs/assets) pro Strecke für Reflexionen, nachgeladen (150–420 KB je Strecke)
-- [ ] Texturen (Asphalt, Fels, Eis, Sand) von ambientCG/Poly Haven als WebP
+- [x] Oberflächenstruktur für Asphalt, Fels, Eis, Sand als prozedurale Normal-Maps (Normal-Maps aus @pmndrs/assets nicht verwendet: Lizenz der Originalquelle nicht prüfbar)
 - [x] Kulissen: Sunset Canyon (Wüste, Tafelberge, Kakteen), Skyline Loop (Hochhäuser mit Fenstern und Leuchtbändern), Grand Circuit (Tribünen mit Publikum, Boxengebäude, Fahnen, Bäume) – `track/scenery.ts`
-- [ ] Neon-Post-Processing feinjustieren (Bloom pro Strecke, Farbkorrektur, leichte Bewegungsunschärfe)
-- [ ] Bundle-Größe: Three.js/Rapier aufteilen (dynamic import), Ladebildschirm
+- [x] Post-Processing pro Strecke: Bloom-Stärke/-Schwelle, Farbkorrektur (Sättigung, Kontrast, Tönung), Vignette
+- [ ] Leichte Bewegungsunschärfe bei hohem Tempo / Nitro (M12)
+- [x] Ladebildschirm (inline im HTML, sofort sichtbar), Bibliotheken als eigene Chunks (three 168 KB, peerjs 23 KB, Spiel 63 KB, Rapier 1,7 MB gzip)
+- [ ] Rapier erst beim ersten Rennen laden (dynamic import der Rennszene) – braucht Umbau der Importe in main.ts/session.ts

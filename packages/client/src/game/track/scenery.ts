@@ -2,10 +2,17 @@ import * as THREE from "three";
 import { theme } from "@apex/shared";
 import { mulberry32 } from "@apex/sim";
 import type { SplineTrack } from "./splineTrack";
+import { normalMap, type SurfaceKind } from "../normalMaps";
 
-/** Flat ground plane under the track. */
-function ground(t: SplineTrack, color: number, roughness = 1): void {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({ color, roughness, envMapIntensity: 0.1 }));
+/** Flat ground plane under the track, optionally with a procedural normal map. */
+function ground(t: SplineTrack, color: number, roughness = 1, surface?: SurfaceKind): void {
+  let nm: THREE.Texture | null = null;
+  if (surface) {
+    nm = normalMap(surface).clone();
+    nm.repeat.set(120, 120);
+    nm.needsUpdate = true;
+  }
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({ color, roughness, envMapIntensity: 0.1, normalMap: nm }));
   m.rotation.x = -Math.PI / 2;
   m.position.y = -2;
   t.group.add(m);
@@ -22,9 +29,9 @@ function spot(t: SplineTrack, i: number, side: number, dist: number, margin: num
 /** Sunset Canyon: sand, layered red mesas, cacti and boulders. */
 export function buildDesert(t: SplineTrack): void {
   const g = t.group;
-  ground(t, 0x9a5a2e);
+  ground(t, 0x9a5a2e, 1, "sand");
   const rnd = mulberry32(31);
-  const layers = [0xa2482a, 0xc0653a, 0x8a3a22, 0xd07a45].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95, envMapIntensity: 0.12, flatShading: true }));
+  const layers = [0xa2482a, 0xc0653a, 0x8a3a22, 0xd07a45].map((c) => new THREE.MeshStandardMaterial({ color: c, normalMap: normalMap("rock"), normalScale: new THREE.Vector2(0.8, 0.8), roughness: 0.95, envMapIntensity: 0.12, flatShading: true }));
   const cyl = new THREE.CylinderGeometry(1, 1.15, 1, 9);
 
   // Mesas: stacked, slightly shrinking layers – far from the road

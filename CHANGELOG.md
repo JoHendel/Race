@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Procedural surface detail (asphalt grain, rock, cracked ice, sand dunes), bloom and colour grade per track
+- Loading screen that shows instantly; libraries split into cacheable chunks
 - Track-specific reflections from CC0 environment maps (Poly Haven, via @pmndrs/assets), loaded on demand
 - Own scenery for Sunset Canyon (desert with layered mesas and cacti), Skyline Loop (neon skyscrapers with lit windows) and Grand Circuit (grandstands with crowds, pit building, flags)
 

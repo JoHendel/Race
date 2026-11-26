@@ -78,6 +78,7 @@ export const EN: Record<string, string> = {
   "Der Host startet das nächste Rennen.": "The host starts the next race.",
   Du: "You",
   "Dein Name": "Your name",
+  "Lädt …": "Loading …",
 
   // Race
   "FALSCHE RICHTUNG": "WRONG WAY",
